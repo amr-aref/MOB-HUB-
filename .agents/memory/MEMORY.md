@@ -1,1 +1,2 @@
 - [Mobile Marketplace Architecture](mobile-marketplace.md) — Egypt mobile phone marketplace Expo app, enterprise-grade, white Liquid Glass design, Arabic RTL default, Phase 2 complete.
+- [Artifact registry can start empty on GitHub re-import](artifact-registry-reimport.md) — `listArtifacts()`/managed workflows can be empty despite `artifact.toml` files existing; recovery is manual `configureWorkflow`.

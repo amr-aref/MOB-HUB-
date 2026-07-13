@@ -1,20 +1,23 @@
-# [Project name]
+# MOB HUB — Egypt Mobile Phone Marketplace
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+An Expo mobile marketplace app (Arabic RTL) for buying/comparing phones in Egypt, backed by a shared Express API server. Imported from GitHub as a published-app snapshot on 2026-07-13.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- Workflow `Mobile` — runs the Expo app (`pnpm --filter @workspace/mobile run dev`), reachable at `https://$REPLIT_EXPO_DEV_DOMAIN/`
+- Workflow `API Server` — runs the Express API (`pnpm --filter @workspace/api-server run dev`, port 8080), health check at `/api/healthz`
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- Required env: `DATABASE_URL` — Postgres connection string (already provisioned)
 
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
+- Mobile: Expo Router (`artifacts/mobile`)
+- API: Express 5 (`artifacts/api-server`)
+- Canvas/design tool: `artifacts/mockup-sandbox` (not currently running; start manually if needed for canvas mockup work)
 - DB: PostgreSQL + Drizzle ORM
 - Validation: Zod (`zod/v4`), `drizzle-zod`
 - API codegen: Orval (from OpenAPI spec)
@@ -22,7 +25,10 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- Mobile app screens/components: `artifacts/mobile/app`, `artifacts/mobile/components`
+- Mobile design tokens: `artifacts/mobile/constants/colors.ts`
+- API routes: `artifacts/api-server/src/routes`
+- Shared OpenAPI spec: `lib/api-spec/openapi.yaml`
 
 ## Architecture decisions
 
@@ -30,7 +36,7 @@ _Populate as you build — non-obvious choices a reader couldn't infer from the 
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+Egypt mobile phone marketplace: browse/compare phones and stores, favorites, and a per-store seller dashboard (add product, orders, messages, reviews).
 
 ## User preferences
 
@@ -38,7 +44,7 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- This repo was imported as a single "Published your App" git snapshot, so the platform's artifact registry (`listArtifacts()`/managed workflows) started out **empty** even though `artifacts/*/.replit-artifact/artifact.toml` files exist on disk. The `Mobile` and `API Server` workflows here were configured manually (`configureWorkflow`) with `PORT`/`BASE_PATH` set inline to match the artifact.toml values, since `createArtifact` refuses to recreate an existing directory. Path-based multi-artifact proxy routing (e.g. serving `api-server` under `/api` or `mockup-sandbox` under `/__mockup` on the same domain) is NOT active — only the Expo domain (mobile) and directly-curled ports work. If proper artifact registration/routing is ever needed, it likely requires a fresh `createArtifact` after removing the existing directories, or platform-side support.
 
 ## Pointers
 
