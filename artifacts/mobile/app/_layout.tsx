@@ -11,6 +11,13 @@ import {
   Inter_700Bold,
   useFonts,
 } from '@expo-google-fonts/inter';
+import {
+  IBMPlexSansArabic_300Light,
+  IBMPlexSansArabic_400Regular,
+  IBMPlexSansArabic_500Medium,
+  IBMPlexSansArabic_600SemiBold,
+  IBMPlexSansArabic_700Bold,
+} from '@expo-google-fonts/ibm-plex-sans-arabic';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { LanguageProvider } from '@/contexts/LanguageContext';
@@ -52,6 +59,13 @@ function RootLayoutNav() {
           presentation: 'card',
         }}
       />
+      <Stack.Screen
+        name="dashboard/products"
+        options={{
+          headerShown: false,
+          presentation: 'card',
+        }}
+      />
     </Stack>
   );
 }
@@ -62,6 +76,11 @@ export default function RootLayout() {
     Inter_500Medium,
     Inter_600SemiBold,
     Inter_700Bold,
+    IBMPlexSansArabic_300Light,
+    IBMPlexSansArabic_400Regular,
+    IBMPlexSansArabic_500Medium,
+    IBMPlexSansArabic_600SemiBold,
+    IBMPlexSansArabic_700Bold,
   });
 
   useEffect(() => {

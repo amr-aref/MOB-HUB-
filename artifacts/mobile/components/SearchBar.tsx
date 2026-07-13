@@ -1,8 +1,9 @@
 import React from 'react';
-import { Platform, StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { BlurView } from 'expo-blur';
 import colors from '@/constants/colors';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { getFontFamily } from '@/constants/fonts';
 
 interface SearchBarProps {
   value: string;
@@ -12,19 +13,23 @@ interface SearchBarProps {
 }
 
 export default function SearchBar({ value, onChangeText, placeholder, isRTL = false }: SearchBarProps) {
+  const { isRTL: rtlContext } = useLanguage();
+  const rtl = isRTL || rtlContext;
+  const fontFam = getFontFamily(rtl, 'regular');
+
   const inputStyle = [
     styles.input,
-    { textAlign: isRTL ? 'right' as const : 'left' as const },
+    { textAlign: rtl ? 'right' as const : 'left' as const, fontFamily: fontFam },
   ];
 
-  const inner = (
-    <View style={[styles.innerRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-      <Ionicons name="search-outline" size={18} color={colors.light.mutedForeground} />
+  return (
+    <View style={[styles.container, { flexDirection: rtl ? 'row-reverse' : 'row' }]}>
+      <Ionicons name="search-outline" size={20} color={colors.light.mutedForeground} />
       <TextInput
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor={colors.light.mutedForeground}
+        placeholderTextColor={colors.light.textTertiary}
         style={inputStyle}
         returnKeyType="search"
         autoCorrect={false}
@@ -37,54 +42,36 @@ export default function SearchBar({ value, onChangeText, placeholder, isRTL = fa
           onPress={() => onChangeText('')}
         />
       )}
+      <View style={[styles.actionIcons, { flexDirection: rtl ? 'row-reverse' : 'row' }]}>
+        <Ionicons name="mic-outline" size={20} color={colors.light.mutedForeground} style={{ marginHorizontal: 6 }} />
+        <Ionicons name="camera-outline" size={20} color={colors.light.mutedForeground} style={{ marginHorizontal: 6 }} />
+      </View>
     </View>
   );
-
-  if (Platform.OS === 'ios') {
-    return (
-      <BlurView intensity={60} tint="light" style={styles.blur}>
-        <View style={styles.glassOverlay}>{inner}</View>
-      </BlurView>
-    );
-  }
-
-  return <View style={styles.fallback}>{inner}</View>;
 }
 
 const styles = StyleSheet.create({
-  blur: {
-    borderRadius: colors.radiusFull,
-    overflow: 'hidden',
-  },
-  glassOverlay: {
-    backgroundColor: 'rgba(255,255,255,0.75)',
-    borderWidth: 1.5,
-    borderColor: colors.light.glassBorder,
-    borderRadius: colors.radiusFull,
-  },
-  fallback: {
-    backgroundColor: '#fff',
-    borderRadius: colors.radiusFull,
-    borderWidth: 1.5,
-    borderColor: colors.light.border,
-    shadowColor: colors.light.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 1,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  innerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  container: {
+    backgroundColor: 'rgba(251, 250, 247, 0.85)',
+    borderRadius: 999,
+    borderWidth: 0,
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
     gap: 10,
+    shadowColor: colors.light.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 16,
+    elevation: 2,
   },
   input: {
     flex: 1,
     fontSize: 15,
     color: colors.light.foreground,
     padding: 0,
-    fontFamily: 'Inter_400Regular',
   },
+  actionIcons: {
+    alignItems: 'center',
+  }
 });

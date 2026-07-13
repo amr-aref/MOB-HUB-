@@ -11,9 +11,12 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import Animated, { FadeIn, FadeInUp, useAnimatedStyle, withRepeat, withTiming } from 'react-native-reanimated';
 import colors from '@/constants/colors';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { phoneSpecs, PhoneSpec, stores } from '@/data/mockData';
+import { getFontFamily } from '@/constants/fonts';
+import { phoneSpecs, PhoneSpec, stores, products } from '@/data/mockData';
+import ProductCard from '@/components/ProductCard';
 
 type SpecGroup = {
   groupKey: string;
@@ -26,6 +29,21 @@ type SpecGroup = {
   }>;
 };
 
+function PulseGlow({ children }: { children: React.ReactNode }) {
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      opacity: withRepeat(withTiming(0.4, { duration: 1500 }), -1, true),
+    };
+  });
+
+  return (
+    <View style={styles.pulseContainer}>
+      <Animated.View style={[StyleSheet.absoluteFill, styles.pulseGlow, animatedStyle]} />
+      {children}
+    </View>
+  );
+}
+
 export default function CompareScreen() {
   const { t, isRTL, language } = useLanguage();
   const insets = useSafeAreaInsets();
@@ -36,6 +54,12 @@ export default function CompareScreen() {
   const topInset = Platform.OS === 'web' ? 67 : insets.top;
   const bottomInset = Platform.OS === 'web' ? 34 : 0;
   const MAX_PHONES = 3;
+
+  const fontFamBold = getFontFamily(isRTL, 'bold');
+  const fontFamSemi = getFontFamily(isRTL, 'semiBold');
+  const fontFamReg = getFontFamily(isRTL, 'regular');
+  const latinBold = getFontFamily(false, 'bold');
+  const latinReg = getFontFamily(false, 'regular');
 
   const specGroups: SpecGroup[] = [
     {
@@ -118,7 +142,7 @@ export default function CompareScreen() {
   }
 
   function getBestIdx(spec: SpecGroup['specs'][0]): number | null {
-    if (!spec.compareValue) return null;
+    if (!spec.compareValue || selected.length < 2) return null;
     const vals = selected.map(spec.compareValue);
     const best = spec.higherIsBetter ? Math.max(...vals) : Math.min(...vals);
     const allSame = vals.every((v) => v === vals[0]);
@@ -131,7 +155,7 @@ export default function CompareScreen() {
     {
       label: language === 'ar' ? 'الأفضل عموماً' : 'Best Overall',
       icon: 'trophy',
-      color: '#F59E0B',
+      color: '#D97706',
       bgColor: '#FEF3C7',
       phoneIdx: selected.reduce((best, p, i, arr) => {
         const score = p._rearMp / 10 + p._batteryMah / 1000 + p._ramGb - p.priceEGP / 10000;
@@ -140,16 +164,16 @@ export default function CompareScreen() {
       }, 0),
     },
     {
-      label: language === 'ar' ? 'أفضل كاميرا' : 'Best Camera',
-      icon: 'camera',
-      color: '#8B5CF6',
+      label: language === 'ar' ? 'أفضل أداء' : 'Best Gaming',
+      icon: 'game-controller',
+      color: '#7C3AED',
       bgColor: '#EDE9FE',
-      phoneIdx: selected.reduce((best, p, i, arr) => p._rearMp > arr[best]._rearMp ? i : best, 0),
+      phoneIdx: selected.reduce((best, p, i, arr) => p._ramGb > arr[best]._ramGb ? i : best, 0),
     },
     {
       label: language === 'ar' ? 'أفضل بطارية' : 'Best Battery',
       icon: 'battery-full',
-      color: '#10B981',
+      color: '#059669',
       bgColor: '#D1FAE5',
       phoneIdx: selected.reduce((best, p, i, arr) => p._batteryMah > arr[best]._batteryMah ? i : best, 0),
     },
@@ -162,27 +186,35 @@ export default function CompareScreen() {
     },
   ] : [];
 
-  const PHONE_COL = 110;
+  const PHONE_COL = 130;
 
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={[styles.header, { paddingTop: topInset + 8 }]}>
-        <Text style={[styles.title, { textAlign: isRTL ? 'right' : 'left' }]}>
+        <Text style={[styles.title, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamBold }]}>
           {t('compareTitle')}
         </Text>
-        <Text style={[styles.subtitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+        <Text style={[styles.subtitle, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamReg }]}>
           {language === 'ar' ? 'قارن حتى ٣ هواتف جنباً إلى جنب' : 'Compare up to 3 phones side by side'}
         </Text>
+        <View style={[styles.headerActions, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <Pressable style={styles.actionBtn}>
+            <Ionicons name="bookmark-outline" size={18} color={colors.light.foreground} />
+          </Pressable>
+          <Pressable style={styles.actionBtn}>
+            <Ionicons name="share-social-outline" size={18} color={colors.light.foreground} />
+          </Pressable>
+        </View>
       </View>
 
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={{ paddingBottom: bottomInset + 100 }}
+        contentContainerStyle={{ paddingBottom: bottomInset + 120 }}
         showsVerticalScrollIndicator={false}
       >
         {/* Phone Selector */}
-        <View style={styles.selectorCard}>
+        <Animated.View entering={FadeInUp.delay(100).springify().stiffness(300).damping(28)} style={styles.selectorContainer}>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -192,23 +224,18 @@ export default function CompareScreen() {
             ]}
           >
             {selected.map((phone, idx) => (
-              <View key={phone.id} style={styles.phoneSlot}>
-                {/* Phone color swatch */}
-                <View style={[styles.phoneImage, { backgroundColor: getPhoneColor(idx) }]}>
-                  <Ionicons name="phone-portrait" size={28} color="rgba(255,255,255,0.9)" />
+              <View key={phone.id} style={styles.phoneSlotCard}>
+                <View style={[styles.phoneImage, { backgroundColor: getPhoneColor(idx) + '20' }]}>
+                  <Ionicons name="phone-portrait" size={32} color={getPhoneColor(idx)} />
                 </View>
-                <Text style={styles.phoneBrand}>{phone.brand}</Text>
-                <Text style={styles.phoneModel} numberOfLines={2}>{phone.model}</Text>
-                <Text style={styles.phonePrice}>
-                  {(phone.priceEGP / 1000).toFixed(0)}k {t('egp')}
-                </Text>
-                <Text style={styles.phoneStorage}>{phone.storage[0]}</Text>
-                <View style={styles.slotActions}>
+                <Text style={[styles.phoneBrand, { fontFamily: fontFamSemi }]}>{phone.brand}</Text>
+                <Text style={[styles.phoneModel, { fontFamily: fontFamBold }]} numberOfLines={2}>{phone.model}</Text>
+                <View style={[styles.slotActions, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                   <Pressable
                     onPress={() => removePhone(idx)}
                     style={styles.slotRemove}
                   >
-                    <Text style={styles.slotRemoveText}>
+                    <Text style={[styles.slotRemoveText, { fontFamily: fontFamSemi }]}>
                       {language === 'ar' ? 'إزالة' : 'Remove'}
                     </Text>
                   </Pressable>
@@ -216,7 +243,7 @@ export default function CompareScreen() {
                     onPress={() => openPicker(idx)}
                     style={styles.slotChange}
                   >
-                    <Text style={styles.slotChangeText}>
+                    <Text style={[styles.slotChangeText, { fontFamily: fontFamSemi }]}>
                       {language === 'ar' ? 'تغيير' : 'Change'}
                     </Text>
                   </Pressable>
@@ -225,133 +252,166 @@ export default function CompareScreen() {
             ))}
 
             {selected.length < MAX_PHONES && (
-              <Pressable style={styles.addSlot} onPress={() => openPicker(selected.length)}>
+              <Pressable style={styles.addSlotCard} onPress={() => openPicker(selected.length)}>
                 <View style={styles.addSlotIcon}>
-                  <Ionicons name="add" size={26} color={colors.light.primary} />
+                  <Ionicons name="add" size={28} color={colors.light.primary} />
                 </View>
-                <Text style={styles.addSlotText}>
+                <Text style={[styles.addSlotText, { fontFamily: fontFamSemi }]}>
                   {t('addPhone')}
                 </Text>
               </Pressable>
             )}
           </ScrollView>
-        </View>
+        </Animated.View>
 
         {/* AI Quick Summary */}
         {aiBadges.length > 0 && (
-          <View style={styles.aiCard}>
+          <Animated.View entering={FadeInUp.delay(150).springify().stiffness(300).damping(28)} style={styles.aiCard}>
             <View style={[styles.aiHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <View style={styles.aiIconWrap}>
-                <Ionicons name="sparkles" size={16} color={colors.light.primary} />
+                <Ionicons name="sparkles" size={18} color={colors.light.primary} />
               </View>
-              <Text style={styles.aiTitle}>
-                {language === 'ar' ? 'ملخص ذكي' : 'Intelligent Summary'}
+              <Text style={[styles.aiTitle, { fontFamily: fontFamBold }]}>
+                {language === 'ar' ? 'ملخص الذكاء الاصطناعي' : 'AI Quick Summary'}
               </Text>
             </View>
-            <View style={styles.aiBadgesGrid}>
+            <View style={[styles.aiBadgesGrid, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               {aiBadges.map((badge, i) => (
-                <View key={i} style={[styles.aiBadge, { backgroundColor: badge.bgColor }]}>
-                  <Ionicons name={badge.icon as any} size={16} color={badge.color} />
-                  <View style={{ flex: 1 }}>
-                    <Text style={[styles.aiBadgeLabel, { color: badge.color }]}>{badge.label}</Text>
-                    <Text style={styles.aiBadgePhone} numberOfLines={1}>
+                <View key={i} style={[styles.aiBadge, { backgroundColor: badge.bgColor, flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                  <Ionicons name={badge.icon as any} size={20} color={badge.color} />
+                  <View style={{ flex: 1, alignItems: isRTL ? 'flex-end' : 'flex-start' }}>
+                    <Text style={[styles.aiBadgeLabel, { color: badge.color, fontFamily: fontFamSemi }]}>{badge.label}</Text>
+                    <Text style={[styles.aiBadgePhone, { fontFamily: fontFamBold }]} numberOfLines={1}>
                       {selected[badge.phoneIdx]?.model}
                     </Text>
                   </View>
                 </View>
               ))}
             </View>
-          </View>
+            {/* Purchase Recommendation */}
+            <View style={styles.recommendationCard}>
+              <View style={[styles.recommendationInner, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                <View style={[styles.recommendationIcon, { backgroundColor: getPhoneColor(aiBadges[0].phoneIdx) + '20' }]}>
+                  <Ionicons name="trophy" size={24} color={getPhoneColor(aiBadges[0].phoneIdx)} />
+                </View>
+                <View style={{ flex: 1, alignItems: isRTL ? 'flex-end' : 'flex-start' }}>
+                  <Text style={[styles.recommendationTitle, { fontFamily: fontFamBold }]}>
+                    {language === 'ar' ? 'الفائز العام' : 'Overall Winner'}
+                  </Text>
+                  <Text style={[styles.recommendationModel, { fontFamily: fontFamBold }]}>
+                    {selected[aiBadges[0].phoneIdx]?.model}
+                  </Text>
+                  <Text style={[styles.recommendationPros, { fontFamily: fontFamReg }]}>
+                    {language === 'ar' ? 'أفضل توازن بين الأداء والكاميرا والسعر.' : 'Best balance of performance, camera, and price.'}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </Animated.View>
         )}
 
         {/* Spec Table */}
         {selected.length >= 2 && (
-          <View style={styles.tableCard}>
-            {/* Column headers */}
-            <View style={[styles.tableHeaderRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <View style={styles.specLabelCol} />
-              {selected.map((phone, idx) => (
-                <View key={phone.id} style={[styles.phoneCol, { width: PHONE_COL }]}>
-                  <View style={[styles.phoneColHeader, { backgroundColor: getPhoneColor(idx) + '22' }]}>
-                    <Text style={[styles.phoneColBrand, { color: getPhoneColor(idx) }]}>{phone.brand}</Text>
-                    <Text style={[styles.phoneColModel, { color: colors.light.foreground }]} numberOfLines={2}>
-                      {phone.model.replace(phone.brand, '').trim()}
+          <Animated.View entering={FadeInUp.delay(200).springify().stiffness(300).damping(28)} style={styles.tableCard}>
+            <View style={styles.tableInner}>
+              {/* Column headers */}
+              <View style={[styles.tableHeaderRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                <View style={styles.specLabelCol} />
+                {selected.map((phone, idx) => (
+                  <View key={phone.id} style={[styles.phoneCol, { width: PHONE_COL }]}>
+                    <View style={[styles.phoneColHeader]}>
+                      <Text style={[styles.phoneColBrand, { color: getPhoneColor(idx), fontFamily: fontFamSemi }]}>{phone.brand}</Text>
+                      <Text style={[styles.phoneColModel, { fontFamily: fontFamBold }]} numberOfLines={2}>
+                        {phone.model.replace(phone.brand, '').trim()}
+                      </Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+
+              {specGroups.map((group) => (
+                <View key={group.groupKey}>
+                  {/* Group header */}
+                  <View style={styles.groupHeader}>
+                    <Text style={[styles.groupLabel, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamBold }]}>
+                      {t(group.groupKey as any)}
                     </Text>
                   </View>
+
+                  {group.specs.map((spec) => {
+                    const bestIdx = getBestIdx(spec);
+                    return (
+                      <View
+                        key={spec.key}
+                        style={[styles.specRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
+                      >
+                        <View style={styles.specLabelCol}>
+                          <Text
+                            style={[styles.specLabel, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamSemi }]}
+                            numberOfLines={2}
+                          >
+                            {spec.label}
+                          </Text>
+                        </View>
+                        {selected.map((phone, idx) => {
+                          const isBest = bestIdx === idx;
+                          return (
+                            <View
+                              key={phone.id}
+                              style={[
+                                styles.specValueCell,
+                                { width: PHONE_COL },
+                                isBest && styles.bestCellOuter,
+                              ]}
+                            >
+                              {isBest ? (
+                                <PulseGlow>
+                                  <View style={styles.bestCellPill}>
+                                    <View style={styles.bestBadge}>
+                                      <Text style={[styles.bestBadgeText, { fontFamily: fontFamBold }]}>
+                                        {language === 'ar' ? 'الأفضل' : 'Best'}
+                                      </Text>
+                                    </View>
+                                    <Text
+                                      style={[styles.specValue, { textAlign: 'center', fontFamily: fontFamBold, color: colors.light.primary }]}
+                                      numberOfLines={3}
+                                    >
+                                      {spec.getValue(phone)}
+                                    </Text>
+                                  </View>
+                                </PulseGlow>
+                              ) : (
+                                <Text
+                                  style={[styles.specValue, { textAlign: 'center', fontFamily: fontFamReg }]}
+                                  numberOfLines={3}
+                                >
+                                  {spec.getValue(phone)}
+                                </Text>
+                              )}
+                            </View>
+                          );
+                        })}
+                      </View>
+                    );
+                  })}
                 </View>
               ))}
             </View>
-
-            {specGroups.map((group) => (
-              <View key={group.groupKey}>
-                {/* Group header */}
-                <View style={styles.groupHeader}>
-                  <Text style={[styles.groupLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
-                    {t(group.groupKey as any)}
-                  </Text>
-                </View>
-
-                {group.specs.map((spec) => {
-                  const bestIdx = getBestIdx(spec);
-                  return (
-                    <View
-                      key={spec.key}
-                      style={[styles.specRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
-                    >
-                      <View style={styles.specLabelCol}>
-                        <Text
-                          style={[styles.specLabel, { textAlign: isRTL ? 'right' : 'left' }]}
-                          numberOfLines={2}
-                        >
-                          {spec.label}
-                        </Text>
-                      </View>
-                      {selected.map((phone, idx) => {
-                        const isBest = bestIdx === idx;
-                        return (
-                          <View
-                            key={phone.id}
-                            style={[
-                              styles.specValueCell,
-                              { width: PHONE_COL },
-                              isBest && styles.bestCell,
-                            ]}
-                          >
-                            {isBest && (
-                              <View style={styles.bestBadge}>
-                                <Ionicons name="checkmark" size={10} color="#fff" />
-                                <Text style={styles.bestBadgeText}>{t('better')}</Text>
-                              </View>
-                            )}
-                            <Text
-                              style={[styles.specValue, { textAlign: 'center' }, isBest && styles.bestValue]}
-                              numberOfLines={3}
-                            >
-                              {spec.getValue(phone)}
-                            </Text>
-                          </View>
-                        );
-                      })}
-                    </View>
-                  );
-                })}
-              </View>
-            ))}
-          </View>
+          </Animated.View>
         )}
 
         {/* Store Price Comparison */}
         {selected.length >= 1 && (
-          <View style={styles.storesPriceCard}>
+          <Animated.View entering={FadeInUp.delay(250).springify().stiffness(300).damping(28)} style={styles.storesPriceCard}>
             <View style={[styles.sectionHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <View style={styles.sectionIconWrap}>
-                <Ionicons name="storefront-outline" size={16} color={colors.light.primary} />
+                <Ionicons name="storefront" size={20} color={colors.light.primary} />
               </View>
-              <Text style={styles.sectionTitle}>
-                {language === 'ar' ? 'السعر في المتاجر' : 'Price at Stores'}
+              <Text style={[styles.sectionTitle, { fontFamily: fontFamBold }]}>
+                {language === 'ar' ? 'الأسعار في المتاجر' : 'Prices at Stores'}
               </Text>
             </View>
-            <Text style={[styles.sectionSubtitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+            <Text style={[styles.sectionSubtitle, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamReg }]}>
               {selected[0].model}
             </Text>
             {stores.slice(0, 3).map((store, idx) => {
@@ -361,34 +421,35 @@ export default function CompareScreen() {
               return (
                 <View key={store.id} style={[styles.storePriceRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                   <View style={[styles.storePriceLogo, { backgroundColor: store.logoColor }]}>
-                    <Text style={styles.storePriceLogoText}>{store.logoInitial}</Text>
+                    <Text style={[styles.storePriceLogoText, { fontFamily: latinBold }]}>{store.logoInitial}</Text>
                   </View>
-                  <View style={{ flex: 1, marginLeft: isRTL ? 0 : 10, marginRight: isRTL ? 10 : 0 }}>
-                    <View style={[{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: 5 }]}>
-                      <Text style={[styles.storePriceName, { textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+                  <View style={{ flex: 1, marginLeft: isRTL ? 0 : 12, marginRight: isRTL ? 12 : 0 }}>
+                    <View style={[{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: 6 }]}>
+                      <Text style={[styles.storePriceName, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamSemi }]} numberOfLines={1}>
                         {storeNameLabel}
                       </Text>
                       {store.isVerified && (
-                        <Ionicons name="checkmark-circle" size={12} color={colors.light.primary} />
+                        <View style={styles.verifiedStoreBadge}>
+                          <Ionicons name="checkmark" size={10} color="#fff" />
+                        </View>
                       )}
                     </View>
-                    <View style={[{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: 5, marginTop: 2 }]}>
-                      <Ionicons name="location-outline" size={11} color={colors.light.mutedForeground} />
-                      <Text style={styles.storePriceMeta} numberOfLines={1}>
+                    <View style={[{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: 6, marginTop: 4 }]}>
+                      <Ionicons name="star" size={12} color={colors.light.star} />
+                      <Text style={[styles.storePriceMeta, { fontFamily: fontFamReg }]}>
+                        {store.rating.toFixed(1)}
+                      </Text>
+                      <Text style={[styles.storePriceMeta, { fontFamily: fontFamReg }]}>·</Text>
+                      <Text style={[styles.storePriceMeta, { fontFamily: fontFamReg }]} numberOfLines={1}>
                         {language === 'ar' ? store.governorate : store.city}
-                        {isLowest && (
-                          <Text style={styles.bestPriceTag}>
-                            {language === 'ar' ? ' · أقل سعر' : ' · Best Price'}
-                          </Text>
-                        )}
                       </Text>
                     </View>
                   </View>
                   <View style={{ alignItems: isRTL ? 'flex-start' : 'flex-end' }}>
-                    <Text style={[styles.storePriceAmount, isLowest && { color: colors.light.success }]}>
+                    <Text style={[styles.storePriceAmount, { fontFamily: latinBold }, isLowest && { color: colors.light.success }]}>
                       {Math.round(priceVariant).toLocaleString()}
                     </Text>
-                    <Text style={styles.storePriceEgp}>{t('egp')}</Text>
+                    <Text style={[styles.storePriceEgp, { fontFamily: fontFamSemi }]}>{t('egp')}</Text>
                   </View>
                 </View>
               );
@@ -396,57 +457,86 @@ export default function CompareScreen() {
             {/* Action buttons */}
             <View style={[styles.priceActions, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <Pressable style={styles.reserveBtn}>
-                <Ionicons name="bookmark-outline" size={16} color="#fff" />
-                <Text style={styles.reserveBtnText}>
-                  {language === 'ar' ? 'احجز أفضل عرض' : 'Reserve Best Deal'}
+                <Text style={[styles.reserveBtnText, { fontFamily: fontFamSemi }]}>
+                  {language === 'ar' ? 'حجز أفضل عرض' : 'Reserve Best Deal'}
                 </Text>
               </Pressable>
               <Pressable style={styles.saveBtn}>
-                <Ionicons name="heart-outline" size={16} color={colors.light.primary} />
-                <Text style={styles.saveBtnText}>
-                  {language === 'ar' ? 'حفظ' : 'Save'}
-                </Text>
+                <Ionicons name="call" size={18} color={colors.light.btnPrimaryBg} />
+              </Pressable>
+              <Pressable style={styles.saveBtn}>
+                <Ionicons name="logo-whatsapp" size={18} color="#25D366" />
               </Pressable>
             </View>
-          </View>
+          </Animated.View>
         )}
+
+        {/* Related Phones */}
+        {selected.length > 0 && (
+          <Animated.View entering={FadeInUp.delay(300).springify().stiffness(300).damping(28)} style={styles.relatedSection}>
+            <View style={styles.groupHeader}>
+              <Text style={[styles.groupLabel, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamBold }]}>
+                {language === 'ar' ? 'هواتف ذات صلة' : 'Related Phones'}
+              </Text>
+            </View>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={[
+                styles.horizontalList,
+                { paddingLeft: isRTL ? 0 : 16, paddingRight: isRTL ? 16 : 0, paddingTop: 16 },
+              ]}
+            >
+              {products.slice(0, 4).map((product) => (
+                <View key={product.id} style={styles.productWrap}>
+                  <ProductCard
+                    product={product}
+                    onPress={() => {}}
+                    width={160}
+                  />
+                </View>
+              ))}
+            </ScrollView>
+          </Animated.View>
+        )}
+
       </ScrollView>
 
       {/* Phone Picker Modal */}
       <Modal visible={showPicker} animationType="slide" presentationStyle="pageSheet">
         <View style={styles.modal}>
           <View style={[styles.modalHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <Text style={styles.modalTitle}>{t('selectPhone')}</Text>
+            <Text style={[styles.modalTitle, { fontFamily: fontFamBold }]}>{t('selectPhone')}</Text>
             <Pressable onPress={() => setShowPicker(false)} style={styles.modalClose}>
-              <Ionicons name="close" size={22} color={colors.light.foreground} />
+              <Ionicons name="close" size={24} color={colors.light.foreground} />
             </Pressable>
           </View>
           <ScrollView contentContainerStyle={styles.modalList}>
-            {phoneSpecs.map((phone) => {
+            {phoneSpecs.map((phone, idx) => {
               const alreadySelected = selected.some((p) => p.id === phone.id);
               return (
                 <Pressable
                   key={phone.id}
                   onPress={() => !alreadySelected && selectPhone(phone)}
-                  style={[styles.modalItem, alreadySelected && styles.modalItemDisabled]}
+                  style={[styles.modalItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }, alreadySelected && styles.modalItemDisabled]}
                 >
-                  <View style={[styles.modalPhoneIcon, { backgroundColor: getPhoneColor(phoneSpecs.indexOf(phone)) }]}>
-                    <Ionicons name="phone-portrait" size={20} color="rgba(255,255,255,0.9)" />
+                  <View style={[styles.modalPhoneIcon, { backgroundColor: getPhoneColor(idx) + '20' }]}>
+                    <Ionicons name="phone-portrait" size={24} color={getPhoneColor(idx)} />
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={[styles.modalPhoneName, { textAlign: isRTL ? 'right' : 'left' }]}>
+                    <Text style={[styles.modalPhoneName, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamBold }]}>
                       {phone.brand} {phone.model}
                     </Text>
-                    <Text style={[styles.modalPhonePrice, { textAlign: isRTL ? 'right' : 'left' }]}>
+                    <Text style={[styles.modalPhonePrice, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamReg }]}>
                       {phone.priceEGP.toLocaleString()} {t('egp')}
                     </Text>
                   </View>
                   {alreadySelected ? (
-                    <Ionicons name="checkmark-circle" size={20} color={colors.light.primary} />
+                    <Ionicons name="checkmark-circle" size={24} color={colors.light.primary} />
                   ) : (
                     <Ionicons
                       name={isRTL ? 'chevron-back' : 'chevron-forward'}
-                      size={18}
+                      size={20}
                       color={colors.light.mutedForeground}
                     />
                   )}
@@ -466,429 +556,473 @@ function getPhoneColor(idx: number): string {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F7FA' },
+  container: { flex: 1, backgroundColor: colors.light.background },
 
   header: {
-    backgroundColor: colors.light.background,
     paddingHorizontal: 16,
-    paddingBottom: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(226,232,240,0.6)',
-    shadowColor: 'rgba(15,23,42,0.06)',
+    paddingBottom: 16,
+    gap: 8,
+    position: 'relative',
+  },
+  headerActions: {
+    position: 'absolute',
+    top: 50,
+    right: 16,
+    gap: 12,
+  },
+  actionBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 999,
+    backgroundColor: colors.light.card,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: colors.light.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 1,
-    shadowRadius: 10,
-    elevation: 3,
-    gap: 4,
+    shadowRadius: 8,
+    elevation: 2,
   },
   title: {
-    fontSize: 28,
-    fontFamily: 'Inter_700Bold',
+    fontSize: 32,
     color: colors.light.foreground,
   },
   subtitle: {
-    fontSize: 13,
-    fontFamily: 'Inter_400Regular',
+    fontSize: 14,
     color: colors.light.mutedForeground,
   },
   scroll: { flex: 1 },
 
   // Phone selector
-  selectorCard: {
-    backgroundColor: '#fff',
-    marginHorizontal: 16,
-    marginTop: 16,
-    borderRadius: colors.radiusLg,
-    padding: 16,
-    shadowColor: 'rgba(15,23,42,0.07)',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 1,
-    shadowRadius: 12,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: 'rgba(226,232,240,0.6)',
+  selectorContainer: {
+    paddingVertical: 16,
   },
-  slotsRow: { gap: 12 },
-  phoneSlot: {
-    width: 130,
+  slotsRow: { gap: 16, paddingHorizontal: 16 },
+  phoneSlotCard: {
+    width: 140,
+    backgroundColor: colors.light.card,
+    borderRadius: colors.radiusLg,
+    padding: 12,
     alignItems: 'center',
-    gap: 5,
+    shadowColor: colors.light.shadowMid,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 1,
+    shadowRadius: 16,
+    elevation: 4,
   },
   phoneImage: {
     width: 72,
-    height: 110,
-    borderRadius: 14,
+    height: 100,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 4,
+    marginBottom: 12,
   },
   phoneBrand: {
-    fontSize: 10,
-    fontFamily: 'Inter_500Medium',
+    fontSize: 11,
     color: colors.light.mutedForeground,
     textAlign: 'center',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   phoneModel: {
-    fontSize: 12,
-    fontFamily: 'Inter_700Bold',
+    fontSize: 14,
     color: colors.light.foreground,
     textAlign: 'center',
-    lineHeight: 16,
+    marginTop: 4,
+    marginBottom: 12,
   },
-  phonePrice: {
-    fontSize: 13,
-    fontFamily: 'Inter_700Bold',
-    color: colors.light.primary,
-    textAlign: 'center',
-  },
-  phoneStorage: {
-    fontSize: 10,
-    fontFamily: 'Inter_400Regular',
-    color: colors.light.mutedForeground,
-    textAlign: 'center',
-  },
-  slotActions: { flexDirection: 'row', gap: 6, marginTop: 4 },
+  slotActions: { gap: 8, width: '100%' },
   slotRemove: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 999,
     backgroundColor: '#FEE2E2',
+    alignItems: 'center',
   },
-  slotRemoveText: { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: colors.light.destructive },
+  slotRemoveText: { fontSize: 12, color: colors.light.destructive },
   slotChange: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 999,
     backgroundColor: colors.light.primaryLight,
+    alignItems: 'center',
   },
-  slotChangeText: { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: colors.light.primary },
-  addSlot: {
-    width: 100,
+  slotChangeText: { fontSize: 12, color: colors.light.primary },
+  addSlotCard: {
+    width: 140,
+    backgroundColor: colors.light.cardSoft,
+    borderRadius: colors.radiusLg,
+    padding: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 10,
-  },
-  addSlotIcon: {
-    width: 72,
-    height: 110,
-    borderRadius: 14,
     borderWidth: 2,
     borderColor: colors.light.border,
     borderStyle: 'dashed',
+    gap: 16,
+  },
+  addSlotIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: colors.light.primaryLight,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F8FAFC',
   },
   addSlotText: {
-    fontSize: 12,
-    fontFamily: 'Inter_500Medium',
+    fontSize: 14,
     color: colors.light.primary,
     textAlign: 'center',
   },
 
   // AI Summary
   aiCard: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.light.card,
     marginHorizontal: 16,
-    marginTop: 12,
-    borderRadius: colors.radiusLg,
-    padding: 16,
-    shadowColor: 'rgba(15,23,42,0.06)',
-    shadowOffset: { width: 0, height: 2 },
+    marginTop: 8,
+    borderRadius: colors.radiusXl,
+    padding: 20,
+    shadowColor: colors.light.shadowMid,
+    shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 1,
-    shadowRadius: 10,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: 'rgba(226,232,240,0.6)',
+    shadowRadius: 24,
+    elevation: 4,
   },
-  aiHeader: { alignItems: 'center', gap: 8, marginBottom: 12 },
+  aiHeader: { alignItems: 'center', gap: 12, marginBottom: 16 },
   aiIconWrap: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
+    width: 36,
+    height: 36,
+    borderRadius: 12,
     backgroundColor: colors.light.primaryLight,
     alignItems: 'center',
     justifyContent: 'center',
   },
   aiTitle: {
-    fontSize: 15,
-    fontFamily: 'Inter_700Bold',
+    fontSize: 18,
     color: colors.light.foreground,
     flex: 1,
   },
   aiBadgesGrid: {
-    flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 12,
   },
   aiBadge: {
-    flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 12,
-    flex: 1,
-    minWidth: '45%',
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 16,
+    width: '48%',
   },
   aiBadgeLabel: {
     fontSize: 11,
-    fontFamily: 'Inter_600SemiBold',
+    marginBottom: 4,
   },
   aiBadgePhone: {
-    fontSize: 12,
-    fontFamily: 'Inter_700Bold',
+    fontSize: 13,
     color: colors.light.foreground,
-    marginTop: 1,
+  },
+  recommendationCard: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: colors.light.border,
+  },
+  recommendationInner: {
+    alignItems: 'center',
+    gap: 16,
+  },
+  recommendationIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  recommendationTitle: {
+    fontSize: 12,
+    color: colors.light.mutedForeground,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  recommendationModel: {
+    fontSize: 18,
+    color: colors.light.foreground,
+    marginTop: 4,
+    marginBottom: 6,
+  },
+  recommendationPros: {
+    fontSize: 13,
+    color: colors.light.secondaryForeground,
+    lineHeight: 20,
   },
 
   // Spec table
   tableCard: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.light.card,
     marginHorizontal: 16,
-    marginTop: 12,
-    borderRadius: colors.radiusLg,
-    overflow: 'hidden',
-    shadowColor: 'rgba(15,23,42,0.06)',
-    shadowOffset: { width: 0, height: 2 },
+    marginTop: 24,
+    borderRadius: colors.radiusXl,
+    shadowColor: colors.light.shadowMid,
+    shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 1,
-    shadowRadius: 10,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: 'rgba(226,232,240,0.6)',
+    shadowRadius: 24,
+    elevation: 4,
+    overflow: 'hidden',
+  },
+  tableInner: {
+    borderRadius: colors.radiusXl,
+    overflow: 'hidden',
   },
   tableHeaderRow: {
+    backgroundColor: colors.light.cardSoft,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(226,232,240,0.8)',
-    backgroundColor: '#F8FAFC',
+    borderBottomColor: colors.light.border,
   },
   specLabelCol: {
     width: 100,
-    padding: 8,
+    padding: 16,
+    justifyContent: 'center',
   },
-  phoneCol: { borderLeftWidth: 1, borderLeftColor: 'rgba(226,232,240,0.8)' },
-  phoneColHeader: { padding: 10, alignItems: 'center', gap: 2 },
-  phoneColBrand: { fontSize: 10, fontFamily: 'Inter_600SemiBold' },
-  phoneColModel: { fontSize: 12, fontFamily: 'Inter_700Bold', textAlign: 'center', lineHeight: 15 },
+  phoneCol: { 
+    borderLeftWidth: 1, 
+    borderLeftColor: colors.light.border,
+  },
+  phoneColHeader: { 
+    padding: 16, 
+    alignItems: 'center', 
+    gap: 6,
+    flex: 1,
+    justifyContent: 'center',
+  },
+  phoneColBrand: { fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 },
+  phoneColModel: { fontSize: 14, textAlign: 'center', lineHeight: 20, color: colors.light.foreground },
   groupHeader: {
-    backgroundColor: '#F8FAFC',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(226,232,240,0.8)',
+    backgroundColor: colors.light.cardSoft,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(226,232,240,0.8)',
+    borderBottomColor: colors.light.border,
   },
   groupLabel: {
-    fontSize: 12,
-    fontFamily: 'Inter_700Bold',
-    color: colors.light.primary,
+    fontSize: 13,
+    color: colors.light.foreground,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 1,
   },
   specRow: {
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(226,232,240,0.5)',
-    minHeight: 44,
+    borderBottomColor: colors.light.border,
+    minHeight: 56,
   },
   specLabel: {
-    fontSize: 12,
-    fontFamily: 'Inter_500Medium',
+    fontSize: 13,
     color: colors.light.mutedForeground,
-    lineHeight: 16,
-    padding: 10,
+    lineHeight: 18,
   },
   specValueCell: {
     borderLeftWidth: 1,
-    borderLeftColor: 'rgba(226,232,240,0.8)',
-    padding: 8,
+    borderLeftColor: colors.light.border,
+    padding: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    position: 'relative',
   },
-  bestCell: { backgroundColor: 'rgba(37,99,235,0.06)' },
-  bestBadge: {
-    flexDirection: 'row',
+  bestCellOuter: {
+    padding: 8,
+  },
+  bestCellPill: { 
+    backgroundColor: colors.light.primaryLight,
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    borderRadius: 12,
     alignItems: 'center',
-    gap: 2,
+    width: '100%',
+    borderWidth: 1,
+    borderColor: 'rgba(255,138,61,0.2)',
+  },
+  pulseContainer: {
+    width: '100%',
+    alignItems: 'center',
+  },
+  pulseGlow: {
+    backgroundColor: colors.light.primaryMid,
+    borderRadius: 12,
+    transform: [{ scale: 1.05 }],
+  },
+  bestBadge: {
     backgroundColor: colors.light.primary,
-    paddingHorizontal: 5,
-    paddingVertical: 2,
-    borderRadius: 6,
-    marginBottom: 3,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+    marginBottom: 6,
   },
-  bestBadgeText: { fontSize: 9, fontFamily: 'Inter_700Bold', color: '#fff' },
+  bestBadgeText: { fontSize: 10, color: '#fff' },
   specValue: {
-    fontSize: 12,
-    fontFamily: 'Inter_400Regular',
+    fontSize: 13,
     color: colors.light.foreground,
-    lineHeight: 16,
+    lineHeight: 20,
   },
-  bestValue: { fontFamily: 'Inter_700Bold', color: colors.light.primary },
 
   // Store prices
   storesPriceCard: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.light.card,
     marginHorizontal: 16,
-    marginTop: 12,
-    marginBottom: 16,
-    borderRadius: colors.radiusLg,
-    padding: 16,
-    shadowColor: 'rgba(15,23,42,0.06)',
-    shadowOffset: { width: 0, height: 2 },
+    marginTop: 24,
+    borderRadius: colors.radiusXl,
+    padding: 20,
+    shadowColor: colors.light.shadowMid,
+    shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 1,
-    shadowRadius: 10,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: 'rgba(226,232,240,0.6)',
+    shadowRadius: 24,
+    elevation: 4,
   },
-  sectionHeader: { alignItems: 'center', gap: 8, marginBottom: 4 },
+  sectionHeader: { alignItems: 'center', gap: 12, marginBottom: 8 },
   sectionIconWrap: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
+    width: 36,
+    height: 36,
+    borderRadius: 12,
     backgroundColor: colors.light.primaryLight,
     alignItems: 'center',
     justifyContent: 'center',
   },
   sectionTitle: {
-    fontSize: 15,
-    fontFamily: 'Inter_700Bold',
+    fontSize: 18,
     color: colors.light.foreground,
     flex: 1,
   },
   sectionSubtitle: {
-    fontSize: 12,
-    fontFamily: 'Inter_400Regular',
+    fontSize: 14,
     color: colors.light.mutedForeground,
-    marginBottom: 12,
+    marginBottom: 20,
   },
   storePriceRow: {
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(226,232,240,0.5)',
+    borderBottomColor: colors.light.border,
   },
   storePriceLogo: {
-    width: 40,
-    height: 40,
-    borderRadius: 11,
+    width: 48,
+    height: 48,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  storePriceLogoText: { fontSize: 16, fontFamily: 'Inter_700Bold', color: '#fff' },
+  storePriceLogoText: { fontSize: 20, color: '#fff' },
   storePriceName: {
-    fontSize: 13,
-    fontFamily: 'Inter_600SemiBold',
+    fontSize: 15,
     color: colors.light.foreground,
   },
+  verifiedStoreBadge: {
+    backgroundColor: colors.light.verifiedBlue,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   storePriceMeta: {
-    fontSize: 11,
-    fontFamily: 'Inter_400Regular',
+    fontSize: 13,
     color: colors.light.mutedForeground,
   },
-  bestPriceTag: {
-    color: colors.light.success,
-    fontFamily: 'Inter_600SemiBold',
-  },
   storePriceAmount: {
-    fontSize: 16,
-    fontFamily: 'Inter_700Bold',
+    fontSize: 18,
     color: colors.light.foreground,
   },
   storePriceEgp: {
-    fontSize: 11,
-    fontFamily: 'Inter_400Regular',
+    fontSize: 12,
     color: colors.light.mutedForeground,
+    marginTop: 2,
   },
-  priceActions: { gap: 8, marginTop: 14 },
+  priceActions: {
+    marginTop: 20,
+    gap: 12,
+  },
   reserveBtn: {
     flex: 1,
-    flexDirection: 'row',
+    backgroundColor: colors.light.btnPrimaryBg,
+    paddingVertical: 14,
+    borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 12,
-    backgroundColor: colors.light.primary,
-    borderRadius: colors.radiusFull,
   },
   reserveBtnText: {
-    fontSize: 14,
-    fontFamily: 'Inter_700Bold',
-    color: '#fff',
+    fontSize: 15,
+    color: colors.light.btnPrimaryText,
   },
   saveBtn: {
-    flexDirection: 'row',
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: colors.light.cardSoft,
     alignItems: 'center',
-    gap: 6,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: colors.radiusFull,
-    borderWidth: 1.5,
-    borderColor: colors.light.primary,
-  },
-  saveBtnText: {
-    fontSize: 14,
-    fontFamily: 'Inter_600SemiBold',
-    color: colors.light.primary,
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.light.border,
   },
 
+  // Related
+  relatedSection: {
+    marginTop: 24,
+  },
+  horizontalList: {
+    gap: 16,
+  },
+  productWrap: {},
+
   // Modal
-  modal: { flex: 1, backgroundColor: '#fff' },
+  modal: {
+    flex: 1,
+    backgroundColor: colors.light.background,
+  },
   modalHeader: {
-    padding: 16,
+    padding: 20,
     borderBottomWidth: 1,
     borderBottomColor: colors.light.border,
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: Platform.OS === 'ios' ? 56 : 16,
+    backgroundColor: colors.light.card,
   },
   modalTitle: {
     fontSize: 20,
-    fontFamily: 'Inter_700Bold',
     color: colors.light.foreground,
   },
   modalClose: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.light.muted,
-    alignItems: 'center',
-    justifyContent: 'center',
+    padding: 4,
   },
-  modalList: { padding: 16, gap: 10 },
-  modalItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  modalList: {
+    padding: 16,
     gap: 12,
-    padding: 14,
-    backgroundColor: '#fff',
-    borderRadius: colors.radiusMd,
-    borderWidth: 1,
-    borderColor: colors.light.border,
-    shadowColor: 'rgba(15,23,42,0.04)',
+  },
+  modalItem: {
+    backgroundColor: colors.light.card,
+    borderRadius: colors.radiusLg,
+    padding: 16,
+    alignItems: 'center',
+    gap: 16,
+    shadowColor: colors.light.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 1,
-    shadowRadius: 6,
-    elevation: 1,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  modalItemDisabled: { opacity: 0.45 },
+  modalItemDisabled: {
+    opacity: 0.5,
+  },
   modalPhoneIcon: {
-    width: 46,
-    height: 68,
-    borderRadius: 10,
+    width: 48,
+    height: 48,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
   modalPhoneName: {
-    fontSize: 14,
-    fontFamily: 'Inter_700Bold',
+    fontSize: 16,
     color: colors.light.foreground,
+    marginBottom: 4,
   },
   modalPhonePrice: {
-    fontSize: 13,
-    fontFamily: 'Inter_600SemiBold',
-    color: colors.light.primary,
-    marginTop: 2,
+    fontSize: 14,
+    color: colors.light.mutedForeground,
   },
 });

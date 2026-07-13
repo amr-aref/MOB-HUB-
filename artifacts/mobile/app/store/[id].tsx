@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Alert,
   Linking,
@@ -14,12 +14,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import Animated, { FadeInUp, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import colors from '@/constants/colors';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useFavorites } from '@/contexts/FavoritesContext';
 import { categories, products, reviews, stores } from '@/data/mockData';
 import RatingStars from '@/components/RatingStars';
 import ProductCard from '@/components/ProductCard';
+import { getFontFamily } from '@/constants/fonts';
+import GlassCard from '@/components/GlassCard';
 
 const GALLERY_COLORS = [
   ['#1E3A8A', '#3B82F6'],
@@ -40,6 +43,12 @@ export default function StoreScreen() {
 
   const topInset = Platform.OS === 'web' ? 67 : insets.top;
   const bottomInset = Platform.OS === 'web' ? 34 : 0;
+
+  const fontFamBold = getFontFamily(isRTL, 'bold');
+  const fontFamSemi = getFontFamily(isRTL, 'semiBold');
+  const fontFamReg = getFontFamily(isRTL, 'regular');
+  const latinBold = getFontFamily(false, 'bold');
+  const latinReg = getFontFamily(false, 'regular');
 
   const isFav = isStoreFavorite(store.id);
   const name = language === 'ar' ? store.nameAr : store.nameEn;
@@ -86,166 +95,156 @@ export default function StoreScreen() {
     <View style={styles.container}>
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={{ paddingBottom: bottomInset + 40 }}
+        contentContainerStyle={{ paddingBottom: bottomInset + 80 }}
         showsVerticalScrollIndicator={false}
       >
         {/* Hero cover */}
-        <LinearGradient
-          colors={store.coverGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={[styles.hero, { paddingTop: topInset + 8 }]}
-        >
-          {/* Back button */}
-          <Pressable
-            onPress={() => router.back()}
-            style={[styles.backBtn, { alignSelf: isRTL ? 'flex-end' : 'flex-start' }]}
+        <Animated.View entering={FadeInUp.delay(50).springify().stiffness(300).damping(28)}>
+          <LinearGradient
+            colors={store.coverGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[styles.hero, { paddingTop: topInset + 8 }]}
           >
-            <Ionicons
-              name={isRTL ? 'chevron-forward' : 'chevron-back'}
-              size={22}
-              color="#fff"
-            />
-          </Pressable>
-
-          {/* Store logo — centered */}
-          <View style={styles.logoWrap}>
-            <View style={[styles.logo, { backgroundColor: store.logoColor }]}>
-              <Text style={styles.logoText}>{store.logoInitial}</Text>
-            </View>
-            {store.isVerified && (
-              <View style={styles.verifiedBadge}>
-                <Ionicons name="checkmark" size={12} color="#fff" />
+            <View style={[styles.heroTopBar, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <Pressable
+                onPress={() => router.back()}
+                style={styles.backBtn}
+              >
+                <Ionicons
+                  name={isRTL ? 'chevron-forward' : 'chevron-back'}
+                  size={24}
+                  color="#fff"
+                />
+              </Pressable>
+              <View style={[styles.heroActions, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                 <Pressable style={styles.heroActionBtn} onPress={handleFavorite}>
+                    <Ionicons name={isFav ? 'heart' : 'heart-outline'} size={20} color={isFav ? colors.light.destructive : '#fff'} />
+                 </Pressable>
+                 <Pressable style={styles.heroActionBtn}>
+                    <Ionicons name="share-outline" size={20} color="#fff" />
+                 </Pressable>
               </View>
-            )}
-          </View>
-
-          {/* Name + verified */}
-          <View style={[styles.nameRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <Text style={styles.storeName}>{name}</Text>
-            {store.isVerified && (
-              <View style={styles.verifiedPill}>
-                <Ionicons name="checkmark-circle" size={13} color="#93C5FD" />
-                <Text style={styles.verifiedText}>
-                  {language === 'ar' ? 'موثق' : 'Verified'}
-                </Text>
-              </View>
-            )}
-          </View>
-
-          {/* Stats row */}
-          <View style={[styles.statsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <StatItem value={store.rating.toFixed(1)} label={language === 'ar' ? 'تقييم' : 'Rating'} icon="star" />
-            <View style={styles.statDivider} />
-            <StatItem value={`${(followersCount / 1000).toFixed(1)}k`} label={language === 'ar' ? 'متابع' : 'Followers'} />
-            <View style={styles.statDivider} />
-            <StatItem value={store.reviewsCount.toLocaleString()} label={language === 'ar' ? 'تقييم' : 'Reviews'} />
-            <View style={styles.statDivider} />
-            <StatItem value={`${(store.productsCount / 1000).toFixed(store.productsCount >= 1000 ? 1 : 0)}${store.productsCount >= 1000 ? 'k' : ''}`} label={language === 'ar' ? 'منتج' : 'Products'} />
-            <View style={styles.statDivider} />
-            <View style={[styles.openPill, { backgroundColor: store.isOpen ? 'rgba(16,185,129,0.9)' : 'rgba(100,116,139,0.7)' }]}>
-              <View style={styles.openDot} />
-              <Text style={styles.openText}>{store.isOpen ? t('openNow') : t('closedNow')}</Text>
             </View>
-          </View>
-        </LinearGradient>
+
+            <View style={styles.logoWrap}>
+              <View style={[styles.logo, { backgroundColor: store.logoColor }]}>
+                <Text style={[styles.logoText, { fontFamily: latinBold }]}>{store.logoInitial}</Text>
+              </View>
+              {store.isVerified && (
+                <View style={styles.verifiedBadge}>
+                  <Ionicons name="checkmark" size={14} color="#fff" />
+                </View>
+              )}
+            </View>
+
+            <View style={[styles.nameRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <Text style={[styles.storeName, { fontFamily: fontFamBold }]}>{name}</Text>
+            </View>
+
+            <View style={[styles.statsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <StatItem value={store.rating.toFixed(1)} label={language === 'ar' ? 'تقييم' : 'Rating'} icon="star" fontFamBold={latinBold} fontFamReg={fontFamReg} />
+              <View style={styles.statDivider} />
+              <StatItem value={`${(followersCount / 1000).toFixed(1)}k`} label={language === 'ar' ? 'متابع' : 'Followers'} fontFamBold={latinBold} fontFamReg={fontFamReg} />
+              <View style={styles.statDivider} />
+              <StatItem value={store.reviewsCount.toLocaleString()} label={language === 'ar' ? 'تقييم' : 'Reviews'} fontFamBold={latinBold} fontFamReg={fontFamReg} />
+              <View style={styles.statDivider} />
+              <StatItem value={`${(store.productsCount / 1000).toFixed(store.productsCount >= 1000 ? 1 : 0)}${store.productsCount >= 1000 ? 'k' : ''}`} label={language === 'ar' ? 'منتج' : 'Products'} fontFamBold={latinBold} fontFamReg={fontFamReg} />
+              <View style={styles.statDivider} />
+              <View style={[styles.openPill, { backgroundColor: store.isOpen ? 'rgba(47,190,92,0.9)' : 'rgba(138,135,130,0.9)' }]}>
+                <View style={styles.openDot} />
+                <Text style={[styles.openText, { fontFamily: fontFamSemi }]}>{store.isOpen ? t('openNow') : t('closedNow')}</Text>
+              </View>
+            </View>
+          </LinearGradient>
+        </Animated.View>
 
         {/* Quick contact bar */}
-        <View style={[styles.contactBar, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-          <ContactBtn icon="call" label={language === 'ar' ? 'اتصال' : 'Call'} onPress={handleCall} color={colors.light.success} />
-          <ContactBtn icon="logo-whatsapp" label="WhatsApp" onPress={handleWhatsApp} color="#25D366" />
-          <ContactBtn icon="navigate" label={language === 'ar' ? 'الاتجاهات' : 'Navigate'} onPress={handleMaps} color={colors.light.primary} />
+        <Animated.View entering={FadeInUp.delay(100).springify().stiffness(300).damping(28)} style={[styles.contactBar, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <ContactBtn icon="call" label={language === 'ar' ? 'اتصال' : 'Call'} onPress={handleCall} color={colors.light.success} fontFam={fontFamSemi} />
+          <ContactBtn icon="logo-whatsapp" label="WhatsApp" onPress={handleWhatsApp} color="#25D366" fontFam={fontFamSemi} />
+          <ContactBtn icon="navigate" label={language === 'ar' ? 'الاتجاهات' : 'Navigate'} onPress={handleMaps} color={colors.light.primary} fontFam={fontFamSemi} />
           <ContactBtn
             icon={isFav ? 'heart' : 'heart-outline'}
             label={language === 'ar' ? 'متابعة' : 'Follow'}
             onPress={handleFavorite}
             color={isFav ? colors.light.destructive : colors.light.mutedForeground}
+            fontFam={fontFamSemi}
           />
-          <ContactBtn icon="share-outline" label={language === 'ar' ? 'مشاركة' : 'Share'} onPress={() => {}} color={colors.light.mutedForeground} />
-        </View>
+        </Animated.View>
 
         {/* Store Information */}
-        <View style={styles.card}>
-          <Text style={[styles.cardTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+        <Animated.View entering={FadeInUp.delay(150).springify().stiffness(300).damping(28)} style={styles.card}>
+          <Text style={[styles.cardTitle, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamBold }]}>
             {language === 'ar' ? 'معلومات المتجر' : 'Store Information'}
           </Text>
 
-          {/* Description */}
           {description && (
-            <Text style={[styles.descText, { textAlign: isRTL ? 'right' : 'left' }]}>
+            <Text style={[styles.descText, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamReg }]}>
               {description}
             </Text>
           )}
 
-          {/* Hours */}
           <View style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <View style={styles.infoIcon}>
-              <Ionicons name="time-outline" size={16} color={colors.light.primary} />
+              <Ionicons name="time-outline" size={20} color={colors.light.primary} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.infoLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
+              <Text style={[styles.infoLabel, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamReg }]}>
                 {t('workingHours')}
               </Text>
-              <Text style={[styles.infoValue, { textAlign: isRTL ? 'right' : 'left' }]}>{hours}</Text>
+              <Text style={[styles.infoValue, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamSemi }]}>{hours}</Text>
             </View>
           </View>
 
-          {/* Address */}
           <Pressable
             onPress={handleCopyAddress}
             style={[styles.infoRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
           >
             <View style={styles.infoIcon}>
-              <Ionicons name="location-outline" size={16} color={colors.light.primary} />
+              <Ionicons name="location-outline" size={20} color={colors.light.primary} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.infoLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
+              <Text style={[styles.infoLabel, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamReg }]}>
                 {t('location')}
               </Text>
-              <Text style={[styles.infoValue, { textAlign: isRTL ? 'right' : 'left' }]}>{address}</Text>
+              <Text style={[styles.infoValue, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamSemi }]}>{address}</Text>
             </View>
-            <Ionicons name="copy-outline" size={16} color={colors.light.mutedForeground} />
+            <Ionicons name="copy-outline" size={20} color={colors.light.mutedForeground} />
           </Pressable>
 
-          {/* Contact links */}
           <View style={[styles.socialRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             {store.phone && (
-              <Pressable style={styles.socialChip} onPress={handleCall}>
-                <Ionicons name="call-outline" size={14} color={colors.light.primary} />
-                <Text style={styles.socialChipText}>{language === 'ar' ? 'الهاتف' : 'Phone'}</Text>
+              <Pressable style={[styles.socialChip, { flexDirection: isRTL ? 'row-reverse' : 'row' }]} onPress={handleCall}>
+                <Ionicons name="call" size={16} color={colors.light.primary} />
+                <Text style={[styles.socialChipText, { fontFamily: fontFamSemi }]}>{language === 'ar' ? 'الهاتف' : 'Phone'}</Text>
               </Pressable>
             )}
             {store.whatsapp && (
-              <Pressable style={styles.socialChip} onPress={handleWhatsApp}>
-                <Ionicons name="logo-whatsapp" size={14} color="#25D366" />
-                <Text style={[styles.socialChipText, { color: '#25D366' }]}>WhatsApp</Text>
+              <Pressable style={[styles.socialChip, { flexDirection: isRTL ? 'row-reverse' : 'row' }]} onPress={handleWhatsApp}>
+                <Ionicons name="logo-whatsapp" size={16} color="#25D366" />
+                <Text style={[styles.socialChipText, { color: '#25D366', fontFamily: latinBold }]}>WhatsApp</Text>
               </Pressable>
             )}
             {store.facebook && (
-              <Pressable style={styles.socialChip} onPress={() => handleSocial('facebook')}>
-                <Ionicons name="logo-facebook" size={14} color="#1877F2" />
-                <Text style={[styles.socialChipText, { color: '#1877F2' }]}>Facebook</Text>
+              <Pressable style={[styles.socialChip, { flexDirection: isRTL ? 'row-reverse' : 'row' }]} onPress={() => handleSocial('facebook')}>
+                <Ionicons name="logo-facebook" size={16} color="#1877F2" />
+                <Text style={[styles.socialChipText, { color: '#1877F2', fontFamily: latinBold }]}>Facebook</Text>
               </Pressable>
             )}
             {store.instagram && (
-              <Pressable style={styles.socialChip} onPress={() => handleSocial('instagram')}>
-                <Ionicons name="logo-instagram" size={14} color="#E1306C" />
-                <Text style={[styles.socialChipText, { color: '#E1306C' }]}>Instagram</Text>
-              </Pressable>
-            )}
-            {store.website && (
-              <Pressable style={styles.socialChip} onPress={() => handleSocial('website')}>
-                <Ionicons name="globe-outline" size={14} color={colors.light.primary} />
-                <Text style={styles.socialChipText}>{language === 'ar' ? 'الموقع' : 'Website'}</Text>
+              <Pressable style={[styles.socialChip, { flexDirection: isRTL ? 'row-reverse' : 'row' }]} onPress={() => handleSocial('instagram')}>
+                <Ionicons name="logo-instagram" size={16} color="#E1306C" />
+                <Text style={[styles.socialChipText, { color: '#E1306C', fontFamily: latinBold }]}>Instagram</Text>
               </Pressable>
             )}
           </View>
-        </View>
+        </Animated.View>
 
         {/* Product Categories */}
         {storeCategories.length > 0 && (
-          <View style={styles.categoriesCard}>
-            <Text style={[styles.cardTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+          <Animated.View entering={FadeInUp.delay(200).springify().stiffness(300).damping(28)} style={styles.categoriesCard}>
+            <Text style={[styles.cardTitle, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamBold }]}>
               {language === 'ar' ? 'فئات المنتجات' : 'Product Categories'}
             </Text>
             <ScrollView
@@ -257,25 +256,27 @@ export default function StoreScreen() {
               ]}
             >
               {storeCategories.map((cat) => (
-                <View key={cat.id} style={[styles.catChip, { borderColor: cat.color + '40', backgroundColor: cat.color + '12' }]}>
-                  <Ionicons name={cat.icon as any} size={14} color={cat.color} />
-                  <Text style={[styles.catChipText, { color: cat.color }]}>
+                <View key={cat.id} style={[styles.catChip, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                  <View style={[styles.catIconWrap, { backgroundColor: cat.color + '15' }]}>
+                     <Ionicons name={cat.icon as any} size={18} color={cat.color} />
+                  </View>
+                  <Text style={[styles.catChipText, { fontFamily: fontFamSemi }]}>
                     {t(cat.id as any)}
                   </Text>
                 </View>
               ))}
             </ScrollView>
-          </View>
+          </Animated.View>
         )}
 
         {/* Featured Products */}
         {storeProducts.length > 0 && (
-          <View style={styles.productsSection}>
-            <View style={[styles.sectionHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+          <Animated.View entering={FadeInUp.delay(250).springify().stiffness(300).damping(28)} style={styles.productsSection}>
+            <View style={[styles.sectionHeader, { flexDirection: isRTL ? 'row-reverse' : 'row', paddingHorizontal: 16 }]}>
+              <Text style={[styles.cardTitle, { marginBottom: 0, textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamBold }]}>
                 {t('allProducts')}
               </Text>
-              <Text style={styles.productsCount}>
+              <Text style={[styles.productsCount, { fontFamily: fontFamReg }]}>
                 {storeProducts.length} {language === 'ar' ? 'منتج' : 'products'}
               </Text>
             </View>
@@ -288,7 +289,7 @@ export default function StoreScreen() {
               ]}
             >
               {storeProducts.map((product) => (
-                <View key={product.id} style={{ marginRight: isRTL ? 0 : 10, marginLeft: isRTL ? 10 : 0 }}>
+                <View key={product.id} style={{ marginRight: isRTL ? 0 : 16, marginLeft: isRTL ? 16 : 0 }}>
                   <ProductCard
                     product={product}
                     onPress={() => router.push(`/product/${product.id}`)}
@@ -297,52 +298,52 @@ export default function StoreScreen() {
                 </View>
               ))}
             </ScrollView>
-          </View>
+          </Animated.View>
         )}
 
         {/* Reviews */}
         {storeReviews.length > 0 && (
-          <View style={styles.card}>
+          <Animated.View entering={FadeInUp.delay(300).springify().stiffness(300).damping(28)} style={styles.card}>
             <View style={[styles.sectionHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <Text style={[styles.cardTitle, { marginBottom: 0, textAlign: isRTL ? 'right' : 'left' }]}>
+              <Text style={[styles.cardTitle, { marginBottom: 0, textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamBold }]}>
                 {t('storeReviews')}
               </Text>
               <View style={[styles.ratingBig, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                <Ionicons name="star" size={18} color={colors.light.star} />
-                <Text style={styles.ratingBigText}>{store.rating.toFixed(1)}</Text>
+                <Ionicons name="star" size={24} color={colors.light.star} />
+                <Text style={[styles.ratingBigText, { fontFamily: latinBold }]}>{store.rating.toFixed(1)}</Text>
               </View>
             </View>
             {storeReviews.map((review) => (
               <View key={review.id} style={styles.reviewItem}>
                 <View style={[styles.reviewHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                   <View style={styles.reviewAvatar}>
-                    <Ionicons name="person" size={16} color={colors.light.primary} />
+                    <Ionicons name="person" size={20} color={colors.light.primary} />
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={[styles.reviewAuthor, { textAlign: isRTL ? 'right' : 'left' }]}>
+                    <Text style={[styles.reviewAuthor, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamSemi }]}>
                       {language === 'ar' ? review.authorAr : review.author}
                     </Text>
-                    <Text style={[styles.reviewDate, { textAlign: isRTL ? 'right' : 'left' }]}>
+                    <Text style={[styles.reviewDate, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamReg }]}>
                       {review.date}
                     </Text>
                   </View>
-                  <RatingStars rating={review.rating} size={12} />
+                  <RatingStars rating={review.rating} size={14} showCount={false} />
                 </View>
-                <Text style={[styles.reviewText, { textAlign: isRTL ? 'right' : 'left' }]}>
+                <Text style={[styles.reviewText, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamReg }]}>
                   {language === 'ar' ? review.textAr : review.textEn}
                 </Text>
               </View>
             ))}
             <Pressable style={[styles.writeReviewBtn, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <Ionicons name="create-outline" size={16} color={colors.light.primary} />
-              <Text style={styles.writeReviewText}>{t('writeReview')}</Text>
+              <Ionicons name="create-outline" size={20} color={colors.light.primary} />
+              <Text style={[styles.writeReviewText, { fontFamily: fontFamSemi }]}>{t('writeReview')}</Text>
             </Pressable>
-          </View>
+          </Animated.View>
         )}
 
         {/* Store Gallery */}
-        <View style={styles.card}>
-          <Text style={[styles.cardTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+        <Animated.View entering={FadeInUp.delay(350).springify().stiffness(300).damping(28)} style={styles.card}>
+          <Text style={[styles.cardTitle, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamBold }]}>
             {language === 'ar' ? 'معرض المتجر' : 'Store Gallery'}
           </Text>
           <ScrollView
@@ -356,75 +357,71 @@ export default function StoreScreen() {
             {GALLERY_COLORS.map((gc, idx) => (
               <View key={idx} style={styles.galleryItem}>
                 <LinearGradient colors={gc as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.galleryImage}>
-                  <Ionicons name="image-outline" size={28} color="rgba(255,255,255,0.5)" />
+                  <Ionicons name="image-outline" size={32} color="rgba(255,255,255,0.5)" />
                 </LinearGradient>
               </View>
             ))}
           </ScrollView>
-        </View>
+        </Animated.View>
 
-        {/* Map Section */}
-        <View style={[styles.card, { marginBottom: 16 }]}>
-          <View style={[styles.sectionHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <Text style={[styles.cardTitle, { marginBottom: 0, textAlign: isRTL ? 'right' : 'left' }]}>
+        {/* Map Section (Glass) */}
+        <Animated.View entering={FadeInUp.delay(400).springify().stiffness(300).damping(28)} style={[styles.card, { marginBottom: 16, backgroundColor: 'transparent', padding: 0, borderWidth: 0, shadowColor: 'transparent', elevation: 0 }]}>
+          <View style={[styles.sectionHeader, { flexDirection: isRTL ? 'row-reverse' : 'row', paddingHorizontal: 16, paddingTop: 16 }]}>
+            <Text style={[styles.cardTitle, { marginBottom: 0, textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamBold }]}>
               {language === 'ar' ? 'الموقع على الخريطة' : 'Map'}
             </Text>
-            <Pressable onPress={handleMaps} style={[styles.openMapsBtn, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <Ionicons name="navigate-outline" size={14} color={colors.light.primary} />
-              <Text style={styles.openMapsBtnText}>
-                {language === 'ar' ? 'فتح في الخرائط' : 'Open in Maps'}
-              </Text>
-            </Pressable>
           </View>
 
-          {/* Mock map tile */}
-          <Pressable onPress={handleMaps} style={styles.mapTile}>
-            <LinearGradient
-              colors={['#EFF6FF', '#DBEAFE']}
-              style={styles.mapBg}
-            >
-              {/* Grid lines */}
-              {[0, 1, 2, 3, 4].map((i) => (
-                <View key={`h${i}`} style={[styles.mapGridH, { top: `${i * 25}%` as any }]} />
-              ))}
-              {[0, 1, 2, 3, 4].map((i) => (
-                <View key={`v${i}`} style={[styles.mapGridV, { left: `${i * 25}%` as any }]} />
-              ))}
-              {/* Store pin */}
-              <View style={styles.mapPin}>
-                <View style={styles.mapPinHead}>
+          <Pressable onPress={handleMaps} style={styles.mapContainer}>
+             {/* Mock map background */}
+             <LinearGradient colors={['#E2E8F0', '#CBD5E1']} style={StyleSheet.absoluteFill}>
+                 {[0, 1, 2, 3, 4].map((i) => (
+                    <View key={`h${i}`} style={[styles.mapGridH, { top: `${i * 25}%` as any }]} />
+                 ))}
+                 {[0, 1, 2, 3, 4].map((i) => (
+                    <View key={`v${i}`} style={[styles.mapGridV, { left: `${i * 25}%` as any }]} />
+                 ))}
+             </LinearGradient>
+             
+             {/* Map Pin */}
+             <View style={styles.mapPinContainer}>
+                <View style={styles.mapPin}>
                   <View style={[styles.mapPinLogo, { backgroundColor: store.logoColor }]}>
-                    <Text style={styles.mapPinLogoText}>{store.logoInitial}</Text>
+                     <Text style={[styles.mapPinLogoText, { fontFamily: latinBold }]}>{store.logoInitial}</Text>
                   </View>
                 </View>
-                <View style={[styles.mapPinTriangle, { borderTopColor: store.logoColor }]} />
-              </View>
-            </LinearGradient>
-          </Pressable>
+                <View style={[styles.mapPinTriangle, { borderTopColor: '#fff' }]} />
+             </View>
 
-          <View style={[styles.mapFooter, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.mapStoreName, { textAlign: isRTL ? 'right' : 'left' }]}>{name}</Text>
-              <Text style={[styles.mapAddress, { textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
-                {address}
-              </Text>
-            </View>
-            <Pressable onPress={handleMaps} style={styles.directionsBtn}>
-              <Ionicons name="arrow-forward" size={18} color="#fff" />
-            </Pressable>
-          </View>
-        </View>
+             {/* Glass Overlay Card */}
+             <View style={styles.glassCardWrapper}>
+                <GlassCard intensity={80} borderRadius={20} padding={16}>
+                   <View style={[styles.glassCardInner, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                      <View style={{ flex: 1 }}>
+                         <Text style={[styles.glassStoreName, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamBold }]}>{name}</Text>
+                         <Text style={[styles.glassStoreAddress, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamReg }]} numberOfLines={1}>{address}</Text>
+                      </View>
+                      <Pressable style={styles.glassDirectionsBtn} onPress={handleMaps}>
+                         <Ionicons name="navigate" size={20} color="#fff" />
+                      </Pressable>
+                   </View>
+                </GlassCard>
+             </View>
+          </Pressable>
+        </Animated.View>
       </ScrollView>
     </View>
   );
 }
 
-function StatItem({ value, label, icon }: { value: string; label: string; icon?: string }) {
+function StatItem({ value, label, icon, fontFamBold, fontFamReg }: { value: string; label: string; icon?: string, fontFamBold: string, fontFamReg: string }) {
   return (
     <View style={styles.statItem}>
-      {icon && <Ionicons name={icon as any} size={12} color={colors.light.star} />}
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+        {icon && <Ionicons name={icon as any} size={14} color={colors.light.star} />}
+        <Text style={[styles.statValue, { fontFamily: fontFamBold }]}>{value}</Text>
+      </View>
+      <Text style={[styles.statLabel, { fontFamily: fontFamReg }]}>{label}</Text>
     </View>
   );
 }
@@ -434,328 +431,312 @@ function ContactBtn({
   label,
   onPress,
   color,
+  fontFam
 }: {
   icon: string;
   label: string;
   onPress: () => void;
   color: string;
+  fontFam: string;
 }) {
   return (
     <Pressable onPress={onPress} style={styles.contactBtn}>
-      <View style={[styles.contactBtnIcon, { backgroundColor: color + '18', borderColor: color + '30' }]}>
-        <Ionicons name={icon as any} size={20} color={color} />
+      <View style={[styles.contactBtnIcon, { backgroundColor: color + '15', borderColor: color + '25' }]}>
+        <Ionicons name={icon as any} size={24} color={color} />
       </View>
-      <Text style={styles.contactBtnLabel} numberOfLines={1}>{label}</Text>
+      <Text style={[styles.contactBtnLabel, { fontFamily: fontFam }]} numberOfLines={1}>{label}</Text>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F7FA' },
+  container: { flex: 1, backgroundColor: colors.light.background },
   scroll: { flex: 1 },
 
-  // Hero
   hero: {
-    paddingHorizontal: 16,
-    paddingBottom: 28,
     alignItems: 'center',
+    paddingBottom: 48,
+  },
+  heroTopBar: {
+    width: '100%',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    marginBottom: 20,
   },
   backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.25)',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
-    marginBottom: 16,
+    borderColor: 'rgba(255,255,255,0.4)',
   },
-  logoWrap: { position: 'relative', marginBottom: 12 },
-  logo: {
-    width: 84,
-    height: 84,
-    borderRadius: 24,
+  heroActions: {
+    gap: 12,
+  },
+  heroActionBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.25)',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 3,
+    borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.4)',
+  },
+  logoWrap: { position: 'relative', marginBottom: 16 },
+  logo: {
+    width: 96,
+    height: 96,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 4,
+    borderColor: 'rgba(255,255,255,0.5)',
     shadowColor: 'rgba(0,0,0,0.3)',
-    shadowOffset: { width: 0, height: 8 },
+    shadowOffset: { width: 0, height: 12 },
     shadowOpacity: 1,
-    shadowRadius: 20,
+    shadowRadius: 24,
     elevation: 8,
   },
-  logoText: { fontSize: 36, fontFamily: 'Inter_700Bold', color: '#fff' },
+  logoText: { fontSize: 40, color: '#fff' },
   verifiedBadge: {
     position: 'absolute',
     bottom: -4,
     right: -4,
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: colors.light.primary,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.light.verifiedBlue,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2.5,
-    borderColor: 'rgba(255,255,255,0.6)',
+    borderWidth: 3,
+    borderColor: 'rgba(255,255,255,0.8)',
   },
-  nameRow: { alignItems: 'center', gap: 8, marginBottom: 10 },
+  nameRow: { alignItems: 'center', gap: 10, marginBottom: 16 },
   storeName: {
-    fontSize: 24,
-    fontFamily: 'Inter_700Bold',
+    fontSize: 28,
     color: '#fff',
     textShadowColor: 'rgba(0,0,0,0.2)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
   },
-  verifiedPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    borderRadius: 12,
-  },
-  verifiedText: { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: '#93C5FD' },
   statsRow: {
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
     flexWrap: 'wrap',
     justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
   },
-  statItem: { alignItems: 'center', gap: 2 },
-  statValue: { fontSize: 15, fontFamily: 'Inter_700Bold', color: '#fff' },
-  statLabel: { fontSize: 10, fontFamily: 'Inter_400Regular', color: 'rgba(255,255,255,0.75)' },
-  statDivider: { width: 1, height: 24, backgroundColor: 'rgba(255,255,255,0.25)' },
+  statItem: { alignItems: 'center', gap: 4 },
+  statValue: { fontSize: 16, color: '#fff' },
+  statLabel: { fontSize: 11, color: 'rgba(255,255,255,0.85)' },
+  statDivider: { width: 1, height: 28, backgroundColor: 'rgba(255,255,255,0.3)' },
   openPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: 20,
   },
-  openDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#fff' },
-  openText: { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: '#fff' },
+  openDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#fff' },
+  openText: { fontSize: 13, color: '#fff' },
 
-  // Contact bar
   contactBar: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.light.card,
     marginHorizontal: 16,
-    marginTop: -1,
-    borderRadius: colors.radiusLg,
-    padding: 14,
-    gap: 4,
-    shadowColor: 'rgba(15,23,42,0.08)',
-    shadowOffset: { width: 0, height: 4 },
+    marginTop: -32,
+    borderRadius: colors.radiusXl,
+    padding: 16,
+    gap: 8,
+    shadowColor: colors.light.shadowStrong,
+    shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 1,
-    shadowRadius: 16,
-    elevation: 5,
-    borderWidth: 1,
-    borderColor: 'rgba(226,232,240,0.6)',
+    shadowRadius: 24,
+    elevation: 6,
     zIndex: 10,
     justifyContent: 'space-between',
   },
-  contactBtn: { alignItems: 'center', gap: 5, flex: 1 },
+  contactBtn: { alignItems: 'center', gap: 8, flex: 1 },
   contactBtnIcon: {
-    width: 46,
-    height: 46,
-    borderRadius: 14,
+    width: 52,
+    height: 52,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
   },
   contactBtnLabel: {
-    fontSize: 10,
-    fontFamily: 'Inter_500Medium',
+    fontSize: 12,
     color: colors.light.mutedForeground,
     textAlign: 'center',
   },
 
-  // Cards
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.light.card,
     marginHorizontal: 16,
-    marginTop: 12,
-    borderRadius: colors.radiusLg,
-    padding: 16,
-    shadowColor: 'rgba(15,23,42,0.06)',
-    shadowOffset: { width: 0, height: 2 },
+    marginTop: 16,
+    borderRadius: colors.radiusXl,
+    padding: 20,
+    shadowColor: colors.light.shadow,
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 1,
-    shadowRadius: 10,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: 'rgba(226,232,240,0.6)',
+    shadowRadius: 16,
+    elevation: 3,
   },
   cardTitle: {
-    fontSize: 16,
-    fontFamily: 'Inter_700Bold',
+    fontSize: 18,
     color: colors.light.foreground,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   descText: {
-    fontSize: 14,
-    fontFamily: 'Inter_400Regular',
+    fontSize: 15,
     color: colors.light.secondaryForeground,
-    lineHeight: 22,
-    marginBottom: 12,
+    lineHeight: 24,
+    marginBottom: 16,
   },
   infoRow: {
-    alignItems: 'flex-start',
-    gap: 10,
-    paddingVertical: 10,
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(226,232,240,0.5)',
+    borderBottomColor: colors.light.border,
   },
   infoIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 9,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     backgroundColor: colors.light.primaryLight,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 1,
   },
   infoLabel: {
-    fontSize: 11,
-    fontFamily: 'Inter_400Regular',
+    fontSize: 12,
     color: colors.light.mutedForeground,
-    marginBottom: 2,
+    marginBottom: 4,
   },
   infoValue: {
-    fontSize: 14,
-    fontFamily: 'Inter_500Medium',
+    fontSize: 15,
     color: colors.light.foreground,
-    lineHeight: 20,
   },
-  socialRow: { gap: 8, flexWrap: 'wrap', paddingTop: 10 },
+  socialRow: { gap: 12, flexWrap: 'wrap', paddingTop: 16 },
   socialChip: {
-    flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    backgroundColor: '#F8FAFC',
-    borderRadius: 10,
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: colors.light.cardSoft,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(226,232,240,0.8)',
+    borderColor: colors.light.border,
   },
   socialChipText: {
-    fontSize: 12,
-    fontFamily: 'Inter_500Medium',
+    fontSize: 14,
     color: colors.light.primary,
   },
 
-  // Categories
   categoriesCard: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.light.card,
     marginHorizontal: 16,
-    marginTop: 12,
-    borderRadius: colors.radiusLg,
-    padding: 16,
-    shadowColor: 'rgba(15,23,42,0.06)',
-    shadowOffset: { width: 0, height: 2 },
+    marginTop: 16,
+    borderRadius: colors.radiusXl,
+    padding: 20,
+    shadowColor: colors.light.shadow,
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 1,
-    shadowRadius: 10,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: 'rgba(226,232,240,0.6)',
+    shadowRadius: 16,
+    elevation: 3,
   },
-  categoriesRow: { gap: 8, paddingBottom: 4 },
+  categoriesRow: { gap: 12 },
   catChip: {
-    flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 10,
-    borderWidth: 1,
-  },
-  catChipText: { fontSize: 12, fontFamily: 'Inter_600SemiBold' },
-
-  // Products
-  productsSection: { marginTop: 12 },
-  sectionHeader: {
+    gap: 8,
     paddingHorizontal: 16,
-    marginBottom: 12,
+    paddingVertical: 10,
+    borderRadius: 16,
+    backgroundColor: colors.light.cardSoft,
+    borderWidth: 1,
+    borderColor: colors.light.border,
+  },
+  catIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  catChipText: { fontSize: 14, color: colors.light.foreground },
+
+  productsSection: { marginTop: 24 },
+  sectionHeader: {
+    marginBottom: 16,
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  sectionTitle: {
-    fontSize: 17,
-    fontFamily: 'Inter_700Bold',
-    color: colors.light.foreground,
-  },
   productsCount: {
-    fontSize: 13,
-    fontFamily: 'Inter_400Regular',
-    color: colors.light.mutedForeground,
+    fontSize: 14,
   },
-  productsRow: { gap: 10, paddingRight: 16 },
+  productsRow: { gap: 16 },
 
-  // Reviews
-  ratingBig: { alignItems: 'center', gap: 4 },
-  ratingBigText: { fontSize: 20, fontFamily: 'Inter_700Bold', color: colors.light.foreground },
+  ratingBig: { alignItems: 'center', gap: 8 },
+  ratingBigText: { fontSize: 28, color: colors.light.foreground },
   reviewItem: {
-    paddingVertical: 12,
+    paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(226,232,240,0.4)',
-    gap: 8,
+    borderBottomColor: colors.light.border,
+    gap: 12,
   },
-  reviewHeader: { alignItems: 'center', gap: 10 },
+  reviewHeader: { alignItems: 'center', gap: 12 },
   reviewAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: colors.light.primaryLight,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  reviewAuthor: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: colors.light.foreground },
-  reviewDate: { fontSize: 11, fontFamily: 'Inter_400Regular', color: colors.light.mutedForeground },
-  reviewText: { fontSize: 14, fontFamily: 'Inter_400Regular', color: colors.light.secondaryForeground, lineHeight: 20 },
+  reviewAuthor: { fontSize: 15, color: colors.light.foreground },
+  reviewDate: { fontSize: 13, color: colors.light.mutedForeground, marginTop: 2 },
+  reviewText: { fontSize: 15, color: colors.light.secondaryForeground, lineHeight: 22 },
   writeReviewBtn: {
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 12,
-    marginTop: 8,
-    borderRadius: colors.radiusFull,
-    borderWidth: 1.5,
-    borderColor: colors.light.primary + '40',
+    gap: 8,
+    paddingVertical: 14,
+    marginTop: 16,
+    borderRadius: 999,
     backgroundColor: colors.light.primaryLight,
   },
-  writeReviewText: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: colors.light.primary },
+  writeReviewText: { fontSize: 15, color: colors.light.primary },
 
-  // Gallery
-  galleryRow: { gap: 8 },
+  galleryRow: { gap: 12 },
   galleryItem: {
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: 'hidden',
   },
   galleryImage: {
-    width: 100,
-    height: 80,
+    width: 140,
+    height: 100,
     alignItems: 'center',
     justifyContent: 'center',
   },
 
-  // Map
-  mapTile: {
-    height: 160,
-    borderRadius: 14,
+  mapContainer: {
+    height: 220,
+    marginHorizontal: 16,
+    borderRadius: colors.radiusXl,
     overflow: 'hidden',
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(37,99,235,0.15)',
-  },
-  mapBg: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
     position: 'relative',
+    borderWidth: 1,
+    borderColor: 'rgba(37,99,235,0.2)',
   },
   mapGridH: {
     position: 'absolute',
@@ -771,47 +752,72 @@ const styles = StyleSheet.create({
     width: 1,
     backgroundColor: 'rgba(37,99,235,0.1)',
   },
-  mapPin: { alignItems: 'center' },
-  mapPinHead: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 4,
+  mapPinContainer: {
+    position: 'absolute',
+    top: '30%',
+    left: '50%',
+    transform: [{ translateX: -30 }, { translateY: -40 }],
+    alignItems: 'center',
     shadowColor: 'rgba(0,0,0,0.2)',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 1,
     shadowRadius: 8,
     elevation: 4,
   },
+  mapPin: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 6,
+  },
   mapPinLogo: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+    width: 48,
+    height: 48,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  mapPinLogoText: { fontSize: 18, fontFamily: 'Inter_700Bold', color: '#fff' },
+  mapPinLogoText: { fontSize: 24, color: '#fff' },
   mapPinTriangle: {
     width: 0,
     height: 0,
-    borderLeftWidth: 8,
-    borderRightWidth: 8,
-    borderTopWidth: 10,
+    borderLeftWidth: 10,
+    borderRightWidth: 10,
+    borderTopWidth: 12,
     borderLeftColor: 'transparent',
     borderRightColor: 'transparent',
-    borderTopColor: '#2563EB',
-    marginTop: -1,
+    marginTop: -2,
   },
-  mapFooter: { alignItems: 'center', gap: 10 },
-  mapStoreName: { fontSize: 14, fontFamily: 'Inter_700Bold', color: colors.light.foreground },
-  mapAddress: { fontSize: 12, fontFamily: 'Inter_400Regular', color: colors.light.mutedForeground, marginTop: 2 },
-  directionsBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  glassCardWrapper: {
+    position: 'absolute',
+    bottom: 16,
+    left: 16,
+    right: 16,
+  },
+  glassCardInner: {
+    alignItems: 'center',
+    gap: 12,
+  },
+  glassStoreName: {
+    fontSize: 16,
+    color: colors.light.foreground,
+  },
+  glassStoreAddress: {
+    fontSize: 13,
+    color: colors.light.foreground,
+    opacity: 0.8,
+    marginTop: 4,
+  },
+  glassDirectionsBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: colors.light.primary,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: colors.light.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  openMapsBtn: { alignItems: 'center', gap: 4 },
-  openMapsBtnText: { fontSize: 12, fontFamily: 'Inter_600SemiBold', color: colors.light.primary },
 });

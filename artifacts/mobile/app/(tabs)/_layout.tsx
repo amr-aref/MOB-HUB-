@@ -1,149 +1,135 @@
 import React from 'react';
-import { Platform, StyleSheet, useColorScheme, View } from 'react-native';
-import { useColors } from '@/hooks/useColors';
-import { Feather } from '@expo/vector-icons';
+import { Platform, StyleSheet, useColorScheme, View, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { BlurView } from 'expo-blur';
-import { isLiquidGlassAvailable } from 'expo-glass-effect';
 import { Tabs } from 'expo-router';
-import { Icon, Label, NativeTabs } from 'expo-router/unstable-native-tabs';
-import { SymbolView } from 'expo-symbols';
 import { useLanguage } from '@/contexts/LanguageContext';
+import Animated, { useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import colors from '@/constants/colors';
+import { getFontFamily } from '@/constants/fonts';
 
-function NativeTabLayout() {
-  const { t } = useLanguage();
+function TabIcon({ focused, name, label, isRTL }: { focused: boolean, name: any, label: string, isRTL: boolean }) {
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: withSpring(focused ? 1.05 : 1, { stiffness: 300, damping: 20 }) }],
+      opacity: withSpring(focused ? 1 : 0.6),
+    };
+  });
+  
+  const fontFam = getFontFamily(isRTL, 'semiBold');
+
   return (
-    <NativeTabs>
-      <NativeTabs.Trigger name="index">
-        <Icon sf={{ default: 'house', selected: 'house.fill' }} />
-        <Label>{t('home')}</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="stores">
-        <Icon sf={{ default: 'storefront', selected: 'storefront.fill' }} />
-        <Label>{t('stores')}</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="compare">
-        <Icon sf={{ default: 'arrow.left.arrow.right', selected: 'arrow.left.arrow.right' }} />
-        <Label>{t('compare')}</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="favorites">
-        <Icon sf={{ default: 'heart', selected: 'heart.fill' }} />
-        <Label>{t('favorites')}</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="profile">
-        <Icon sf={{ default: 'person.circle', selected: 'person.circle.fill' }} />
-        <Label>{t('profile')}</Label>
-      </NativeTabs.Trigger>
-    </NativeTabs>
+    <Animated.View style={[styles.tabItem, animatedStyle]}>
+      <View style={[styles.iconWrap, focused && styles.iconWrapFocused]}>
+        <Ionicons name={name} size={22} color={focused ? '#fff' : colors.light.mutedForeground} />
+      </View>
+    </Animated.View>
   );
 }
 
-function ClassicTabLayout() {
-  const colors = useColors();
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
-  const isIOS = Platform.OS === 'ios';
+export default function TabLayout() {
+  const { t, isRTL } = useLanguage();
   const isWeb = Platform.OS === 'web';
-  const { t } = useLanguage();
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.mutedForeground,
         headerShown: false,
-        tabBarStyle: {
-          position: 'absolute',
-          backgroundColor: isIOS ? 'transparent' : colors.background,
-          borderTopWidth: isWeb ? 1 : 0,
-          borderTopColor: colors.border,
-          elevation: 0,
-          height: isWeb ? 84 : 80,
-        },
-        tabBarBackground: () =>
-          isIOS ? (
-            <BlurView
-              intensity={100}
-              tint={isDark ? 'dark' : 'light'}
-              style={StyleSheet.absoluteFill}
-            />
-          ) : isWeb ? (
-            <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.background }]} />
-          ) : null,
-        tabBarLabelStyle: {
-          fontSize: 11,
-          fontFamily: 'Inter_600SemiBold',
-          marginBottom: isWeb ? 8 : 0,
-        },
+        tabBarShowLabel: false,
+        tabBarStyle: [
+          styles.tabBar,
+          isWeb && styles.tabBarWeb
+        ],
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
           title: t('home'),
-          tabBarIcon: ({ color, size }) =>
-            isIOS ? (
-              <SymbolView name="house.fill" tintColor={color} size={size} />
-            ) : (
-              <Ionicons name="home" size={size} color={color} />
-            ),
+          tabBarIcon: ({ focused }) => (
+            <TabIcon focused={focused} name={focused ? 'home' : 'home-outline'} label={t('home')} isRTL={isRTL} />
+          ),
         }}
       />
       <Tabs.Screen
         name="stores"
         options={{
           title: t('stores'),
-          tabBarIcon: ({ color, size }) =>
-            isIOS ? (
-              <SymbolView name="storefront.fill" tintColor={color} size={size} />
-            ) : (
-              <Ionicons name="storefront" size={size} color={color} />
-            ),
+          tabBarIcon: ({ focused }) => (
+            <TabIcon focused={focused} name={focused ? 'search' : 'search-outline'} label={t('search')} isRTL={isRTL} />
+          ),
         }}
       />
       <Tabs.Screen
         name="compare"
         options={{
           title: t('compare'),
-          tabBarIcon: ({ color, size }) =>
-            isIOS ? (
-              <SymbolView name="arrow.left.arrow.right" tintColor={color} size={size} />
-            ) : (
-              <Ionicons name="swap-horizontal" size={size} color={color} />
-            ),
+          tabBarIcon: ({ focused }) => (
+            <TabIcon focused={focused} name={focused ? 'swap-horizontal' : 'swap-horizontal-outline'} label={t('compare')} isRTL={isRTL} />
+          ),
         }}
       />
       <Tabs.Screen
         name="favorites"
         options={{
           title: t('favorites'),
-          tabBarIcon: ({ color, size }) =>
-            isIOS ? (
-              <SymbolView name="heart.fill" tintColor={color} size={size} />
-            ) : (
-              <Ionicons name="heart" size={size} color={color} />
-            ),
+          tabBarIcon: ({ focused }) => (
+            <TabIcon focused={focused} name={focused ? 'heart' : 'heart-outline'} label={t('favorites')} isRTL={isRTL} />
+          ),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: t('profile'),
-          tabBarIcon: ({ color, size }) =>
-            isIOS ? (
-              <SymbolView name="person.circle.fill" tintColor={color} size={size} />
-            ) : (
-              <Ionicons name="person-circle" size={size} color={color} />
-            ),
+          tabBarIcon: ({ focused }) => (
+            <TabIcon focused={focused} name={focused ? 'person' : 'person-outline'} label={t('profile')} isRTL={isRTL} />
+          ),
         }}
       />
     </Tabs>
   );
 }
 
-export default function TabLayout() {
-  if (isLiquidGlassAvailable()) {
-    return <NativeTabLayout />;
-  }
-  return <ClassicTabLayout />;
-}
+const styles = StyleSheet.create({
+  tabBar: {
+    position: 'absolute',
+    bottom: 24,
+    left: 24,
+    right: 24,
+    backgroundColor: '#fff',
+    borderRadius: 999,
+    height: 64,
+    borderWidth: 0,
+    shadowColor: colors.light.shadowMid,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 1,
+    shadowRadius: 26,
+    elevation: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    paddingHorizontal: 8,
+  },
+  tabBarWeb: {
+    width: 400,
+    left: '50%',
+    transform: [{ translateX: -200 }],
+  },
+  tabItem: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    height: 48,
+    width: 48,
+  },
+  iconWrap: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconWrapFocused: {
+    backgroundColor: colors.light.btnPrimaryBg,
+  },
+});

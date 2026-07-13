@@ -1,8 +1,11 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import colors from '@/constants/colors';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { getFontFamily } from '@/constants/fonts';
 
 interface CategoryChipProps {
   label: string;
@@ -13,6 +16,8 @@ interface CategoryChipProps {
   size?: 'sm' | 'md';
 }
 
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
 export default function CategoryChip({
   label,
   icon,
@@ -21,7 +26,23 @@ export default function CategoryChip({
   onPress,
   size = 'md',
 }: CategoryChipProps) {
-  function handle() {
+  const { isRTL } = useLanguage();
+  const fontFam = getFontFamily(isRTL, 'medium');
+  const scale = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  function handlePressIn() {
+    scale.value = withSpring(0.95, { stiffness: 300, damping: 28 });
+  }
+
+  function handlePressOut() {
+    scale.value = withSpring(1, { stiffness: 300, damping: 28 });
+  }
+
+  function handlePress() {
     Haptics.selectionAsync();
     onPress();
   }
@@ -29,26 +50,28 @@ export default function CategoryChip({
   const isSm = size === 'sm';
 
   return (
-    <Pressable
-      onPress={handle}
-      style={({ pressed }) => [
+    <AnimatedPressable
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      onPress={handlePress}
+      style={[
         styles.chip,
         isSm ? styles.chipSm : styles.chipMd,
         isSelected && styles.chipSelected,
-        { borderColor: isSelected ? iconColor : colors.light.border },
-        pressed && styles.pressed,
+        { flexDirection: isRTL ? 'row-reverse' : 'row' },
+        animatedStyle,
       ]}
     >
       <View
         style={[
           styles.iconWrap,
           isSm ? styles.iconWrapSm : styles.iconWrapMd,
-          { backgroundColor: isSelected ? iconColor : iconColor + '18' },
+          { backgroundColor: isSelected ? iconColor : colors.light.cardSoft },
         ]}
       >
         <Ionicons
           name={icon as any}
-          size={isSm ? 14 : 18}
+          size={isSm ? 14 : 20}
           color={isSelected ? '#fff' : iconColor}
         />
       </View>
@@ -56,56 +79,49 @@ export default function CategoryChip({
         style={[
           styles.label,
           isSm && styles.labelSm,
-          { color: isSelected ? iconColor : colors.light.foreground },
+          { color: isSelected ? colors.light.foreground : colors.light.foreground, fontFamily: fontFam },
         ]}
         numberOfLines={1}
       >
         {label}
       </Text>
-    </Pressable>
+    </AnimatedPressable>
   );
 }
 
 const styles = StyleSheet.create({
   chip: {
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.85)',
-    borderWidth: 1.5,
+    backgroundColor: colors.light.card,
+    borderRadius: 999,
     shadowColor: colors.light.shadow,
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 1,
-    shadowRadius: 6,
+    shadowRadius: 12,
     elevation: 2,
+    padding: 6,
   },
   chipMd: {
-    width: 78,
-    paddingVertical: 10,
-    borderRadius: 16,
-    gap: 6,
+    paddingHorizontal: 16,
+    gap: 8,
   },
   chipSm: {
-    flexDirection: 'row',
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-    borderRadius: 20,
+    paddingHorizontal: 12,
     gap: 6,
-    alignItems: 'center',
   },
   chipSelected: {
-    backgroundColor: 'rgba(255,255,255,0.95)',
+    backgroundColor: colors.light.primaryLight,
+    shadowColor: colors.light.primaryMid,
   },
-  pressed: { opacity: 0.8, transform: [{ scale: 0.96 }] },
   iconWrap: {
-    borderRadius: 10,
+    borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  iconWrapMd: { width: 40, height: 40 },
-  iconWrapSm: { width: 26, height: 26, borderRadius: 8 },
+  iconWrapMd: { width: 36, height: 36 },
+  iconWrapSm: { width: 28, height: 28 },
   label: {
-    fontSize: 11,
-    fontWeight: '600',
-    textAlign: 'center',
+    fontSize: 13,
   },
-  labelSm: { fontSize: 12 },
+  labelSm: { fontSize: 11 },
 });

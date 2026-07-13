@@ -2,6 +2,8 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import colors from '@/constants/colors';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { getFontFamily } from '@/constants/fonts';
 
 interface RatingStarsProps {
   rating: number;
@@ -16,6 +18,9 @@ export default function RatingStars({
   size = 14,
   showCount = true,
 }: RatingStarsProps) {
+  const { isRTL } = useLanguage();
+  const fontFam = getFontFamily(isRTL, 'regular');
+  
   const stars = Array.from({ length: 5 }, (_, i) => {
     if (rating >= i + 1) return 'star';
     if (rating >= i + 0.5) return 'star-half';
@@ -23,7 +28,7 @@ export default function RatingStars({
   });
 
   return (
-    <View style={styles.row}>
+    <View style={[styles.row, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
       {stars.map((name, i) => (
         <Ionicons
           key={i}
@@ -33,7 +38,7 @@ export default function RatingStars({
         />
       ))}
       {showCount && reviewsCount !== undefined && (
-        <Text style={[styles.count, { fontSize: size - 2 }]}>
+        <Text style={[styles.count, { fontSize: size - 2, fontFamily: fontFam }]}>
           {' '}({reviewsCount.toLocaleString()})
         </Text>
       )}
@@ -43,8 +48,8 @@ export default function RatingStars({
 
 const styles = StyleSheet.create({
   row: {
-    flexDirection: 'row',
     alignItems: 'center',
+    gap: 2,
   },
   count: {
     color: colors.light.mutedForeground,

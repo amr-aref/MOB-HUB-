@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { BlurView } from 'expo-blur';
 import colors from '@/constants/colors';
 
@@ -9,55 +9,42 @@ interface GlassCardProps {
   intensity?: number;
   borderRadius?: number;
   padding?: number;
-  onPress?: never;
 }
 
 export default function GlassCard({
   children,
   style,
-  intensity = 60,
-  borderRadius = colors.radius,
+  intensity = 40,
+  borderRadius = 24,
   padding,
 }: GlassCardProps) {
-  if (Platform.OS === 'ios') {
-    return (
+  return (
+    <View style={[styles.container, { borderRadius }, style]}>
       <BlurView
         intensity={intensity}
         tint="light"
-        style={[styles.blur, { borderRadius }, style]}
-      >
-        <View style={[styles.glassOverlay, { borderRadius }, padding !== undefined ? { padding } : null]}>
-          {children}
-        </View>
-      </BlurView>
-    );
-  }
-
-  // Android / Web fallback
-  return (
-    <View style={[styles.androidCard, { borderRadius }, style, padding !== undefined ? { padding } : null]}>
-      {children}
+        style={[StyleSheet.absoluteFill, { borderRadius }]}
+      />
+      <View style={[styles.glassOverlay, { borderRadius }, padding !== undefined ? { padding } : null]}>
+        {children}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  blur: {
+  container: {
     overflow: 'hidden',
+    shadowColor: colors.light.shadow,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 1,
+    shadowRadius: 24,
+    elevation: 4,
+    backgroundColor: 'rgba(255,255,255,0.4)', // fallback
   },
   glassOverlay: {
-    backgroundColor: colors.light.glass,
+    backgroundColor: 'rgba(255, 255, 255, 0.45)',
     borderWidth: 1,
-    borderColor: colors.light.glassBorder,
-  },
-  androidCard: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: colors.light.border,
-    shadowColor: colors.light.shadowMid,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 12,
-    elevation: 4,
+    borderColor: 'rgba(255, 255, 255, 0.85)',
   },
 });
