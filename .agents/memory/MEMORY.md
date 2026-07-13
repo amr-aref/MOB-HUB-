@@ -1,0 +1,1 @@
+- [Mobile Marketplace Architecture](mobile-marketplace.md) — Egypt mobile phone marketplace Expo app, enterprise-grade, white Liquid Glass design, Arabic RTL default, Phase 2 complete.

@@ -35,10 +35,12 @@ export default function StoresScreen() {
   const filtered = useMemo(() => {
     return stores.filter((store) => {
       const name = language === 'ar' ? store.nameAr : store.nameEn;
-      const matchSearch = name.toLowerCase().includes(search.toLowerCase()) ||
+      const matchSearch =
+        name.toLowerCase().includes(search.toLowerCase()) ||
         store.governorate.includes(search) ||
         store.nameEn.toLowerCase().includes(search.toLowerCase());
-      const matchCity = selectedCity === 0 || store.governorate === citiesFilter[selectedCity];
+      const matchCity =
+        selectedCity === 0 || store.governorate === citiesFilter[selectedCity];
       return matchSearch && matchCity;
     });
   }, [search, selectedCity, language]);
@@ -47,17 +49,22 @@ export default function StoresScreen() {
     <View style={styles.container}>
       {/* Header */}
       <View style={[styles.header, { paddingTop: topInset + 8 }]}>
-        <Text style={[styles.title, { textAlign: isRTL ? 'right' : 'left' }]}>
-          {t('stores')}
-        </Text>
-        <View style={styles.searchWrap}>
-          <SearchBar
-            value={search}
-            onChangeText={setSearch}
-            placeholder={t('searchPlaceholder')}
-            isRTL={isRTL}
-          />
+        <View style={[styles.headerTop, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <Text style={[styles.title, { textAlign: isRTL ? 'right' : 'left' }]}>
+            {t('stores')}
+          </Text>
+          <View style={styles.sortBtn}>
+            <Ionicons name="options-outline" size={18} color={colors.light.primary} />
+            <Text style={styles.sortText}>{language === 'ar' ? 'ترتيب' : 'Sort'}</Text>
+          </View>
         </View>
+
+        <SearchBar
+          value={search}
+          onChangeText={setSearch}
+          placeholder={t('searchPlaceholder')}
+          isRTL={isRTL}
+        />
 
         {/* City filter chips */}
         <ScrollView
@@ -72,16 +79,10 @@ export default function StoresScreen() {
             <Pressable
               key={idx}
               onPress={() => setSelectedCity(idx)}
-              style={[
-                styles.filterChip,
-                selectedCity === idx && styles.filterChipActive,
-              ]}
+              style={[styles.filterChip, selectedCity === idx && styles.filterChipActive]}
             >
               <Text
-                style={[
-                  styles.filterText,
-                  selectedCity === idx && styles.filterTextActive,
-                ]}
+                style={[styles.filterText, selectedCity === idx && styles.filterTextActive]}
               >
                 {city}
               </Text>
@@ -92,10 +93,22 @@ export default function StoresScreen() {
 
       {/* Stats bar */}
       <View style={[styles.statsBar, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-        <Text style={styles.statsText}>
-          {filtered.length} {language === 'ar' ? 'متجر' : 'stores'}
-        </Text>
-        <Ionicons name="options-outline" size={18} color={colors.light.mutedForeground} />
+        <View style={[styles.statsLeft, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <Ionicons name="storefront-outline" size={15} color={colors.light.primary} />
+          <Text style={styles.statsText}>
+            {filtered.length} {language === 'ar' ? 'متجر' : 'stores'}
+          </Text>
+        </View>
+        {filtered.some((s) => s.isOpen) && (
+          <View style={[styles.openBadge, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={styles.openDot} />
+            <Text style={styles.openText}>
+              {language === 'ar'
+                ? `${filtered.filter((s) => s.isOpen).length} مفتوح`
+                : `${filtered.filter((s) => s.isOpen).length} open`}
+            </Text>
+          </View>
+        )}
       </View>
 
       <ScrollView
@@ -108,15 +121,20 @@ export default function StoresScreen() {
       >
         {filtered.length === 0 ? (
           <View style={styles.empty}>
-            <Ionicons name="storefront-outline" size={48} color={colors.light.border} />
+            <View style={styles.emptyIcon}>
+              <Ionicons name="storefront-outline" size={32} color={colors.light.mutedForeground} />
+            </View>
             <Text style={styles.emptyText}>{t('noResults')}</Text>
+            <Text style={styles.emptyHint}>
+              {language === 'ar' ? 'جرب البحث بكلمات مختلفة' : 'Try different search terms'}
+            </Text>
           </View>
         ) : (
           filtered.map((store) => (
             <View key={store.id} style={styles.cardWrap}>
               <StoreCard
                 store={store}
-                variant="full"
+                listMode
                 onPress={() => router.push(`/store/${store.id}`)}
               />
             </View>
@@ -128,26 +146,43 @@ export default function StoresScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.light.backgroundSecondary },
+  container: { flex: 1, backgroundColor: '#F5F7FA' },
   header: {
     backgroundColor: colors.light.background,
     paddingHorizontal: 16,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: colors.light.border,
-    shadowColor: colors.light.shadow,
+    borderBottomColor: 'rgba(226,232,240,0.6)',
+    shadowColor: 'rgba(15,23,42,0.06)',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 1,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowRadius: 10,
+    elevation: 3,
     gap: 12,
+  },
+  headerTop: {
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   title: {
     fontSize: 28,
     fontFamily: 'Inter_700Bold',
     color: colors.light.foreground,
   },
-  searchWrap: {},
+  sortBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    backgroundColor: colors.light.primaryLight,
+    borderRadius: colors.radiusFull,
+  },
+  sortText: {
+    fontSize: 13,
+    fontFamily: 'Inter_600SemiBold',
+    color: colors.light.primary,
+  },
   filterRow: {
     gap: 8,
     paddingBottom: 2,
@@ -174,28 +209,57 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_600SemiBold',
   },
   statsBar: {
-    justifyContent: 'space-between',
-    alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#F5F7FA',
   },
+  statsLeft: { alignItems: 'center', gap: 6 },
   statsText: {
     fontSize: 13,
     fontFamily: 'Inter_500Medium',
     color: colors.light.mutedForeground,
   },
+  openBadge: {
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    backgroundColor: colors.light.successLight,
+    borderRadius: colors.radiusFull,
+  },
+  openDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.light.success,
+  },
+  openText: {
+    fontSize: 12,
+    fontFamily: 'Inter_600SemiBold',
+    color: colors.light.success,
+  },
   scroll: { flex: 1 },
-  scrollContent: { paddingHorizontal: 16, paddingTop: 8, gap: 12 },
-  cardWrap: { width: '100%' },
-  empty: {
+  scrollContent: { padding: 16, gap: 10 },
+  cardWrap: { marginBottom: 0 },
+  empty: { alignItems: 'center', paddingTop: 64, gap: 10 },
+  emptyIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.light.muted,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 80,
-    gap: 12,
   },
   emptyText: {
-    fontSize: 16,
-    fontFamily: 'Inter_500Medium',
+    fontSize: 17,
+    fontFamily: 'Inter_600SemiBold',
+    color: colors.light.foreground,
+  },
+  emptyHint: {
+    fontSize: 13,
+    fontFamily: 'Inter_400Regular',
     color: colors.light.mutedForeground,
   },
 });

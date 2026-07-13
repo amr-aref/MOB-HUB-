@@ -19,6 +19,32 @@ import CategoryChip from '@/components/CategoryChip';
 import StoreCard from '@/components/StoreCard';
 import ProductCard from '@/components/ProductCard';
 
+function SectionHeader({
+  title,
+  onPress,
+  t,
+  isRTL,
+}: {
+  title: string;
+  onPress: () => void;
+  t: (k: any) => string;
+  isRTL: boolean;
+}) {
+  return (
+    <View style={[styles.sectionHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>{title}</Text>
+      <Pressable onPress={onPress} style={styles.seeAllBtn} hitSlop={8}>
+        <Text style={styles.seeAllText}>{t('seeAll')}</Text>
+        <Ionicons
+          name={isRTL ? 'chevron-back' : 'chevron-forward'}
+          size={14}
+          color={colors.light.primary}
+        />
+      </Pressable>
+    </View>
+  );
+}
+
 export default function HomeScreen() {
   const { t, isRTL, language } = useLanguage();
   const insets = useSafeAreaInsets();
@@ -35,27 +61,40 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Hero gradient header */}
-      <LinearGradient
-        colors={['#1E3A8A', '#2563EB', '#3B82F6']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[styles.header, { paddingTop: topInset + 12 }]}
-      >
-        <View style={[styles.headerContent, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.appName, { textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('appName')}
-            </Text>
-            <Text style={[styles.tagline, { textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('appTagline')}
-            </Text>
+      {/* Premium White Header */}
+      <View style={[styles.header, { paddingTop: topInset + 8 }]}>
+        <View style={[styles.headerTop, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          {/* App Brand */}
+          <View style={[styles.brandRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={styles.appIcon}>
+              <Ionicons name="phone-portrait" size={18} color="#fff" />
+            </View>
+            <View style={{ marginLeft: isRTL ? 0 : 10, marginRight: isRTL ? 10 : 0 }}>
+              <Text style={[styles.appName, { textAlign: isRTL ? 'right' : 'left' }]}>
+                {t('appName')}
+              </Text>
+              <Text style={[styles.tagline, { textAlign: isRTL ? 'right' : 'left' }]}>
+                {t('appTagline')}
+              </Text>
+            </View>
           </View>
-          <View style={styles.headerIcon}>
-            <Ionicons name="notifications-outline" size={22} color="rgba(255,255,255,0.9)" />
+
+          {/* Actions */}
+          <View style={[styles.headerActions, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <Pressable style={styles.iconBtn} hitSlop={8}>
+              <Ionicons name="notifications-outline" size={20} color={colors.light.foreground} />
+              <View style={styles.notifDot} />
+            </Pressable>
+            <Pressable
+              style={styles.avatarBtn}
+              onPress={() => router.push('/(tabs)/profile')}
+            >
+              <Ionicons name="person" size={16} color="#fff" />
+            </Pressable>
           </View>
         </View>
 
+        {/* Search bar */}
         <View style={styles.searchWrap}>
           <SearchBar
             value={searchQuery}
@@ -64,7 +103,7 @@ export default function HomeScreen() {
             isRTL={isRTL}
           />
         </View>
-      </LinearGradient>
+      </View>
 
       <ScrollView
         style={styles.scroll}
@@ -127,29 +166,41 @@ export default function HomeScreen() {
           </ScrollView>
         </View>
 
-        {/* Today's Deals banner */}
+        {/* Today's Deals Banner — premium glass version */}
         <View style={styles.section}>
           <Pressable style={styles.dealsBanner}>
             <LinearGradient
-              colors={['#DC2626', '#EF4444']}
+              colors={['#1E40AF', '#2563EB', '#3B82F6']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.dealsGradient}
             >
-              <View style={[styles.dealsContent, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                <View>
+              {/* Glass shine overlay */}
+              <View style={styles.dealsShine} />
+              <View
+                style={[
+                  styles.dealsContent,
+                  { flexDirection: isRTL ? 'row-reverse' : 'row' },
+                ]}
+              >
+                <View style={styles.dealsIconWrap}>
+                  <Text style={styles.dealsEmoji}>🔥</Text>
+                </View>
+                <View style={{ flex: 1, marginLeft: isRTL ? 0 : 12, marginRight: isRTL ? 12 : 0 }}>
                   <Text style={[styles.dealsTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
-                    🔥 {t('todayDeals')}
+                    {t('todayDeals')}
                   </Text>
                   <Text style={[styles.dealsSubtitle, { textAlign: isRTL ? 'right' : 'left' }]}>
-                    {language === 'ar' ? 'خصومات تصل إلى ٣٠٪' : 'Discounts up to 30%'}
+                    {language === 'ar' ? 'خصومات تصل إلى ٣٠٪ على الهواتف' : 'Up to 30% off on phones'}
                   </Text>
                 </View>
-                <Ionicons
-                  name={isRTL ? 'chevron-back' : 'chevron-forward'}
-                  size={24}
-                  color="rgba(255,255,255,0.8)"
-                />
+                <View style={styles.dealsArrow}>
+                  <Ionicons
+                    name={isRTL ? 'chevron-back' : 'chevron-forward'}
+                    size={20}
+                    color="rgba(255,255,255,0.9)"
+                  />
+                </View>
               </View>
             </LinearGradient>
           </Pressable>
@@ -171,7 +222,7 @@ export default function HomeScreen() {
                 <ProductCard
                   product={product}
                   onPress={() => router.push(`/product/${product.id}`)}
-                  width={170}
+                  width={172}
                 />
               </View>
             ))}
@@ -194,22 +245,27 @@ export default function HomeScreen() {
                 <ProductCard
                   product={product}
                   onPress={() => router.push(`/product/${product.id}`)}
-                  width={170}
+                  width={172}
                 />
               </View>
             ))}
           </ScrollView>
         </View>
 
-        {/* Top Rated Stores */}
+        {/* Top Rated Stores — full-width list */}
         <View style={styles.section}>
-          <SectionHeader title={t('topRated')} onPress={() => router.push('/(tabs)/stores')} t={t} isRTL={isRTL} />
-          <View style={styles.storesListWrap}>
+          <SectionHeader
+            title={t('topRated')}
+            onPress={() => router.push('/(tabs)/stores')}
+            t={t}
+            isRTL={isRTL}
+          />
+          <View style={styles.storeList}>
             {stores.slice(0, 3).map((store) => (
               <StoreCard
                 key={store.id}
                 store={store}
-                variant="compact"
+                listMode
                 onPress={() => router.push(`/store/${store.id}`)}
               />
             ))}
@@ -220,122 +276,196 @@ export default function HomeScreen() {
   );
 }
 
-function SectionHeader({
-  title,
-  onPress,
-  t,
-  isRTL,
-}: {
-  title: string;
-  onPress: () => void;
-  t: (k: any) => string;
-  isRTL: boolean;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={[styles.sectionHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
-    >
-      <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>{title}</Text>
-      <View style={[styles.seeAllRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-        <Text style={styles.seeAll}>{t('seeAll')}</Text>
-        <Ionicons
-          name={isRTL ? 'chevron-back' : 'chevron-forward'}
-          size={14}
-          color={colors.light.primary}
-        />
-      </View>
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.light.backgroundSecondary },
+  container: { flex: 1, backgroundColor: '#F5F7FA' },
+
+  // Header
   header: {
+    backgroundColor: colors.light.background,
     paddingHorizontal: 16,
-    paddingBottom: 20,
+    paddingBottom: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(226, 232, 240, 0.6)',
+    shadowColor: 'rgba(15,23,42,0.06)',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 12,
+    elevation: 3,
+    gap: 12,
     zIndex: 10,
   },
-  headerContent: {
+  headerTop: {
     alignItems: 'center',
-    marginBottom: 16,
+    justifyContent: 'space-between',
+  },
+  brandRow: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  appIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 11,
+    backgroundColor: colors.light.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: colors.light.primary,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   appName: {
-    fontSize: 26,
+    fontSize: 18,
     fontFamily: 'Inter_700Bold',
-    color: '#fff',
+    color: colors.light.foreground,
+    letterSpacing: -0.3,
   },
   tagline: {
-    fontSize: 13,
+    fontSize: 11,
     fontFamily: 'Inter_400Regular',
-    color: 'rgba(255,255,255,0.8)',
-    marginTop: 2,
+    color: colors.light.mutedForeground,
+    marginTop: 1,
   },
-  headerIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+  headerActions: {
+    gap: 8,
+    alignItems: 'center',
+  },
+  iconBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 11,
+    backgroundColor: colors.light.muted,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  notifDot: {
+    position: 'absolute',
+    top: 7,
+    right: 7,
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: colors.light.destructive,
+    borderWidth: 1.5,
+    borderColor: '#fff',
+  },
+  avatarBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: colors.light.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  searchWrap: { marginBottom: 4 },
+  searchWrap: {},
+
+  // Scroll
   scroll: { flex: 1 },
-  scrollContent: { paddingTop: 20 },
-  section: { marginBottom: 24 },
+  scrollContent: { paddingTop: 8 },
+
+  // Sections
+  section: { marginBottom: 4 },
   sectionHeader: {
-    justifyContent: 'space-between',
-    alignItems: 'center',
     paddingHorizontal: 16,
-    marginBottom: 12,
+    paddingTop: 20,
+    paddingBottom: 12,
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   sectionTitle: {
     fontSize: 18,
     fontFamily: 'Inter_700Bold',
     color: colors.light.foreground,
   },
-  seeAllRow: { flexDirection: 'row', alignItems: 'center', gap: 2 },
-  seeAll: {
-    fontSize: 13,
+  seeAllBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: colors.radiusFull,
+    backgroundColor: colors.light.primaryLight,
+  },
+  seeAllText: {
+    fontSize: 12,
     fontFamily: 'Inter_600SemiBold',
     color: colors.light.primary,
   },
   chipsRow: {
     paddingHorizontal: 16,
-    gap: 10,
+    gap: 8,
+    paddingBottom: 4,
   },
   chipWrap: {},
   horizontalList: {
-    paddingHorizontal: 16,
     gap: 12,
+    paddingRight: 16,
   },
   productWrap: {},
+
+  // Deals banner
   dealsBanner: {
     marginHorizontal: 16,
     borderRadius: colors.radiusLg,
     overflow: 'hidden',
-    shadowColor: colors.light.destructive,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 4,
+    shadowColor: colors.light.primary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 6,
   },
-  dealsGradient: { borderRadius: colors.radiusLg },
-  dealsContent: {
+  dealsGradient: {
     padding: 18,
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    position: 'relative',
+    overflow: 'hidden',
   },
+  dealsShine: {
+    position: 'absolute',
+    top: -40,
+    right: -20,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+  },
+  dealsContent: {
+    alignItems: 'center',
+  },
+  dealsIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dealsEmoji: { fontSize: 22 },
   dealsTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontFamily: 'Inter_700Bold',
     color: '#fff',
   },
   dealsSubtitle: {
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: 'Inter_400Regular',
     color: 'rgba(255,255,255,0.85)',
     marginTop: 2,
   },
-  storesListWrap: { paddingHorizontal: 16 },
+  dealsArrow: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // Store list
+  storeList: {
+    paddingHorizontal: 16,
+    gap: 10,
+    paddingBottom: 8,
+  },
 });

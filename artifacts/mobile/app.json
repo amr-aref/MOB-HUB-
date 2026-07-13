@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "موبايل ماركت",
-    "slug": "mobile",
+    "name": "MOB HUB",
+    "slug": "mobhub",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "mobile",
+    "scheme": "mobhub",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
@@ -14,9 +14,12 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": false
+      "supportsTablet": false,
+      "bundleIdentifier": "com.mobhub.app"
     },
-    "android": {},
+    "android": {
+      "package": "com.mobhub.app"
+    },
     "web": {
       "favicon": "./assets/images/icon.png"
     },
