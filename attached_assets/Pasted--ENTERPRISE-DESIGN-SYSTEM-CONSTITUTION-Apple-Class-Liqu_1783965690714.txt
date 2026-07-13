@@ -1,0 +1,313 @@
+# ENTERPRISE DESIGN SYSTEM CONSTITUTION
+
+## Apple-Class Liquid Glass Experience
+
+### DESIGN OBJECTIVE
+
+Transform the entire application into a flagship premium experience with a fully consistent **White Transparent Liquid Glass** design language inspired by modern high-end operating systems while maintaining a unique brand identity.
+
+The application should immediately communicate elegance, clarity, sophistication, and exceptional craftsmanship.
+
+---
+
+## DESIGN PHILOSOPHY
+
+The interface should feel:
+
+* Premium
+* Elegant
+* Minimal
+* Airy
+* Futuristic
+* Luxurious
+* Calm
+* Lightweight
+
+Every visual element should appear as if it is floating above the background.
+
+Never create visual clutter.
+
+Never overload the interface.
+
+Every pixel should have a purpose.
+
+---
+
+## WHITE LIQUID GLASS SYSTEM
+
+Implement a modern transparent glass design system.
+
+Every UI component should include:
+
+* Frosted Glass Effect
+* Background Blur
+* Semi-transparent White Surface
+* Thin Glass Borders
+* Soft Reflections
+* Layered Depth
+* Floating Appearance
+* Dynamic Lighting
+* Rounded Corners
+* Soft Shadows
+
+The interface should resemble polished glass rather than solid containers.
+
+---
+
+## GLASS COMPONENTS
+
+Apply the glass style consistently to:
+
+* Navigation Bar
+* Bottom Navigation
+* Side Menu
+* Search Bar
+* Store Cards
+* Product Cards
+* Category Cards
+* Buttons
+* Dialogs
+* Popups
+* Filters
+* Floating Action Buttons
+* Chips
+* Tabs
+* Profile Header
+* Review Cards
+* Comparison Cards
+
+Every component must belong to the same visual language.
+
+---
+
+## PRODUCT CARDS
+
+Product cards should look like floating premium glass.
+
+Each card contains:
+
+* Product Image
+* Product Name
+* Price
+* Discount
+* Favorite Button
+* Store Name
+* Rating
+
+Cards should have:
+
+* Frosted Glass Background
+* Transparent White Surface
+* Soft Blur
+* Floating Shadow
+* Rounded Corners
+* Premium Elevation
+
+Hover and touch interactions should feel natural.
+
+---
+
+## ICONOGRAPHY
+
+Use a consistent rounded icon system.
+
+Icons should:
+
+* Float above the glass
+* Be semi-transparent
+* Have elegant spacing
+* Use subtle gradients only when appropriate
+* Maintain visual consistency
+
+Avoid heavy icon styles.
+
+---
+
+## MOTION DESIGN
+
+Animations must feel natural and premium.
+
+Use:
+
+* Spring Animations
+* Hero Transitions
+* Shared Element Transitions
+* Fade
+* Scale
+* Slide
+* Blur Transitions
+* Ripple Effects
+* Smooth Expansion
+* Elastic Motion
+* Floating Hover Effects
+
+Avoid exaggerated animations.
+
+Animation must improve usability rather than distract.
+
+---
+
+## PAGE TRANSITIONS
+
+Every navigation should feel fluid.
+
+Transitions should include:
+
+* Shared Elements
+* Glass Morphing
+* Fade Through
+* Scale Up
+* Smooth Blur
+* Natural Motion Curves
+
+Navigation should feel seamless.
+
+---
+
+## MICRO INTERACTIONS
+
+Every interaction should provide subtle visual feedback.
+
+Examples:
+
+* Button Press
+* Card Selection
+* Favorite Animation
+* Product Added
+* Loading State
+* Success State
+* Error State
+* Pull to Refresh
+* Search Focus
+* Filter Selection
+
+Every interaction should feel satisfying.
+
+---
+
+## LIGHTING SYSTEM
+
+Implement dynamic lighting across the interface.
+
+Glass surfaces should subtly react to surrounding colors.
+
+Use soft highlights instead of strong reflections.
+
+Never create unrealistic lighting.
+
+---
+
+## COLOR SYSTEM
+
+Primary Background:
+Pure White (#FFFFFF)
+
+Secondary Background:
+Soft White (#FAFAFA)
+
+Glass Surface:
+Semi-transparent White
+
+Glass Border:
+Very Light White Border
+
+Primary Text:
+Near Black
+
+Secondary Text:
+Medium Gray
+
+Accent Color:
+Modern Blue
+
+Success:
+Green
+
+Warning:
+Amber
+
+Error:
+Red
+
+The color palette should remain minimal and premium.
+
+---
+
+## TYPOGRAPHY
+
+Typography should feel modern and elegant.
+
+Use:
+
+* Large Headlines
+* Comfortable Line Height
+* Clear Hierarchy
+* Minimal Font Weights
+* High Readability
+
+Spacing should be generous.
+
+---
+
+## RESPONSIVENESS
+
+The interface must adapt perfectly to:
+
+* Small Phones
+* Large Phones
+* Foldable Devices
+* Tablets
+
+No visual inconsistencies.
+
+---
+
+## ACCESSIBILITY
+
+Maintain WCAG AA compliance.
+
+Support:
+
+* Screen Readers
+* Large Text
+* High Contrast
+* Keyboard Navigation
+* Touch Accessibility
+
+Beauty must never reduce usability.
+
+---
+
+## PERFORMANCE
+
+Maintain premium visual quality while ensuring:
+
+* Smooth 60 FPS animations
+* Fast startup
+* Optimized rendering
+* Efficient blur effects
+* Minimal GPU overhead
+* Excellent battery efficiency
+
+---
+
+## FINAL EXPERIENCE
+
+The finished application should feel comparable in quality to flagship products such as:
+
+* Apple Store
+* Apple Wallet
+* Apple Photos
+* Apple Maps
+* Apple Settings
+* Airbnb
+* Arc Browser
+* Linear
+* Revolut
+* Tesla App
+
+Without copying any existing product.
+
+Create an original design language that establishes this application as the premium marketplace experience for Egypt.
+
+Every screen should make users feel they are interacting with a world-class product built by an elite engineering and design organization.

@@ -1,0 +1,316 @@
+# ENTERPRISE MARKETPLACE EXPANSION
+
+## Store Management • Localization • Dynamic Categories • Comparison Engine
+
+### ROLE
+
+You are operating as an elite world-class software company composed of senior product managers, enterprise architects, Flutter engineers, backend engineers, UX designers, AI architects, database architects, QA engineers, and accessibility specialists.
+
+Your objective is to upgrade the application into a premium marketplace platform capable of serving millions of users while maintaining enterprise-level architecture, performance, and scalability.
+
+---
+
+# 1. MULTI-LANGUAGE SUPPORT
+
+Implement complete internationalization from day one.
+
+Supported languages:
+
+* Arabic (Default)
+* English
+
+Requirements:
+
+* Instant language switching
+* Full RTL support for Arabic
+* Full LTR support for English
+* Automatic layout mirroring
+* Localized dates
+* Localized currency
+* Localized validation messages
+* Localized notifications
+* Localized search
+* Localized categories
+* No hardcoded text inside UI components
+
+---
+
+# 2. DIGITAL STORE PROFILE
+
+Every mobile shop owns a complete professional storefront.
+
+Each store must include:
+
+* Store Logo
+* Cover Image
+* Store Name
+* Arabic Name
+* English Name
+* Description
+* Address
+* Governorate
+* City
+* GPS Coordinates
+* Google Maps Location
+* Working Hours
+* Phone Number
+* WhatsApp
+* Facebook
+* Instagram
+* Website (optional)
+* Verification Status (future ready)
+* Average Rating
+* Reviews Count
+
+Customers can open the store profile exactly like a professional business page.
+
+---
+
+# 3. MAP INTEGRATION
+
+Store owners can select their exact location on the map.
+
+Customers can:
+
+* View Store Location
+* Open Google Maps
+* Start Navigation
+* Calculate Distance
+* Copy Address
+
+Opening the location should immediately launch the user's preferred maps application.
+
+---
+
+# 4. CONTACT OPTIONS
+
+Every store should support one-tap communication.
+
+Supported methods:
+
+* Phone Call
+* WhatsApp
+* Facebook
+* Instagram
+* Website
+* Email
+
+---
+
+# 5. DYNAMIC PRODUCT CATEGORIES
+
+Categories must be completely dynamic.
+
+Store owners can:
+
+* Create Categories
+* Edit Categories
+* Delete Categories
+* Hide Categories
+* Reorder Categories
+* Add Icons
+* Add Images
+* Create Unlimited Categories
+* Create Nested Categories
+
+Categories must never be hardcoded.
+
+---
+
+# 6. DEFAULT PRODUCT CATEGORIES
+
+Every new store starts with professional default categories including:
+
+* Smartphones
+* Used Phones
+* Tablets
+* Smart Watches
+* Smart Bands
+* AirPods
+* Wireless Earbuds
+* Headphones
+* Chargers
+* Charging Heads
+* Charging Cables
+* Fast Chargers
+* Power Banks
+* Phone Cases
+* Screen Protectors
+* Privacy Screen Protectors
+* Camera Lens Protectors
+* Memory Cards
+* Bluetooth Speakers
+* Gaming Accessories
+* Laptop Accessories
+* Spare Parts
+* Repair Tools
+* Featured Products
+* Offers
+* Best Sellers
+* New Arrivals
+
+Store owners may rename, delete, or add unlimited custom categories.
+
+---
+
+# 7. PRODUCT MANAGEMENT
+
+Store owners can:
+
+* Add Products
+* Edit Products
+* Delete Products
+* Archive Products
+* Duplicate Products
+* Hide Products
+* Publish Products
+* Move Products Between Categories
+
+Each product supports:
+
+* Arabic Name
+* English Name
+* Arabic Description
+* English Description
+* Brand
+* Model
+* Price
+* Discount Price
+* Quantity
+* Stock Status
+* Warranty
+* Condition
+* Available Colors
+* Available Storage
+* Available RAM
+* Technical Specifications
+* Features
+* Images
+* Videos
+* Tags
+
+---
+
+# 8. STORE REVIEWS
+
+Customers can:
+
+* Rate stores from 1 to 5 stars
+* Write reviews
+* Edit reviews
+* Delete their own reviews
+* Report inappropriate content
+
+Store owners can:
+
+* Reply to reviews
+* View review analytics
+
+The average rating must update automatically.
+
+---
+
+# 9. PROFESSIONAL PHONE COMPARISON ENGINE
+
+Build a dedicated smartphone comparison system.
+
+Users should be able to compare two, three, or four smartphones side by side.
+
+Comparison must include:
+
+* Brand
+* Model
+* Release Date
+* Operating System
+* Processor
+* CPU
+* GPU
+* RAM
+* Internal Storage
+* Expandable Storage
+* Display Size
+* Display Type
+* Resolution
+* Refresh Rate
+* Brightness
+* Protection Glass
+* Rear Cameras
+* Front Camera
+* Video Recording
+* Battery Capacity
+* Charging Speed
+* Wireless Charging
+* Reverse Charging
+* Fingerprint Sensor
+* Face Unlock
+* Water Resistance
+* Weight
+* Dimensions
+* SIM Support
+* 5G Support
+* NFC
+* Bluetooth Version
+* Wi-Fi Version
+* USB Type
+* Audio Jack
+* Colors
+* Warranty
+* Current Price
+* Store Availability
+
+The comparison interface must clearly highlight:
+
+* Better specifications
+* Lower price
+* Better value
+* Pros and Cons
+* Specification differences
+
+Provide a clean comparison table optimized for mobile devices.
+
+Allow users to save comparisons and share them.
+
+Future-ready architecture should support AI-generated buying recommendations based on comparison results.
+
+---
+
+# 10. DESIGN SYSTEM
+
+Maintain a premium Light Glass Morphism interface.
+
+Requirements:
+
+* White background
+* Frosted glass cards
+* Floating navigation
+* Rounded components
+* Soft blur
+* Soft shadows
+* Elegant spacing
+* Smooth animations
+* Modern icons
+* Premium typography
+
+The interface should feel calm, luxurious, and modern.
+
+---
+
+# 11. PERFORMANCE & SCALABILITY
+
+Design for:
+
+* 100,000+ Stores
+* 10,000,000+ Products
+* Millions of Users
+* Unlimited Categories
+* Unlimited Brands
+
+Every feature must be modular, reusable, configurable, and database-driven.
+
+Avoid hardcoded values.
+
+Prioritize long-term maintainability and enterprise-grade quality.
+
+# FINAL OBJECTIVE
+
+Build a premium marketplace platform that becomes the national reference for mobile phones and electronics in Egypt, offering a world-class experience for customers and store owners while remaining scalable, secure, and ready for future AI-powered capabilities.
