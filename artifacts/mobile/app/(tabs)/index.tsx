@@ -6,45 +6,39 @@ import {
   StyleSheet,
   Text,
   View,
-  Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import Animated, { FadeInUp, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import colors from '@/constants/colors';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { getFontFamily } from '@/constants/fonts';
-import { categories, products, stores } from '@/data/mockData';
+import {
+  useGetStores,
+  useGetProducts,
+  useGetCategories,
+} from '@workspace/api-client-react';
 import SearchBar from '@/components/SearchBar';
 import CategoryChip from '@/components/CategoryChip';
 import StoreCard from '@/components/StoreCard';
 import ProductCard from '@/components/ProductCard';
-import * as Haptics from 'expo-haptics';
-
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 function SectionHeader({
   title,
   onPress,
   t,
   isRTL,
-  fontFamBold,
-  fontFamSemi,
 }: {
   title: string;
   onPress: () => void;
   t: (k: any) => string;
   isRTL: boolean;
-  fontFamBold: string;
-  fontFamSemi: string;
 }) {
   return (
     <View style={[styles.sectionHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-      <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamBold }]}>{title}</Text>
+      <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>{title}</Text>
       <Pressable onPress={onPress} style={styles.seeAllBtn} hitSlop={8}>
-        <Text style={[styles.seeAllText, { fontFamily: fontFamSemi }]}>{t('seeAll')}</Text>
+        <Text style={styles.seeAllText}>{t('seeAll')}</Text>
         <Ionicons
           name={isRTL ? 'chevron-back' : 'chevron-forward'}
           size={14}
@@ -65,60 +59,43 @@ export default function HomeScreen() {
   const topInset = Platform.OS === 'web' ? 67 : insets.top;
   const bottomInset = Platform.OS === 'web' ? 34 : 0;
 
-  const fontFamBold = getFontFamily(isRTL, 'bold');
-  const fontFamSemi = getFontFamily(isRTL, 'semiBold');
-  const fontFamReg = getFontFamily(isRTL, 'regular');
-  const latinBold = getFontFamily(false, 'bold');
-  const latinReg = getFontFamily(false, 'regular');
-
-  const featuredStores = stores.filter((s) => s.isVerified);
-  const newArrivals = products.filter((p) => p.isNew);
-  const bestSellers = products.filter((p) => p.isBestSeller);
-
-  const bannerScale = useSharedValue(1);
-  const bannerAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: bannerScale.value }],
-  }));
-
-  const handleBannerPressIn = () => {
-    bannerScale.value = withSpring(0.97, { stiffness: 300, damping: 28 });
-  };
-  const handleBannerPressOut = () => {
-    bannerScale.value = withSpring(1, { stiffness: 300, damping: 28 });
-  };
+  const { data: featuredStores = [] } = useGetStores({ isVerified: 'true' });
+  const { data: newArrivals = [] } = useGetProducts({ isNew: 'true' });
+  const { data: bestSellers = [] } = useGetProducts({ isBestSeller: 'true' });
+  const { data: topRatedStores = [] } = useGetStores({ sort: 'rating' });
+  const { data: categories = [] } = useGetCategories();
 
   return (
     <View style={styles.container}>
-      {/* Header */}
+      {/* Premium White Header */}
       <View style={[styles.header, { paddingTop: topInset + 8 }]}>
         <View style={[styles.headerTop, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-          {/* Greeting */}
-          <View style={[styles.greetingRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <View>
-              <Text style={[styles.greetingText, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamSemi }]}>
-                {language === 'ar' ? 'صباح الخير 👋' : 'Good Morning 👋'}
+          {/* App Brand */}
+          <View style={[styles.brandRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View style={styles.appIcon}>
+              <Ionicons name="phone-portrait" size={18} color="#fff" />
+            </View>
+            <View style={{ marginLeft: isRTL ? 0 : 10, marginRight: isRTL ? 10 : 0 }}>
+              <Text style={[styles.appName, { textAlign: isRTL ? 'right' : 'left' }]}>
+                {t('appName')}
               </Text>
-              <View style={[styles.locationRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                <Ionicons name="location" size={14} color={colors.light.primary} />
-                <Text style={[styles.locationText, { fontFamily: fontFamReg }]}>
-                  {language === 'ar' ? 'القاهرة، مصر' : 'Cairo, Egypt'}
-                </Text>
-                <Ionicons name="chevron-down" size={14} color={colors.light.mutedForeground} />
-              </View>
+              <Text style={[styles.tagline, { textAlign: isRTL ? 'right' : 'left' }]}>
+                {t('appTagline')}
+              </Text>
             </View>
           </View>
 
           {/* Actions */}
           <View style={[styles.headerActions, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <Pressable style={styles.iconBtn} hitSlop={8}>
-              <Ionicons name="notifications-outline" size={22} color={colors.light.foreground} />
+              <Ionicons name="notifications-outline" size={20} color={colors.light.foreground} />
               <View style={styles.notifDot} />
             </Pressable>
             <Pressable
               style={styles.avatarBtn}
               onPress={() => router.push('/(tabs)/profile')}
             >
-              <Image source={{ uri: 'https://i.pravatar.cc/150?u=a042581f4e29026024d' }} style={styles.avatarImage} />
+              <Ionicons name="person" size={16} color="#fff" />
             </Pressable>
           </View>
         </View>
@@ -142,46 +119,9 @@ export default function HomeScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Hero Banner */}
-        <Animated.View entering={FadeInUp.delay(100).springify().stiffness(300).damping(28)} style={styles.section}>
-          <AnimatedPressable 
-            onPressIn={handleBannerPressIn}
-            onPressOut={handleBannerPressOut}
-            style={[styles.heroBanner, bannerAnimatedStyle]}
-          >
-            <LinearGradient
-              colors={['#C9C6F5', '#8FA7EE', '#6B7FE0']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.heroGradient}
-            >
-              <View style={[styles.heroContent, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                <View style={[styles.heroTextContent, { alignItems: isRTL ? 'flex-end' : 'flex-start' }]}>
-                  <Text style={[styles.heroTitle, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamBold }]}>
-                    {language === 'ar' ? 'هاتف أحلامك بانتظارك' : 'Your Dream Phone Awaits'}
-                  </Text>
-                  <Text style={[styles.heroSubtitle, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamReg }]}>
-                    {language === 'ar' ? 'اكتشف أحدث الموبايلات والإلكترونيات بأفضل الأسعار.' : 'Discover the latest phones and electronics at the best prices.'}
-                  </Text>
-                  <Pressable style={styles.exploreBtn} onPress={() => {Haptics.selectionAsync();}}>
-                    <Text style={[styles.exploreBtnText, { fontFamily: fontFamSemi }]}>
-                      {language === 'ar' ? 'اكتشف الآن' : 'Explore Now'}
-                    </Text>
-                    <Ionicons name={isRTL ? 'arrow-back' : 'arrow-forward'} size={16} color="#000" />
-                  </Pressable>
-                </View>
-                <View style={styles.heroImageWrap}>
-                  <View style={styles.heroPhone}>
-                    <View style={styles.heroPhoneScreen} />
-                  </View>
-                </View>
-              </View>
-            </LinearGradient>
-          </AnimatedPressable>
-        </Animated.View>
-
-        {/* Quick Categories */}
-        <Animated.View entering={FadeInUp.delay(150).springify().stiffness(300).damping(28)} style={styles.section}>
+        {/* Categories */}
+        <View style={styles.section}>
+          <SectionHeader title={t('categories')} onPress={() => {}} t={t} isRTL={isRTL} />
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -204,17 +144,15 @@ export default function HomeScreen() {
               </View>
             ))}
           </ScrollView>
-        </Animated.View>
+        </View>
 
         {/* Featured Stores */}
-        <Animated.View entering={FadeInUp.delay(200).springify().stiffness(300).damping(28)} style={styles.section}>
+        <View style={styles.section}>
           <SectionHeader
             title={t('featuredStores')}
             onPress={() => router.push('/(tabs)/stores')}
             t={t}
             isRTL={isRTL}
-            fontFamBold={fontFamBold}
-            fontFamSemi={fontFamSemi}
           />
           <ScrollView
             horizontal
@@ -232,18 +170,51 @@ export default function HomeScreen() {
               />
             ))}
           </ScrollView>
-        </Animated.View>
+        </View>
+
+        {/* Today's Deals Banner — premium glass version */}
+        <View style={styles.section}>
+          <Pressable style={styles.dealsBanner}>
+            <LinearGradient
+              colors={['#1E40AF', '#2563EB', '#3B82F6']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.dealsGradient}
+            >
+              {/* Glass shine overlay */}
+              <View style={styles.dealsShine} />
+              <View
+                style={[
+                  styles.dealsContent,
+                  { flexDirection: isRTL ? 'row-reverse' : 'row' },
+                ]}
+              >
+                <View style={styles.dealsIconWrap}>
+                  <Text style={styles.dealsEmoji}>🔥</Text>
+                </View>
+                <View style={{ flex: 1, marginLeft: isRTL ? 0 : 12, marginRight: isRTL ? 12 : 0 }}>
+                  <Text style={[styles.dealsTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+                    {t('todayDeals')}
+                  </Text>
+                  <Text style={[styles.dealsSubtitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+                    {language === 'ar' ? 'خصومات تصل إلى ٣٠٪ على الهواتف' : 'Up to 30% off on phones'}
+                  </Text>
+                </View>
+                <View style={styles.dealsArrow}>
+                  <Ionicons
+                    name={isRTL ? 'chevron-back' : 'chevron-forward'}
+                    size={20}
+                    color="rgba(255,255,255,0.9)"
+                  />
+                </View>
+              </View>
+            </LinearGradient>
+          </Pressable>
+        </View>
 
         {/* New Arrivals */}
-        <Animated.View entering={FadeInUp.delay(250).springify().stiffness(300).damping(28)} style={styles.section}>
-          <SectionHeader 
-            title={t('newArrivals')} 
-            onPress={() => {}} 
-            t={t} 
-            isRTL={isRTL} 
-            fontFamBold={fontFamBold}
-            fontFamSemi={fontFamSemi}
-          />
+        <View style={styles.section}>
+          <SectionHeader title={t('newArrivals')} onPress={() => {}} t={t} isRTL={isRTL} />
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -257,23 +228,16 @@ export default function HomeScreen() {
                 <ProductCard
                   product={product}
                   onPress={() => router.push(`/product/${product.id}`)}
-                  width={160}
+                  width={172}
                 />
               </View>
             ))}
           </ScrollView>
-        </Animated.View>
+        </View>
 
-        {/* Trending / Best Sellers */}
-        <Animated.View entering={FadeInUp.delay(300).springify().stiffness(300).damping(28)} style={styles.section}>
-          <SectionHeader 
-            title={t('bestSellers')} 
-            onPress={() => {}} 
-            t={t} 
-            isRTL={isRTL} 
-            fontFamBold={fontFamBold}
-            fontFamSemi={fontFamSemi}
-          />
+        {/* Best Sellers */}
+        <View style={styles.section}>
+          <SectionHeader title={t('bestSellers')} onPress={() => {}} t={t} isRTL={isRTL} />
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -287,208 +251,227 @@ export default function HomeScreen() {
                 <ProductCard
                   product={product}
                   onPress={() => router.push(`/product/${product.id}`)}
-                  width={160}
+                  width={172}
                 />
               </View>
             ))}
           </ScrollView>
-        </Animated.View>
+        </View>
 
+        {/* Top Rated Stores — full-width list */}
+        <View style={styles.section}>
+          <SectionHeader
+            title={t('topRated')}
+            onPress={() => router.push('/(tabs)/stores')}
+            t={t}
+            isRTL={isRTL}
+          />
+          <View style={styles.storeList}>
+            {topRatedStores.slice(0, 3).map((store) => (
+              <StoreCard
+                key={store.id}
+                store={store}
+                listMode
+                onPress={() => router.push(`/store/${store.id}`)}
+              />
+            ))}
+          </View>
+        </View>
       </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.light.background },
+  container: { flex: 1, backgroundColor: '#F5F7FA' },
 
   // Header
   header: {
     backgroundColor: colors.light.background,
     paddingHorizontal: 16,
-    paddingBottom: 16,
-    gap: 16,
+    paddingBottom: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(226, 232, 240, 0.6)',
+    shadowColor: 'rgba(15,23,42,0.06)',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 12,
+    elevation: 3,
+    gap: 12,
     zIndex: 10,
   },
   headerTop: {
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  greetingRow: {
+  brandRow: {
     alignItems: 'center',
     flex: 1,
-    gap: 12,
   },
-  greetingText: {
-    fontSize: 20,
-    color: colors.light.foreground,
-    marginBottom: 4,
-  },
-  locationRow: {
+  appIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 11,
+    backgroundColor: colors.light.primary,
     alignItems: 'center',
-    gap: 4,
+    justifyContent: 'center',
+    shadowColor: colors.light.primary,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  locationText: {
-    fontSize: 13,
+  appName: {
+    fontSize: 18,
+    fontFamily: 'Inter_700Bold',
+    color: colors.light.foreground,
+    letterSpacing: -0.3,
+  },
+  tagline: {
+    fontSize: 11,
+    fontFamily: 'Inter_400Regular',
     color: colors.light.mutedForeground,
+    marginTop: 1,
   },
   headerActions: {
-    gap: 12,
+    gap: 8,
     alignItems: 'center',
   },
   iconBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 999,
-    backgroundColor: colors.light.card,
+    width: 38,
+    height: 38,
+    borderRadius: 11,
+    backgroundColor: colors.light.muted,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
-    shadowColor: colors.light.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 12,
-    elevation: 2,
   },
   notifDot: {
     position: 'absolute',
-    top: 10,
-    right: 12,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    top: 7,
+    right: 7,
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
     backgroundColor: colors.light.destructive,
     borderWidth: 1.5,
     borderColor: '#fff',
   },
   avatarBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    overflow: 'hidden',
-    shadowColor: colors.light.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 12,
-    elevation: 2,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: colors.light.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  avatarImage: {
-    width: '100%',
-    height: '100%',
-  },
-  searchWrap: {
-    paddingHorizontal: 4,
-  },
+  searchWrap: {},
 
   // Scroll
   scroll: { flex: 1 },
-  scrollContent: { paddingTop: 16 },
-
-  // Hero Banner
-  heroBanner: {
-    marginHorizontal: 16,
-    borderRadius: colors.radiusXl,
-    overflow: 'hidden',
-    shadowColor: colors.light.shadowStrong,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 1,
-    shadowRadius: 24,
-    elevation: 6,
-    marginBottom: 24,
-  },
-  heroGradient: {
-    padding: 24,
-    minHeight: 180,
-  },
-  heroContent: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  heroTextContent: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  heroTitle: {
-    fontSize: 24,
-    color: '#fff',
-    lineHeight: 32,
-    textShadowColor: 'rgba(0,0,0,0.1)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 8,
-  },
-  heroSubtitle: {
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.9)',
-    marginTop: 8,
-    lineHeight: 20,
-  },
-  exploreBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 999,
-    marginTop: 16,
-    gap: 6,
-  },
-  exploreBtnText: {
-    fontSize: 13,
-    color: '#000',
-  },
-  heroImageWrap: {
-    width: 100,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  heroPhone: {
-    width: 80,
-    height: 140,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.5)',
-    padding: 6,
-    transform: [{ rotate: '-10deg' }],
-  },
-  heroPhoneScreen: {
-    flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.8)',
-    borderRadius: 8,
-  },
+  scrollContent: { paddingTop: 8 },
 
   // Sections
-  section: { marginBottom: 8 },
+  section: { marginBottom: 4 },
   sectionHeader: {
     paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 16,
+    paddingTop: 20,
+    paddingBottom: 12,
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 18,
+    fontFamily: 'Inter_700Bold',
     color: colors.light.foreground,
   },
   seeAllBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 2,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: colors.radiusFull,
+    backgroundColor: colors.light.primaryLight,
   },
   seeAllText: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: 'Inter_600SemiBold',
     color: colors.light.primary,
   },
   chipsRow: {
     paddingHorizontal: 16,
-    gap: 12,
-    paddingBottom: 16,
+    gap: 8,
+    paddingBottom: 4,
   },
   chipWrap: {},
   horizontalList: {
-    gap: 16,
+    gap: 12,
     paddingRight: 16,
-    paddingBottom: 24,
   },
   productWrap: {},
+
+  // Deals banner
+  dealsBanner: {
+    marginHorizontal: 16,
+    borderRadius: colors.radiusLg,
+    overflow: 'hidden',
+    shadowColor: colors.light.primary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 6,
+  },
+  dealsGradient: {
+    padding: 18,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  dealsShine: {
+    position: 'absolute',
+    top: -40,
+    right: -20,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+  },
+  dealsContent: {
+    alignItems: 'center',
+  },
+  dealsIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dealsEmoji: { fontSize: 22 },
+  dealsTitle: {
+    fontSize: 16,
+    fontFamily: 'Inter_700Bold',
+    color: '#fff',
+  },
+  dealsSubtitle: {
+    fontSize: 12,
+    fontFamily: 'Inter_400Regular',
+    color: 'rgba(255,255,255,0.85)',
+    marginTop: 2,
+  },
+  dealsArrow: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // Store list
+  storeList: {
+    paddingHorizontal: 16,
+    gap: 10,
+    paddingBottom: 8,
+  },
 });

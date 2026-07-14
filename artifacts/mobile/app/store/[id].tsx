@@ -18,7 +18,7 @@ import Animated, { FadeInUp, useAnimatedStyle, useSharedValue, withSpring } from
 import colors from '@/constants/colors';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useFavorites } from '@/contexts/FavoritesContext';
-import { categories, products, reviews, stores } from '@/data/mockData';
+import { useGetStore, useGetStoreProducts, useGetStoreReviews, useGetCategories } from '@workspace/api-client-react';
 import RatingStars from '@/components/RatingStars';
 import ProductCard from '@/components/ProductCard';
 import { getFontFamily } from '@/constants/fonts';
@@ -38,8 +38,12 @@ export default function StoreScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
 
-  const store = stores.find((s) => s.id === id);
-  if (!store) return null;
+  const { data: store, isLoading: storeLoading } = useGetStore(id!);
+  const { data: storeProducts = [] } = useGetStoreProducts(id!);
+  const { data: storeReviews = [] } = useGetStoreReviews(id!);
+  const { data: allCategories = [] } = useGetCategories();
+
+  if (storeLoading || !store) return null;
 
   const topInset = Platform.OS === 'web' ? 67 : insets.top;
   const bottomInset = Platform.OS === 'web' ? 34 : 0;
@@ -56,9 +60,7 @@ export default function StoreScreen() {
   const address = language === 'ar' ? store.addressAr : store.address;
   const hours = language === 'ar' ? store.workingHoursAr : store.workingHours;
 
-  const storeProducts = products.filter((p) => p.storeId === store.id);
-  const storeReviews = reviews.filter((r) => r.storeId === store.id);
-  const storeCategories = categories.filter((c) => store.categories.includes(c.id));
+  const storeCategories = allCategories.filter((c) => (store.categories ?? []).includes(c.id));
   const followersCount = store.reviewsCount * 3 + 450;
 
   function handleFavorite() {

@@ -6,6 +6,13 @@
  * OpenAPI spec version: 0.2.0
  */
 
-export interface HealthStatus {
+export interface MessageDto {
+  id: string;
+  customer: string;
+  productAr: string;
+  productEn: string;
+  timeAr: string;
+  timeEn: string;
   status: string;
+  unread: number;
 }

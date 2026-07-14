@@ -12,7 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import colors from '@/constants/colors';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { stores } from '@/data/mockData';
+import { useGetStores } from '@workspace/api-client-react';
 import SearchBar from '@/components/SearchBar';
 import StoreCard from '@/components/StoreCard';
 
@@ -32,8 +32,9 @@ export default function StoresScreen() {
   const cities = language === 'ar' ? CITIES_AR : CITIES_EN;
   const citiesFilter = ['', 'القاهرة', 'الإسكندرية', 'الجيزة'];
 
+  const { data: allStores = [] } = useGetStores();
   const filtered = useMemo(() => {
-    return stores.filter((store) => {
+    return allStores.filter((store) => {
       const name = language === 'ar' ? store.nameAr : store.nameEn;
       const matchSearch =
         name.toLowerCase().includes(search.toLowerCase()) ||
@@ -43,7 +44,7 @@ export default function StoresScreen() {
         selectedCity === 0 || store.governorate === citiesFilter[selectedCity];
       return matchSearch && matchCity;
     });
-  }, [search, selectedCity, language]);
+  }, [allStores, search, selectedCity, language]);
 
   return (
     <View style={styles.container}>

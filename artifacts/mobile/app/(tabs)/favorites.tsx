@@ -6,7 +6,7 @@ import { useRouter } from 'expo-router';
 import colors from '@/constants/colors';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useFavorites } from '@/contexts/FavoritesContext';
-import { stores, products } from '@/data/mockData';
+import { useGetStores, useGetProducts } from '@workspace/api-client-react';
 import StoreCard from '@/components/StoreCard';
 import ProductCard from '@/components/ProductCard';
 
@@ -20,8 +20,18 @@ export default function FavoritesScreen() {
   const topInset = Platform.OS === 'web' ? 67 : insets.top;
   const bottomInset = Platform.OS === 'web' ? 34 : 0;
 
-  const favStores = stores.filter((s) => favoriteStores.includes(s.id));
-  const favProducts = products.filter((p) => favoriteProducts.includes(p.id));
+  const storeIdsParam = favoriteStores.join(',');
+  const productIdsParam = favoriteProducts.join(',');
+  const { data: fetchedFavStores = [] } = useGetStores(
+    { ids: storeIdsParam },
+    { query: { enabled: favoriteStores.length > 0 } },
+  );
+  const { data: fetchedFavProducts = [] } = useGetProducts(
+    { ids: productIdsParam },
+    { query: { enabled: favoriteProducts.length > 0 } },
+  );
+  const favStores = favoriteStores.length > 0 ? fetchedFavStores : [];
+  const favProducts = favoriteProducts.length > 0 ? fetchedFavProducts : [];
 
   return (
     <View style={styles.container}>

@@ -2,21 +2,31 @@ openapi: 3.1.0
 info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
-  version: 0.1.0
-  description: API specification
+  version: 0.2.0
+  description: MOB HUB Egypt — Mobile Phone Marketplace API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: stores
+    description: Store operations
+  - name: products
+    description: Product operations
+  - name: phoneSpecs
+    description: Phone specification operations
+  - name: categories
+    description: Category operations
+  - name: dashboard
+    description: Seller dashboard operations
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +34,311 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /stores:
+    get:
+      operationId: getStores
+      tags: [stores]
+      summary: List stores
+      parameters:
+        - name: search
+          in: query
+          schema: { type: string }
+        - name: governorate
+          in: query
+          schema: { type: string }
+        - name: isVerified
+          in: query
+          schema: { type: string }
+        - name: ids
+          in: query
+          description: Comma-separated store IDs
+          schema: { type: string }
+        - name: sort
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Array of stores
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StoreDto"
+
+  /stores/{id}:
+    get:
+      operationId: getStore
+      tags: [stores]
+      summary: Get store by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Store
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StoreDto"
+        "404":
+          description: Not found
+
+  /stores/{id}/products:
+    get:
+      operationId: getStoreProducts
+      tags: [stores]
+      summary: Get products for a store
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductDto"
+
+  /stores/{id}/reviews:
+    get:
+      operationId: getStoreReviews
+      tags: [stores]
+      summary: Get reviews for a store
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Reviews
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReviewDto"
+
+  /products:
+    get:
+      operationId: getProducts
+      tags: [products]
+      summary: List / filter products
+      parameters:
+        - name: storeId
+          in: query
+          schema: { type: string }
+        - name: category
+          in: query
+          schema: { type: string }
+        - name: isNew
+          in: query
+          schema: { type: string }
+        - name: isBestSeller
+          in: query
+          schema: { type: string }
+        - name: isFeatured
+          in: query
+          schema: { type: string }
+        - name: condition
+          in: query
+          schema: { type: string }
+        - name: ids
+          in: query
+          description: Comma-separated product IDs
+          schema: { type: string }
+        - name: excludeId
+          in: query
+          schema: { type: string }
+        - name: search
+          in: query
+          schema: { type: string }
+        - name: brand
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductDto"
+
+  /products/{id}:
+    get:
+      operationId: getProduct
+      tags: [products]
+      summary: Get product by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductDto"
+        "404":
+          description: Not found
+
+  /phone-specs:
+    get:
+      operationId: getPhoneSpecs
+      tags: [phoneSpecs]
+      summary: List all phone specs
+      responses:
+        "200":
+          description: Phone specs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PhoneSpecDto"
+
+  /phone-specs/{id}:
+    get:
+      operationId: getPhoneSpec
+      tags: [phoneSpecs]
+      summary: Get phone spec by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Phone spec
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PhoneSpecDto"
+        "404":
+          description: Not found
+
+  /categories:
+    get:
+      operationId: getCategories
+      tags: [categories]
+      summary: List all categories
+      responses:
+        "200":
+          description: Categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CategoryDto"
+
+  /dashboard/stats:
+    get:
+      operationId: getDashboardStats
+      tags: [dashboard]
+      summary: Get dashboard stats for a store
+      parameters:
+        - name: storeId
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStatsDto"
+
+  /dashboard/orders:
+    get:
+      operationId: getDashboardOrders
+      tags: [dashboard]
+      summary: List orders for a store
+      parameters:
+        - name: storeId
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OrderDto"
+
+  /dashboard/messages:
+    get:
+      operationId: getDashboardMessages
+      tags: [dashboard]
+      summary: List messages for a store
+      parameters:
+        - name: storeId
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MessageDto"
+
+  /dashboard/reviews:
+    get:
+      operationId: getDashboardReviews
+      tags: [dashboard]
+      summary: List reviews for a store (dashboard)
+      parameters:
+        - name: storeId
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Reviews
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReviewDto"
+
+  /dashboard/products:
+    post:
+      operationId: createDashboardProduct
+      tags: [dashboard]
+      summary: Create a new product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProductBody"
+      responses:
+        "201":
+          description: Created product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductDto"
+        "400":
+          description: Validation error
+
 components:
   schemas:
     HealthStatus:
@@ -31,6 +346,359 @@ components:
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
 
+    StoreDto:
+      type: object
+      properties:
+        id: { type: string }
+        nameAr: { type: string }
+        nameEn: { type: string }
+        descriptionAr: { type: string }
+        descriptionEn: { type: string }
+        logoColor: { type: string }
+        logoInitial: { type: string }
+        coverGradient:
+          type: array
+          items: { type: string }
+        rating: { type: number }
+        reviewsCount: { type: integer }
+        governorate: { type: string }
+        city: { type: string }
+        address: { type: string }
+        addressAr: { type: string }
+        lat: { type: number }
+        lng: { type: number }
+        phone: { type: string }
+        whatsapp: { type: string }
+        facebook:
+          type: string
+          nullable: true
+        instagram:
+          type: string
+          nullable: true
+        website:
+          type: string
+          nullable: true
+        workingHours: { type: string }
+        workingHoursAr: { type: string }
+        isOpen: { type: boolean }
+        isVerified: { type: boolean }
+        productsCount: { type: integer }
+        categories:
+          type: array
+          items: { type: string }
+      required:
+        - id
+        - nameAr
+        - nameEn
+        - descriptionAr
+        - descriptionEn
+        - logoColor
+        - logoInitial
+        - coverGradient
+        - rating
+        - reviewsCount
+        - governorate
+        - city
+        - address
+        - addressAr
+        - lat
+        - lng
+        - phone
+        - whatsapp
+        - workingHours
+        - workingHoursAr
+        - isOpen
+        - isVerified
+        - productsCount
+        - categories
+
+    ProductDto:
+      type: object
+      properties:
+        id: { type: string }
+        storeId: { type: string }
+        nameAr: { type: string }
+        nameEn: { type: string }
+        descriptionAr: { type: string }
+        descriptionEn: { type: string }
+        brand: { type: string }
+        model: { type: string }
+        price: { type: integer }
+        discountPrice:
+          type: integer
+          nullable: true
+        category: { type: string }
+        condition: { type: string }
+        inStock: { type: boolean }
+        warranty: { type: string }
+        warrantyAr: { type: string }
+        colors:
+          type: array
+          items: { type: string }
+        storage:
+          type: array
+          items: { type: string }
+          nullable: true
+        ram:
+          type: array
+          items: { type: string }
+          nullable: true
+        imageColor: { type: string }
+        rating: { type: number }
+        reviewsCount: { type: integer }
+        isNew: { type: boolean }
+        isBestSeller: { type: boolean }
+        isFeatured: { type: boolean }
+      required:
+        - id
+        - storeId
+        - nameAr
+        - nameEn
+        - descriptionAr
+        - descriptionEn
+        - brand
+        - model
+        - price
+        - category
+        - condition
+        - inStock
+        - warranty
+        - warrantyAr
+        - colors
+        - imageColor
+        - rating
+        - reviewsCount
+        - isNew
+        - isBestSeller
+        - isFeatured
+
+    PhoneSpecDto:
+      type: object
+      properties:
+        id: { type: string }
+        brand: { type: string }
+        model: { type: string }
+        os: { type: string }
+        processor: { type: string }
+        ram:
+          type: array
+          items: { type: string }
+        storage:
+          type: array
+          items: { type: string }
+        displaySize: { type: string }
+        displayType: { type: string }
+        resolution: { type: string }
+        refreshRate: { type: string }
+        brightness: { type: string }
+        rearCamera: { type: string }
+        frontCamera: { type: string }
+        videoRecording: { type: string }
+        battery: { type: string }
+        charging: { type: string }
+        wirelessCharging: { type: boolean }
+        reverseCharging: { type: boolean }
+        fingerprint: { type: boolean }
+        faceUnlock: { type: boolean }
+        waterResistance: { type: string }
+        weight: { type: string }
+        dimensions: { type: string }
+        fiveG: { type: boolean }
+        nfc: { type: boolean }
+        bluetooth: { type: string }
+        wifi: { type: string }
+        usb: { type: string }
+        audioJack: { type: boolean }
+        colors:
+          type: array
+          items: { type: string }
+        priceEGP: { type: integer }
+        releaseDate: { type: string }
+        _batteryMah: { type: integer }
+        _chargingW: { type: integer }
+        _refreshRateHz: { type: integer }
+        _rearMp: { type: integer }
+        _ramGb: { type: integer }
+        _displayInch: { type: number }
+      required:
+        - id
+        - brand
+        - model
+        - os
+        - processor
+        - ram
+        - storage
+        - displaySize
+        - displayType
+        - resolution
+        - refreshRate
+        - brightness
+        - rearCamera
+        - frontCamera
+        - videoRecording
+        - battery
+        - charging
+        - wirelessCharging
+        - reverseCharging
+        - fingerprint
+        - faceUnlock
+        - waterResistance
+        - weight
+        - dimensions
+        - fiveG
+        - nfc
+        - bluetooth
+        - wifi
+        - usb
+        - audioJack
+        - colors
+        - priceEGP
+        - releaseDate
+        - _batteryMah
+        - _chargingW
+        - _refreshRateHz
+        - _rearMp
+        - _ramGb
+        - _displayInch
+
+    CategoryDto:
+      type: object
+      properties:
+        id: { type: string }
+        icon: { type: string }
+        color: { type: string }
+      required: [id, icon, color]
+
+    ReviewDto:
+      type: object
+      properties:
+        id: { type: string }
+        storeId:
+          type: string
+          nullable: true
+        productId:
+          type: string
+          nullable: true
+        author: { type: string }
+        authorAr: { type: string }
+        rating: { type: integer }
+        textAr: { type: string }
+        textEn: { type: string }
+        date: { type: string }
+      required:
+        - id
+        - author
+        - authorAr
+        - rating
+        - textAr
+        - textEn
+        - date
+
+    DashboardStatsDto:
+      type: object
+      properties:
+        storeId: { type: string }
+        views: { type: integer }
+        visitors: { type: integer }
+        clicks: { type: integer }
+        reservations: { type: integer }
+        newReviews: { type: integer }
+        messagesCount: { type: integer }
+        saved: { type: integer }
+        trending: { type: integer }
+      required:
+        - storeId
+        - views
+        - visitors
+        - clicks
+        - reservations
+        - newReviews
+        - messagesCount
+        - saved
+        - trending
+
+    OrderDto:
+      type: object
+      properties:
+        id: { type: string }
+        productAr: { type: string }
+        productEn: { type: string }
+        storage:
+          type: string
+          nullable: true
+        customer: { type: string }
+        timeAr: { type: string }
+        timeEn: { type: string }
+        status: { type: string }
+        price: { type: integer }
+      required:
+        - id
+        - productAr
+        - productEn
+        - customer
+        - timeAr
+        - timeEn
+        - status
+        - price
+
+    MessageDto:
+      type: object
+      properties:
+        id: { type: string }
+        customer: { type: string }
+        productAr: { type: string }
+        productEn: { type: string }
+        timeAr: { type: string }
+        timeEn: { type: string }
+        status: { type: string }
+        unread: { type: integer }
+      required:
+        - id
+        - customer
+        - productAr
+        - productEn
+        - timeAr
+        - timeEn
+        - status
+        - unread
+
+    CreateProductBody:
+      type: object
+      properties:
+        storeId: { type: string }
+        nameAr: { type: string }
+        nameEn: { type: string }
+        descriptionAr: { type: string }
+        descriptionEn: { type: string }
+        brand: { type: string }
+        model: { type: string }
+        price: { type: integer }
+        discountPrice:
+          type: integer
+          nullable: true
+        category: { type: string }
+        condition: { type: string }
+        warranty: { type: string }
+        warrantyAr: { type: string }
+        colors:
+          type: array
+          items: { type: string }
+        storage:
+          type: array
+          items: { type: string }
+          nullable: true
+        ram:
+          type: array
+          items: { type: string }
+          nullable: true
+        imageColor: { type: string }
+        inStock: { type: boolean }
+      required:
+        - nameAr
+        - nameEn
+        - brand
+        - model
+        - price
+        - category

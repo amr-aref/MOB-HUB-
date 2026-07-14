@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Platform,
   Pressable,
@@ -13,10 +13,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import colors from '@/constants/colors';
-import { getFontFamily } from '@/constants/fonts';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { AnimatedPressable, Toggle } from '@/components/admin/AdminComponents';
-import Animated, { useAnimatedStyle, useSharedValue, withTiming, Easing, withDelay, interpolateColor, withRepeat, withSequence } from 'react-native-reanimated';
+import { useCreateDashboardProduct } from '@workspace/api-client-react';
 
 const STEPS = [
   { key: 'basic', labelAr: 'المعلومات', labelEn: 'Basic Info' },
@@ -78,50 +76,65 @@ export default function AddProductScreen() {
     setIsDraft(true);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
   }
+  const createProduct = useCreateDashboardProduct();
+
   function handlePublish() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    router.back();
+    createProduct.mutate(
+      {
+        data: {
+          storeId: 's1',
+          nameAr: nameAr || 'منتج جديد',
+          nameEn: nameEn || 'New Product',
+          descriptionAr: '',
+          descriptionEn: '',
+          brand: brand || 'Unknown',
+          model: model || 'Unknown',
+          price: Number(currentPrice) || 0,
+          discountPrice: oldPrice ? Number(oldPrice) : undefined,
+          category: cats[category] ?? 'Other',
+          condition: CONDITIONS[condition]?.value ?? 'new',
+          warranty,
+          warrantyAr: warranty,
+          colors: variants.map((v) => v.color),
+          storage: variants.map((v) => v.storage),
+          ram: variants.map((v) => v.ram),
+          imageColor: variants[0]?.color ?? '#2563EB',
+          inStock: available,
+        },
+      },
+      { onSuccess: () => router.back() },
+    );
   }
 
   const isAr = language === 'ar';
   const cats = isAr ? CATEGORIES : CATEGORIES_EN;
 
-  const fontFamilyRTL = {
-    regular: getFontFamily(isRTL, 'regular'),
-    medium: getFontFamily(isRTL, 'medium'),
-    semiBold: getFontFamily(isRTL, 'semiBold'),
-    bold: getFontFamily(isRTL, 'bold'),
-  };
-  
-  const fontFamilyLTR = {
-    regular: getFontFamily(false, 'regular'),
-    medium: getFontFamily(false, 'medium'),
-    semiBold: getFontFamily(false, 'semiBold'),
-    bold: getFontFamily(false, 'bold'),
-  };
-
   return (
     <View style={styles.container}>
       {/* Header */}
-      <View style={[styles.header, { paddingTop: topInset + 16 }]}>
+      <View style={[styles.header, { paddingTop: topInset + 8 }]}>
         <View style={[styles.headerRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-          <AnimatedPressable onPress={() => router.back()} style={styles.backBtn}>
+          <Pressable onPress={() => router.back()} style={styles.backBtn}>
             <Ionicons name={isRTL ? 'chevron-forward' : 'chevron-back'} size={22} color={colors.light.foreground} />
-          </AnimatedPressable>
-          <Text style={[styles.headerTitle, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamilyRTL.bold }]}>
+          </Pressable>
+          <Text style={styles.headerTitle}>
             {isAr ? 'إضافة منتج' : 'Add Product'}
           </Text>
           <View style={[styles.headerRight, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <Text style={[styles.autoSavedText, { fontFamily: fontFamilyRTL.medium }]}>{isAr ? 'حفظ تلقائي' : 'Auto Saved'}</Text>
             {isDraft && (
               <View style={styles.draftBadge}>
                 <View style={styles.draftDot} />
-                <Text style={[styles.draftText, { fontFamily: fontFamilyRTL.semiBold }]}>{isAr ? 'مسودة' : 'Draft'}</Text>
+                <Text style={styles.draftText}>{isAr ? 'مسودة' : 'Draft'}</Text>
               </View>
             )}
-            <AnimatedPressable style={styles.headerAvatar}>
-              <Ionicons name="person" size={16} color="#fff" />
-            </AnimatedPressable>
+            <Pressable style={styles.previewBtn}>
+              <Ionicons name="eye-outline" size={16} color={colors.light.mutedForeground} />
+              <Text style={styles.previewBtnText}>{isAr ? 'معاينة' : 'Preview'}</Text>
+            </Pressable>
+            <Pressable style={styles.publishHeaderBtn} onPress={handlePublish}>
+              <Text style={styles.publishHeaderBtnText}>{isAr ? 'نشر' : 'Publish'}</Text>
+            </Pressable>
           </View>
         </View>
 
@@ -136,19 +149,21 @@ export default function AddProductScreen() {
             const isDone = idx < currentStep;
             return (
               <React.Fragment key={step.key}>
-                <AnimatedPressable
+                <Pressable
                   onPress={() => setCurrentStep(idx)}
-                  style={[styles.stepItem, isActive && styles.stepItemActive]}
+                  style={[styles.stepItem, isActive && styles.stepItemActive, isDone && styles.stepItemDone]}
                 >
-                  <Text style={[
-                    styles.stepLabel, 
-                    isActive && styles.stepLabelActive, 
-                    isDone && styles.stepLabelDone,
-                    { fontFamily: isActive ? fontFamilyRTL.bold : fontFamilyRTL.medium }
-                  ]}>
+                  <View style={[styles.stepCircle, isActive && styles.stepCircleActive, isDone && styles.stepCircleDone]}>
+                    {isDone ? (
+                      <Ionicons name="checkmark" size={12} color="#fff" />
+                    ) : (
+                      <Text style={[styles.stepNum, isActive && styles.stepNumActive]}>{idx + 1}</Text>
+                    )}
+                  </View>
+                  <Text style={[styles.stepLabel, isActive && styles.stepLabelActive]}>
                     {isAr ? step.labelAr : step.labelEn}
                   </Text>
-                </AnimatedPressable>
+                </Pressable>
                 {idx < STEPS.length - 1 && (
                   <View style={[styles.stepLine, idx < currentStep && styles.stepLineDone]} />
                 )}
@@ -160,368 +175,350 @@ export default function AddProductScreen() {
 
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={{ paddingBottom: bottomInset + 100, paddingTop: 16 }}
+        contentContainerStyle={{ paddingBottom: bottomInset + 100 }}
         showsVerticalScrollIndicator={false}
       >
         {/* ── Step 1: Basic Info ── */}
         {currentStep === 0 && (
-          <StaggeredView currentStep={currentStep} stepIndex={0}>
-            <SectionCard title={isAr ? 'المعلومات الأساسية' : 'Basic Information'} fontFamilyRTL={fontFamilyRTL}>
-              <AnimatedField delay={100}>
-                <FormField
-                  label={isAr ? 'الاسم بالعربية' : 'Arabic Product Name'}
-                  value={nameAr}
-                  onChangeText={setNameAr}
-                  placeholder={isAr ? 'اسم المنتج' : 'Product name in Arabic'}
-                  isRTL={isRTL}
-                  fontFamilyRTL={fontFamilyRTL}
-                  fontFamilyLTR={fontFamilyLTR}
-                />
-              </AnimatedField>
-              <AnimatedField delay={150}>
-                <FormField
-                  label={isAr ? 'الاسم بالإنجليزية' : 'English Product Name'}
-                  value={nameEn}
-                  onChangeText={setNameEn}
-                  placeholder="e.g. iPhone Pro 16 Ultra"
-                  isRTL={isRTL}
-                  fontFamilyRTL={fontFamilyRTL}
-                  fontFamilyLTR={fontFamilyLTR}
-                />
-              </AnimatedField>
-              <AnimatedField delay={200}>
-                <FormField
-                  label={isAr ? 'الماركة' : 'Brand'}
-                  value={brand}
-                  onChangeText={setBrand}
-                  placeholder={isAr ? 'مثل: Apple, Samsung' : 'e.g. Apple, Samsung'}
-                  isRTL={isRTL}
-                  fontFamilyRTL={fontFamilyRTL}
-                  fontFamilyLTR={fontFamilyLTR}
-                />
-              </AnimatedField>
+          <View style={styles.stepContent}>
+            <SectionCard title={isAr ? 'المعلومات الأساسية' : 'Basic Information'}>
+              <FormField
+                label={isAr ? 'الاسم بالعربية' : 'Arabic Product Name'}
+                value={nameAr}
+                onChangeText={setNameAr}
+                placeholder={isAr ? 'اسم المنتج' : 'Product name in Arabic'}
+                isRTL={isRTL}
+              />
+              <FormField
+                label={isAr ? 'الاسم بالإنجليزية' : 'English Product Name'}
+                value={nameEn}
+                onChangeText={setNameEn}
+                placeholder="e.g. iPhone Pro 16 Ultra"
+                isRTL={isRTL}
+              />
+              <FormField
+                label={isAr ? 'الماركة' : 'Brand'}
+                value={brand}
+                onChangeText={setBrand}
+                placeholder={isAr ? 'مثل: Apple, Samsung' : 'e.g. Apple, Samsung'}
+                isRTL={isRTL}
+              />
+              <FormField
+                label={isAr ? 'الموديل' : 'Model'}
+                value={model}
+                onChangeText={setModel}
+                placeholder={isAr ? 'مثل: iPhone 16 Pro' : 'e.g. iPhone 16 Pro'}
+                isRTL={isRTL}
+              />
 
               {/* Category */}
-              <AnimatedField delay={250}>
-                <View style={styles.fieldWrap}>
-                  <Text style={[styles.fieldLabel, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamilyRTL.medium }]}>
-                    {isAr ? 'الفئة' : 'Category'}
-                  </Text>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.pillsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                    {cats.map((cat, idx) => (
-                      <AnimatedPressable
-                        key={idx}
-                        onPress={() => setCategory(idx)}
-                        style={[styles.pill, category === idx && styles.pillActive]}
-                      >
-                        <Text style={[styles.pillText, category === idx && styles.pillTextActive, { fontFamily: category === idx ? fontFamilyRTL.semiBold : fontFamilyRTL.regular }]}>{cat}</Text>
-                      </AnimatedPressable>
-                    ))}
-                  </ScrollView>
+              <View style={styles.fieldWrap}>
+                <Text style={[styles.fieldLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
+                  {isAr ? 'الفئة' : 'Category'}
+                </Text>
+                <View style={[styles.pillsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                  {cats.map((cat, idx) => (
+                    <Pressable
+                      key={idx}
+                      onPress={() => setCategory(idx)}
+                      style={[styles.pill, category === idx && styles.pillActive]}
+                    >
+                      <Text style={[styles.pillText, category === idx && styles.pillTextActive]}>{cat}</Text>
+                    </Pressable>
+                  ))}
                 </View>
-              </AnimatedField>
+              </View>
 
               {/* Condition */}
-              <AnimatedField delay={300}>
-                <View style={styles.fieldWrap}>
-                  <Text style={[styles.fieldLabel, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamilyRTL.medium }]}>
-                    {isAr ? 'الحالة' : 'Condition'}
-                  </Text>
-                  <View style={[styles.pillsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                    {CONDITIONS.map((cond, idx) => (
-                      <AnimatedPressable
-                        key={idx}
-                        onPress={() => setCondition(idx)}
-                        style={[styles.pill, condition === idx && styles.pillActive]}
-                      >
-                        <Text style={[styles.pillText, condition === idx && styles.pillTextActive, { fontFamily: condition === idx ? fontFamilyRTL.semiBold : fontFamilyRTL.regular }]}>
-                          {isAr ? cond.labelAr : cond.labelEn}
-                        </Text>
-                      </AnimatedPressable>
-                    ))}
-                  </View>
+              <View style={styles.fieldWrap}>
+                <Text style={[styles.fieldLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
+                  {isAr ? 'الحالة' : 'Condition'}
+                </Text>
+                <View style={[styles.pillsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                  {CONDITIONS.map((cond, idx) => (
+                    <Pressable
+                      key={idx}
+                      onPress={() => setCondition(idx)}
+                      style={[styles.pill, condition === idx && styles.pillActive]}
+                    >
+                      <Text style={[styles.pillText, condition === idx && styles.pillTextActive]}>
+                        {isAr ? cond.labelAr : cond.labelEn}
+                      </Text>
+                    </Pressable>
+                  ))}
                 </View>
-              </AnimatedField>
+              </View>
+
+              <FormField
+                label={isAr ? 'الضمان' : 'Warranty'}
+                value={warranty}
+                onChangeText={setWarranty}
+                placeholder={isAr ? 'مثل: سنة واحدة' : 'e.g. 1 year'}
+                isRTL={isRTL}
+              />
+              <FormField
+                label={isAr ? 'الوسوم' : 'Tags'}
+                value={tags}
+                onChangeText={setTags}
+                placeholder={isAr ? 'مثل: ذكي، 5G، أصلي' : 'e.g. flagship, 5G, original'}
+                isRTL={isRTL}
+              />
             </SectionCard>
-          </StaggeredView>
+          </View>
         )}
 
         {/* ── Step 2: Media ── */}
         {currentStep === 1 && (
-          <StaggeredView currentStep={currentStep} stepIndex={1}>
-            <SectionCard title={isAr ? 'استوديو الوسائط' : 'Media Studio'} fontFamilyRTL={fontFamilyRTL}>
-              <AnimatedField delay={100}>
-                <Text style={[styles.mediaHint, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamilyRTL.regular }]}>
-                  {isAr ? 'أضف حتى ١٢ صورة وفيديو للمنتج' : 'Add up to 12 images and a product video'}
-                </Text>
+          <View style={styles.stepContent}>
+            <SectionCard title={isAr ? 'استوديو الوسائط' : 'Media Studio'}>
+              <Text style={[styles.mediaHint, { textAlign: isRTL ? 'right' : 'left' }]}>
+                {isAr ? 'أضف حتى ١٢ صورة وفيديو للمنتج' : 'Add up to 12 images and a product video'}
+              </Text>
 
-                <View style={[styles.imageGrid, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                  {/* Add button with dashed border & glow */}
-                  <MediaUploadBox isAr={isAr} fontFamilyRTL={fontFamilyRTL} />
+              {/* Image grid */}
+              <View style={styles.imageGrid}>
+                {/* Add button */}
+                <Pressable style={styles.addImageBtn}>
+                  <Ionicons name="add" size={28} color={colors.light.primary} />
+                  <Text style={styles.addImageText}>{isAr ? 'إضافة صورة' : 'Add Image'}</Text>
+                </Pressable>
 
-                  {/* Placeholder slots */}
-                  {[1, 2, 3].map((i) => (
-                    <View key={i} style={styles.imagePlaceholder}>
-                      <Ionicons name="image-outline" size={24} color={colors.light.border} />
-                    </View>
-                  ))}
-                </View>
-              </AnimatedField>
-
-              <AnimatedField delay={200}>
-                {/* Video upload */}
-                <View style={[styles.videoUpload, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                  <View style={styles.videoIcon}>
-                    <Ionicons name="videocam-outline" size={20} color={colors.light.primary} />
+                {/* Placeholder slots */}
+                {[1, 2, 3].map((i) => (
+                  <View key={i} style={styles.imagePlaceholder}>
+                    <Ionicons name="image-outline" size={24} color={colors.light.border} />
                   </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[styles.videoTitle, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamilyRTL.semiBold }]}>
-                      {isAr ? 'رفع فيديو' : 'Upload video'}
-                    </Text>
-                    <Text style={[styles.videoSub, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamilyRTL.regular }]}>
-                      {isAr ? 'MP4 حتى ٥٠٠ ميجا' : 'MP4 up to 500MB'}
-                    </Text>
-                  </View>
-                  <Ionicons name="cloud-upload-outline" size={22} color={colors.light.primary} />
+                ))}
+              </View>
+
+              {/* Video upload */}
+              <View style={styles.videoUpload}>
+                <View style={styles.videoIcon}>
+                  <Ionicons name="videocam-outline" size={20} color={colors.light.primary} />
                 </View>
-              </AnimatedField>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.videoTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+                    {isAr ? 'رفع فيديو' : 'Upload video'}
+                  </Text>
+                  <Text style={[styles.videoSub, { textAlign: isRTL ? 'right' : 'left' }]}>
+                    {isAr ? 'MP4 حتى ٥٠٠ ميجا' : 'MP4 up to 500MB'}
+                  </Text>
+                </View>
+                <Ionicons name="cloud-upload-outline" size={22} color={colors.light.primary} />
+              </View>
             </SectionCard>
 
-            <SectionCard title={isAr ? 'المواصفات' : 'Specifications'} fontFamilyRTL={fontFamilyRTL}>
-              {['Display', 'Processor', 'RAM', 'Storage', 'Camera', 'Battery'].map((spec, i) => (
-                <AnimatedField key={spec} delay={300 + (i * 50)}>
-                  <Pressable style={[styles.specRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                    <View style={styles.specIcon}>
-                      <Ionicons name="hardware-chip-outline" size={14} color={colors.light.primary} />
-                    </View>
-                    <Text style={[styles.specLabel, { flex: 1, textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamilyLTR.medium }]}>
-                      {spec}
-                    </Text>
-                    <Ionicons name="chevron-down" size={16} color={colors.light.mutedForeground} />
-                  </Pressable>
-                </AnimatedField>
+            <SectionCard title={isAr ? 'المواصفات' : 'Specifications'}>
+              {['Display', 'Processor', 'RAM', 'Storage', 'Camera', 'Battery'].map((spec) => (
+                <Pressable key={spec} style={[styles.specRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                  <View style={styles.specIcon}>
+                    <Ionicons name="hardware-chip-outline" size={14} color={colors.light.primary} />
+                  </View>
+                  <Text style={[styles.specLabel, { flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
+                    {spec}
+                  </Text>
+                  <Ionicons name="chevron-down" size={16} color={colors.light.mutedForeground} />
+                  <View style={styles.specValueInput}>
+                    <Ionicons name="create-outline" size={14} color={colors.light.mutedForeground} />
+                  </View>
+                </Pressable>
               ))}
             </SectionCard>
-          </StaggeredView>
+          </View>
         )}
 
         {/* ── Step 3: Variants ── */}
         {currentStep === 2 && (
-          <StaggeredView currentStep={currentStep} stepIndex={2}>
-            <SectionCard title={isAr ? 'متغيرات المنتج' : 'Product Variants'} fontFamilyRTL={fontFamilyRTL}>
-              <AnimatedField delay={100}>
-                <Text style={[styles.mediaHint, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamilyRTL.regular }]}>
-                  {isAr ? 'أضف المتغيرات حسب الذاكرة والرام واللون' : 'Add variants by storage, RAM, and color'}
-                </Text>
-              </AnimatedField>
+          <View style={styles.stepContent}>
+            <SectionCard title={isAr ? 'متغيرات المنتج' : 'Product Variants'}>
+              <Text style={[styles.mediaHint, { textAlign: isRTL ? 'right' : 'left' }]}>
+                {isAr ? 'أضف المتغيرات حسب الذاكرة والرام واللون' : 'Add variants by storage, RAM, and color'}
+              </Text>
 
               {variants.map((variant, idx) => (
-                <AnimatedField key={idx} delay={150 + (idx * 100)}>
-                  <View style={styles.variantCard}>
-                    <View style={[styles.variantHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                      <Text style={[styles.variantTitle, { fontFamily: fontFamilyLTR.bold }]}>
-                        {variant.storage} / {variant.ram} / {isAr ? 'لون' : 'Color'}
-                      </Text>
-                      <View style={[styles.variantColorDot, { backgroundColor: variant.color }]} />
-                      <View style={{ flex: 1 }} />
-                      {variants.length > 1 && (
-                        <AnimatedPressable onPress={() => setVariants(variants.filter((_, i) => i !== idx))}>
-                          <Ionicons name="trash-outline" size={18} color={colors.light.destructive} />
-                        </AnimatedPressable>
-                      )}
-                    </View>
+                <View key={idx} style={styles.variantCard}>
+                  <View style={[styles.variantHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                    <Text style={styles.variantTitle}>
+                      {variant.storage}/{variant.ram}/{isAr ? 'لون' : 'Color'}
+                    </Text>
+                    <View style={[styles.variantColorDot, { backgroundColor: variant.color }]} />
+                    {variants.length > 1 && (
+                      <Pressable onPress={() => setVariants(variants.filter((_, i) => i !== idx))}>
+                        <Ionicons name="trash-outline" size={16} color={colors.light.destructive} />
+                      </Pressable>
+                    )}
+                  </View>
 
-                    <View style={[styles.variantFields, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                      <View style={styles.variantField}>
-                        <Text style={[styles.variantFieldLabel, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamilyRTL.medium }]}>{isAr ? 'السعة' : 'Storage'}</Text>
-                        <View style={[styles.variantPicker, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                          <Text style={[styles.variantPickerText, { fontFamily: fontFamilyLTR.regular }]}>{variant.storage}</Text>
-                          <Ionicons name="chevron-down" size={14} color={colors.light.mutedForeground} />
-                        </View>
+                  <View style={[styles.variantFields, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                    <View style={styles.variantField}>
+                      <Text style={styles.variantFieldLabel}>{isAr ? 'السعة' : 'Storage'}</Text>
+                      <View style={styles.variantPicker}>
+                        <Text style={styles.variantPickerText}>{variant.storage}</Text>
+                        <Ionicons name="chevron-down" size={14} color={colors.light.mutedForeground} />
                       </View>
-                      <View style={styles.variantField}>
-                        <Text style={[styles.variantFieldLabel, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamilyRTL.medium }]}>{isAr ? 'الرام' : 'RAM'}</Text>
-                        <View style={[styles.variantPicker, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                          <Text style={[styles.variantPickerText, { fontFamily: fontFamilyLTR.regular }]}>{variant.ram}</Text>
-                          <Ionicons name="chevron-down" size={14} color={colors.light.mutedForeground} />
-                        </View>
+                    </View>
+                    <View style={styles.variantField}>
+                      <Text style={styles.variantFieldLabel}>{isAr ? 'الرام' : 'RAM'}</Text>
+                      <View style={styles.variantPicker}>
+                        <Text style={styles.variantPickerText}>{variant.ram}</Text>
+                        <Ionicons name="chevron-down" size={14} color={colors.light.mutedForeground} />
                       </View>
-                      <View style={styles.variantField}>
-                        <Text style={[styles.variantFieldLabel, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamilyRTL.medium }]}>{isAr ? 'الكمية' : 'Qty'}</Text>
-                        <View style={[styles.variantPriceRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                          <AnimatedPressable style={styles.qtyBtn} onPress={() => {
-                            const updated = [...variants];
-                            updated[idx].qty = String(Math.max(1, parseInt(updated[idx].qty) - 1));
-                            setVariants(updated);
-                          }}>
-                            <Ionicons name="remove" size={14} color={colors.light.foreground} />
-                          </AnimatedPressable>
-                          <Text style={[styles.qtyText, { fontFamily: fontFamilyLTR.semiBold }]}>{variant.qty}</Text>
-                          <AnimatedPressable style={styles.qtyBtn} onPress={() => {
-                            const updated = [...variants];
-                            updated[idx].qty = String(parseInt(updated[idx].qty) + 1);
-                            setVariants(updated);
-                          }}>
-                            <Ionicons name="add" size={14} color={colors.light.foreground} />
-                          </AnimatedPressable>
-                        </View>
+                    </View>
+                    <View style={styles.variantField}>
+                      <Text style={styles.variantFieldLabel}>{isAr ? 'السعر' : 'Price'}</Text>
+                      <View style={[styles.variantPriceRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                        <Pressable style={styles.qtyBtn} onPress={() => {
+                          const updated = [...variants];
+                          updated[idx].qty = String(Math.max(1, parseInt(updated[idx].qty) - 1));
+                          setVariants(updated);
+                        }}>
+                          <Ionicons name="remove" size={14} color={colors.light.primary} />
+                        </Pressable>
+                        <Text style={styles.qtyText}>{variant.qty}</Text>
+                        <Pressable style={styles.qtyBtn} onPress={() => {
+                          const updated = [...variants];
+                          updated[idx].qty = String(parseInt(updated[idx].qty) + 1);
+                          setVariants(updated);
+                        }}>
+                          <Ionicons name="add" size={14} color={colors.light.primary} />
+                        </Pressable>
                       </View>
                     </View>
                   </View>
-                </AnimatedField>
+                </View>
               ))}
 
-              <AnimatedField delay={300}>
-                <AnimatedPressable
-                  style={[styles.addVariantBtn, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
-                  onPress={() => setVariants([...variants, { storage: '256GB', ram: '12GB', color: '#2563EB', price: '0', qty: '1' }])}
-                >
-                  <Ionicons name="add-circle-outline" size={20} color={colors.light.primary} />
-                  <Text style={[styles.addVariantText, { fontFamily: fontFamilyRTL.semiBold }]}>{isAr ? 'إضافة متغير جديد' : 'Add New Variant'}</Text>
-                </AnimatedPressable>
-              </AnimatedField>
+              <Pressable
+                style={[styles.addVariantBtn, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
+                onPress={() => setVariants([...variants, { storage: '256GB', ram: '12GB', color: '#2563EB', price: '0', qty: '1' }])}
+              >
+                <Ionicons name="add-circle-outline" size={18} color={colors.light.primary} />
+                <Text style={styles.addVariantText}>{isAr ? 'إضافة متغير جديد' : 'Add New Variant'}</Text>
+              </Pressable>
             </SectionCard>
-          </StaggeredView>
+          </View>
         )}
 
         {/* ── Step 4: Pricing ── */}
         {currentStep === 3 && (
-          <StaggeredView currentStep={currentStep} stepIndex={3}>
-            <SectionCard title={isAr ? 'التسعير' : 'Pricing'} fontFamilyRTL={fontFamilyRTL}>
-              <AnimatedField delay={100}>
-                <FormField
-                  label={isAr ? 'السعر الحالي (ج.م)' : 'Current Price (EGP)'}
-                  value={currentPrice}
-                  onChangeText={setCurrentPrice}
-                  placeholder="0.00"
-                  isRTL={isRTL}
-                  keyboardType="numeric"
-                  fontFamilyRTL={fontFamilyRTL}
-                  fontFamilyLTR={fontFamilyLTR}
-                />
-              </AnimatedField>
-              <AnimatedField delay={150}>
-                <FormField
-                  label={isAr ? 'السعر القديم (اختياري)' : 'Old Price (optional)'}
-                  value={oldPrice}
-                  onChangeText={setOldPrice}
-                  placeholder="0.00"
-                  isRTL={isRTL}
-                  keyboardType="numeric"
-                  fontFamilyRTL={fontFamilyRTL}
-                  fontFamilyLTR={fontFamilyLTR}
-                />
-              </AnimatedField>
+          <View style={styles.stepContent}>
+            <SectionCard title={isAr ? 'التسعير' : 'Pricing'}>
+              <FormField
+                label={isAr ? 'السعر الحالي (ج.م)' : 'Current Price (EGP)'}
+                value={currentPrice}
+                onChangeText={setCurrentPrice}
+                placeholder="0.00"
+                isRTL={isRTL}
+                keyboardType="numeric"
+              />
+              <FormField
+                label={isAr ? 'السعر القديم (اختياري)' : 'Old Price (optional)'}
+                value={oldPrice}
+                onChangeText={setOldPrice}
+                placeholder="0.00"
+                isRTL={isRTL}
+                keyboardType="numeric"
+              />
+              <FormField
+                label={isAr ? 'الضريبة (%)' : 'Tax (%)'}
+                value={tax}
+                onChangeText={setTax}
+                placeholder="14"
+                isRTL={isRTL}
+                keyboardType="numeric"
+              />
             </SectionCard>
 
-            <SectionCard title={isAr ? 'المخزون والظهور' : 'Inventory & Visibility'} fontFamilyRTL={fontFamilyRTL}>
-              <AnimatedField delay={200}>
-                <ToggleRow
-                  label={isAr ? 'متاح للبيع' : 'Available for Sale'}
-                  value={available}
-                  onToggle={() => setAvailable(!available)}
-                  isRTL={isRTL}
-                  fontFamilyRTL={fontFamilyRTL}
-                />
-              </AnimatedField>
-              <AnimatedField delay={250}>
-                <ToggleRow
-                  label={isAr ? 'ظهور في المتجر' : 'Show in Store'}
-                  value={storeVisible}
-                  onToggle={() => setStoreVisible(!storeVisible)}
-                  isRTL={isRTL}
-                  fontFamilyRTL={fontFamilyRTL}
-                />
-              </AnimatedField>
+            <SectionCard title={isAr ? 'المخزون' : 'Inventory'}>
+              <FormField
+                label={isAr ? 'الكمية' : 'Quantity'}
+                value={qty}
+                onChangeText={setQty}
+                placeholder="1"
+                isRTL={isRTL}
+                keyboardType="numeric"
+              />
+              <ToggleRow
+                label={isAr ? 'متاح للبيع' : 'Available for Sale'}
+                value={available}
+                onToggle={() => setAvailable(!available)}
+                isRTL={isRTL}
+              />
             </SectionCard>
-          </StaggeredView>
+
+            <SectionCard title={isAr ? 'إعدادات الظهور' : 'Visibility'}>
+              <ToggleRow
+                label={isAr ? 'ظهور في المتجر' : 'Show in Store'}
+                value={storeVisible}
+                onToggle={() => setStoreVisible(!storeVisible)}
+                isRTL={isRTL}
+              />
+            </SectionCard>
+          </View>
         )}
 
         {/* ── Step 5: Review & Publish ── */}
         {currentStep === 4 && (
-          <StaggeredView currentStep={currentStep} stepIndex={4}>
-            <SectionCard title={isAr ? 'مراجعة المنتج' : 'Review Product'} fontFamilyRTL={fontFamilyRTL}>
-              {/* Live Preview Panel with Cross Fade */}
-              <AnimatedField delay={100}>
-                <LivePreviewPanel
-                  brand={brand}
-                  nameAr={nameAr}
-                  nameEn={nameEn}
-                  price={currentPrice}
-                  isAr={isAr}
-                  isRTL={isRTL}
-                  fontFamilyRTL={fontFamilyRTL}
-                  fontFamilyLTR={fontFamilyLTR}
-                />
-              </AnimatedField>
+          <View style={styles.stepContent}>
+            <SectionCard title={isAr ? 'مراجعة المنتج' : 'Review Product'}>
+              {/* Live Preview */}
+              <View style={styles.previewCard}>
+                <Text style={styles.previewLabel}>{isAr ? 'معاينة مباشرة' : 'Live Preview'}</Text>
+                <Text style={styles.previewHint}>{isAr ? 'كيف سيظهر في السوق' : 'How it will look in marketplace'}</Text>
 
-              {/* Summary Rows */}
-              <AnimatedField delay={200}>
-                <View style={styles.summaryRows}>
-                  <SummaryRow label={isAr ? 'الاسم AR' : 'Name AR'} value={nameAr || '--'} fontFamilyRTL={fontFamilyRTL} fontFamilyLTR={fontFamilyLTR} />
-                  <SummaryRow label={isAr ? 'الاسم EN' : 'Name EN'} value={nameEn || '--'} fontFamilyRTL={fontFamilyRTL} fontFamilyLTR={fontFamilyLTR} />
-                  <SummaryRow label={isAr ? 'الماركة' : 'Brand'} value={brand || '--'} fontFamilyRTL={fontFamilyRTL} fontFamilyLTR={fontFamilyLTR} />
-                  <SummaryRow label={isAr ? 'الفئة' : 'Category'} value={cats[category]} fontFamilyRTL={fontFamilyRTL} fontFamilyLTR={fontFamilyLTR} />
-                  <SummaryRow label={isAr ? 'الحالة' : 'Condition'} value={isAr ? CONDITIONS[condition].labelAr : CONDITIONS[condition].labelEn} fontFamilyRTL={fontFamilyRTL} fontFamilyLTR={fontFamilyLTR} />
-                  <SummaryRow label={isAr ? 'السعر' : 'Price'} value={currentPrice ? `${currentPrice} EGP` : '--'} fontFamilyRTL={fontFamilyRTL} fontFamilyLTR={fontFamilyLTR} />
+                <View style={styles.previewMockup}>
+                  <View style={[styles.previewPhoneIcon, { backgroundColor: '#1E3A8A22' }]}>
+                    <Ionicons name="phone-portrait" size={32} color="#1E3A8A" />
+                  </View>
+                  <View style={{ flex: 1, gap: 4 }}>
+                    <Text style={styles.previewBrand}>{brand || 'Brand'}</Text>
+                    <Text style={styles.previewProductName} numberOfLines={2}>
+                      {(isAr ? nameAr : nameEn) || (isAr ? 'اسم المنتج' : 'Product Name')}
+                    </Text>
+                    <Text style={styles.previewPrice}>
+                      {currentPrice ? `${currentPrice} ${isAr ? 'ج.م' : 'EGP'}` : '--'}
+                    </Text>
+                  </View>
                 </View>
-              </AnimatedField>
-              
-              {/* AI Assistant Rail */}
-              <AnimatedField delay={300}>
-                <View style={styles.aiRail}>
-                  <Text style={[styles.aiRailTitle, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamilyRTL.bold }]}>
-                    {isAr ? 'المساعد الذكي ✨' : 'AI Assistant ✨'}
-                  </Text>
-                  <AnimatedPressable style={[styles.aiRailCard, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                    <View style={[styles.aiRailIcon, { backgroundColor: '#3E8BFF1A' }]}>
-                      <Ionicons name="text-outline" size={16} color="#3E8BFF" />
-                    </View>
-                    <View style={{ flex: 1, alignItems: isRTL ? 'flex-end' : 'flex-start' }}>
-                      <Text style={[styles.aiRailCardTitle, { fontFamily: fontFamilyRTL.semiBold }]}>{isAr ? 'تحسين الوصف' : 'Improve Description'}</Text>
-                      <Text style={[styles.aiRailCardSub, { fontFamily: fontFamilyRTL.regular }]}>{isAr ? 'توليد وصف جذاب يعزز المبيعات' : 'Generate engaging description to boost sales'}</Text>
-                    </View>
-                  </AnimatedPressable>
-                  <AnimatedPressable style={[styles.aiRailCard, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                    <View style={[styles.aiRailIcon, { backgroundColor: '#2FBE5C1A' }]}>
-                      <Ionicons name="pricetag-outline" size={16} color="#2FBE5C" />
-                    </View>
-                    <View style={{ flex: 1, alignItems: isRTL ? 'flex-end' : 'flex-start' }}>
-                      <Text style={[styles.aiRailCardTitle, { fontFamily: fontFamilyRTL.semiBold }]}>{isAr ? 'اقتراح السعر' : 'Suggest Selling Price'}</Text>
-                      <Text style={[styles.aiRailCardSub, { fontFamily: fontFamilyRTL.regular }]}>{isAr ? 'بناءً على السوق الحالي والمنافسين' : 'Based on current market and competitors'}</Text>
-                    </View>
-                  </AnimatedPressable>
-                </View>
-              </AnimatedField>
+              </View>
+
+              {/* Summary */}
+              <View style={styles.summaryRows}>
+                <SummaryRow label={isAr ? 'الاسم AR' : 'Name AR'} value={nameAr || '--'} />
+                <SummaryRow label={isAr ? 'الاسم EN' : 'Name EN'} value={nameEn || '--'} />
+                <SummaryRow label={isAr ? 'الماركة' : 'Brand'} value={brand || '--'} />
+                <SummaryRow label={isAr ? 'الفئة' : 'Category'} value={cats[category]} />
+                <SummaryRow label={isAr ? 'الحالة' : 'Condition'} value={isAr ? CONDITIONS[condition].labelAr : CONDITIONS[condition].labelEn} />
+                <SummaryRow label={isAr ? 'السعر' : 'Price'} value={currentPrice ? `${currentPrice} EGP` : '--'} />
+                <SummaryRow label={isAr ? 'الكمية' : 'Quantity'} value={qty} />
+              </View>
             </SectionCard>
-          </StaggeredView>
+          </View>
         )}
       </ScrollView>
 
       {/* Bottom action bar */}
-      <View style={[styles.bottomBar, { paddingBottom: bottomInset + 16, flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-        <AnimatedPressable style={styles.cancelBtn} onPress={() => router.back()}>
-          <Text style={[styles.cancelBtnText, { fontFamily: fontFamilyRTL.medium }]}>{isAr ? 'إلغاء' : 'Cancel'}</Text>
-        </AnimatedPressable>
-        <AnimatedPressable style={styles.saveDraftBtn} onPress={handleSaveDraft}>
-          <Text style={[styles.saveDraftText, { fontFamily: fontFamilyRTL.medium }]}>{isAr ? 'حفظ مسودة' : 'Save Draft'}</Text>
-        </AnimatedPressable>
+      <View style={[styles.bottomBar, { paddingBottom: bottomInset + 12 }]}>
         {currentStep > 0 && (
-          <AnimatedPressable style={styles.prevBtn} onPress={handlePrevStep}>
-            <Text style={[styles.prevBtnText, { fontFamily: fontFamilyRTL.semiBold }]}>{isAr ? 'السابق' : 'Back'}</Text>
-          </AnimatedPressable>
+          <Pressable style={styles.prevBtn} onPress={handlePrevStep}>
+            <Ionicons name={isRTL ? 'chevron-forward' : 'chevron-back'} size={18} color={colors.light.foreground} />
+            <Text style={styles.prevBtnText}>{isAr ? 'السابق' : 'Back'}</Text>
+          </Pressable>
         )}
-        <View style={{ flex: 1 }} />
+        <Pressable style={styles.saveDraftBtn} onPress={handleSaveDraft}>
+          <Ionicons name="bookmark-outline" size={16} color={colors.light.mutedForeground} />
+          <Text style={styles.saveDraftText}>{isAr ? 'حفظ كمسودة' : 'Save Draft'}</Text>
+        </Pressable>
         {currentStep < STEPS.length - 1 ? (
-          <AnimatedPressable style={[styles.nextBtn, { flexDirection: isRTL ? 'row-reverse' : 'row' }]} onPress={handleNextStep}>
-            <Text style={[styles.nextBtnText, { fontFamily: fontFamilyRTL.bold }]}>{isAr ? 'التالي' : 'Next'}</Text>
+          <Pressable style={styles.nextBtn} onPress={handleNextStep}>
+            <Text style={styles.nextBtnText}>{isAr ? 'التالي' : 'Next'}</Text>
             <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={18} color="#fff" />
-          </AnimatedPressable>
+          </Pressable>
         ) : (
-          <AnimatedPressable style={[styles.publishBtn, { flexDirection: isRTL ? 'row-reverse' : 'row' }]} onPress={handlePublish}>
+          <Pressable style={styles.publishBtn} onPress={handlePublish}>
             <Ionicons name="cloud-upload-outline" size={18} color="#fff" />
-            <Text style={[styles.publishBtnText, { fontFamily: fontFamilyRTL.bold }]}>{isAr ? 'نشر المنتج' : 'Publish'}</Text>
-          </AnimatedPressable>
+            <Text style={styles.publishBtnText}>{isAr ? 'نشر المنتج' : 'Publish Product'}</Text>
+          </Pressable>
         )}
       </View>
     </View>
@@ -529,132 +526,33 @@ export default function AddProductScreen() {
 }
 
 // Sub-components
-
-function StaggeredView({ children, currentStep, stepIndex }: { children: React.ReactNode, currentStep: number, stepIndex: number }) {
-  const progress = useSharedValue(0);
-
-  useEffect(() => {
-    if (currentStep === stepIndex) {
-      progress.value = 0;
-      progress.value = withTiming(1, { duration: 300, easing: Easing.bezier(0.22, 1, 0.36, 1) });
-    }
-  }, [currentStep, stepIndex]);
-
-  const style = useAnimatedStyle(() => ({
-    opacity: progress.value,
-    transform: [{ translateX: (1 - progress.value) * 12 }]
-  }));
-
-  return <Animated.View style={style}>{children}</Animated.View>;
-}
-
-function AnimatedField({ children, delay }: { children: React.ReactNode, delay: number }) {
-  const opacity = useSharedValue(0);
-  const translateY = useSharedValue(10);
-
-  useEffect(() => {
-    opacity.value = withDelay(delay, withTiming(1, { duration: 250, easing: Easing.out(Easing.quad) }));
-    translateY.value = withDelay(delay, withTiming(0, { duration: 250, easing: Easing.out(Easing.quad) }));
-  }, []);
-
-  const style = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-    transform: [{ translateY: translateY.value }]
-  }));
-
-  return <Animated.View style={style}>{children}</Animated.View>;
-}
-
-function LivePreviewPanel({ brand, nameAr, nameEn, price, isAr, isRTL, fontFamilyRTL, fontFamilyLTR }: any) {
-  // Simple cross-fade logic by rendering a key on the container
-  const [key, setKey] = useState(0);
-  
-  useEffect(() => {
-    setKey(prev => prev + 1);
-  }, [brand, nameAr, nameEn, price]);
-
-  return (
-    <View style={styles.previewCard}>
-      <Text style={[styles.previewLabel, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamilyRTL.semiBold }]}>{isAr ? 'معاينة مباشرة' : 'Live Preview'}</Text>
-      <View style={[styles.previewMockup, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-        <View style={[styles.previewPhoneIcon, { backgroundColor: '#F7F3EC' }]}>
-          <Ionicons name="phone-portrait" size={32} color={colors.light.primary} />
-        </View>
-        <Animated.View key={key} entering={require('react-native-reanimated').FadeIn.duration(180)} style={{ flex: 1, gap: 4, alignItems: isRTL ? 'flex-end' : 'flex-start' }}>
-          <Text style={[styles.previewBrand, { fontFamily: fontFamilyLTR.semiBold }]}>{brand || 'Brand'}</Text>
-          <Text style={[styles.previewProductName, { fontFamily: fontFamilyRTL.bold, textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={2}>
-            {(isAr ? nameAr : nameEn) || (isAr ? 'اسم المنتج' : 'Product Name')}
-          </Text>
-          <Text style={[styles.previewPrice, { fontFamily: fontFamilyLTR.bold }]}>
-            {price ? `${price} ${isAr ? 'ج.م' : 'EGP'}` : '--'}
-          </Text>
-        </Animated.View>
-      </View>
-    </View>
-  );
-}
-
-function MediaUploadBox({ isAr, fontFamilyRTL }: any) {
-  const glow = useSharedValue(0);
-
-  useEffect(() => {
-    glow.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: 1500, easing: Easing.inOut(Easing.ease) }),
-        withTiming(0, { duration: 1500, easing: Easing.inOut(Easing.ease) })
-      ),
-      -1,
-      true
-    );
-  }, []);
-
-  const animatedStyle = useAnimatedStyle(() => {
-    const borderColor = interpolateColor(
-      glow.value,
-      [0, 1],
-      ['rgba(226,232,240,0.8)', 'rgba(255,138,61,0.5)']
-    );
-    const backgroundColor = interpolateColor(
-      glow.value,
-      [0, 1],
-      ['#FBFAF7', 'rgba(255,138,61,0.05)']
-    );
-    return { borderColor, backgroundColor };
-  });
-
-  return (
-    <AnimatedPressable style={[styles.addImageBtn, animatedStyle]}>
-      <Ionicons name="add" size={28} color={colors.light.primary} />
-      <Text style={[styles.addImageText, { fontFamily: fontFamilyRTL.medium }]}>{isAr ? 'إضافة صورة' : 'Add Image'}</Text>
-    </AnimatedPressable>
-  );
-}
-
-function SectionCard({ title, children, fontFamilyRTL }: { title: string; children: React.ReactNode; fontFamilyRTL: any }) {
+function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <View style={sectionStyles.card}>
-      <Text style={[sectionStyles.title, { fontFamily: fontFamilyRTL.bold }]}>{title}</Text>
+      <Text style={sectionStyles.title}>{title}</Text>
       {children}
     </View>
   );
 }
 const sectionStyles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 20,
-    marginHorizontal: 20,
-    marginBottom: 16,
-    shadowColor: 'rgba(30, 25, 15, 0.06)',
-    shadowOffset: { width: 0, height: 8 },
+    backgroundColor: '#fff',
+    borderRadius: colors.radiusLg,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: 'rgba(15,23,42,0.06)',
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 1,
-    shadowRadius: 24,
+    shadowRadius: 10,
     elevation: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(226,232,240,0.6)',
   },
   title: {
-    fontSize: 16,
-    color: '#1B1B1D',
-    marginBottom: 20,
+    fontSize: 15,
+    fontFamily: 'Inter_700Bold',
+    color: colors.light.foreground,
+    marginBottom: 14,
   },
 });
 
@@ -665,38 +563,46 @@ function FormField({
   placeholder,
   isRTL,
   keyboardType = 'default',
-  fontFamilyRTL,
-  fontFamilyLTR,
-}: any) {
+}: {
+  label: string;
+  value: string;
+  onChangeText: (v: string) => void;
+  placeholder: string;
+  isRTL: boolean;
+  keyboardType?: 'default' | 'numeric';
+}) {
   return (
     <View style={formStyles.wrap}>
-      <Text style={[formStyles.label, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamilyRTL.medium }]}>{label}</Text>
+      <Text style={[formStyles.label, { textAlign: isRTL ? 'right' : 'left' }]}>{label}</Text>
       <TextInput
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        style={[formStyles.input, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamilyRTL.regular }]}
-        placeholderTextColor="#8A8782"
+        style={[formStyles.input, { textAlign: isRTL ? 'right' : 'left' }]}
+        placeholderTextColor={colors.light.mutedForeground}
         keyboardType={keyboardType}
       />
     </View>
   );
 }
 const formStyles = StyleSheet.create({
-  wrap: { marginBottom: 16 },
+  wrap: { marginBottom: 14 },
   label: {
     fontSize: 12,
-    color: '#8A8782',
-    marginBottom: 8,
+    fontFamily: 'Inter_600SemiBold',
+    color: colors.light.mutedForeground,
+    marginBottom: 6,
   },
   input: {
-    borderWidth: 0,
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    borderWidth: 1.5,
+    borderColor: 'rgba(226,232,240,0.8)',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
     fontSize: 14,
-    color: '#1B1B1D',
-    backgroundColor: '#F7F3EC',
+    fontFamily: 'Inter_400Regular',
+    color: colors.light.foreground,
+    backgroundColor: '#F8FAFC',
   },
 });
 
@@ -705,33 +611,50 @@ function ToggleRow({
   value,
   onToggle,
   isRTL,
-  fontFamilyRTL,
-}: any) {
+}: {
+  label: string;
+  value: boolean;
+  onToggle: () => void;
+  isRTL: boolean;
+}) {
   return (
     <Pressable
       onPress={onToggle}
       style={[toggleStyles.row, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
     >
-      <Text style={[toggleStyles.label, { flex: 1, textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamilyRTL.medium }]}>{label}</Text>
-      <Toggle value={value} onToggle={onToggle} isRTL={isRTL} />
+      <Text style={[toggleStyles.label, { flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>{label}</Text>
+      <View style={[toggleStyles.track, value && toggleStyles.trackActive]}>
+        <View style={[toggleStyles.thumb, value && toggleStyles.thumbActive]} />
+      </View>
     </Pressable>
   );
 }
 const toggleStyles = StyleSheet.create({
   row: {
     alignItems: 'center',
-    paddingVertical: 14,
+    paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(236, 230, 217, 0.5)',
+    borderBottomColor: 'rgba(226,232,240,0.5)',
   },
-  label: { fontSize: 14, color: '#1B1B1D' },
+  label: { fontSize: 14, fontFamily: 'Inter_500Medium', color: colors.light.foreground },
+  track: {
+    width: 44,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: colors.light.border,
+    justifyContent: 'center',
+    padding: 2,
+  },
+  trackActive: { backgroundColor: colors.light.success },
+  thumb: { width: 22, height: 22, borderRadius: 11, backgroundColor: '#fff', shadowColor: 'rgba(0,0,0,0.15)', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 1, shadowRadius: 3, elevation: 2 },
+  thumbActive: { transform: [{ translateX: 18 }] },
 });
 
-function SummaryRow({ label, value, fontFamilyRTL, fontFamilyLTR }: any) {
+function SummaryRow({ label, value }: { label: string; value: string }) {
   return (
     <View style={summaryStyles.row}>
-      <Text style={[summaryStyles.label, { fontFamily: fontFamilyRTL.regular }]}>{label}</Text>
-      <Text style={[summaryStyles.value, { fontFamily: fontFamilyLTR.semiBold }]} numberOfLines={1}>{value}</Text>
+      <Text style={summaryStyles.label}>{label}</Text>
+      <Text style={summaryStyles.value} numberOfLines={1}>{value}</Text>
     </View>
   );
 }
@@ -740,319 +663,299 @@ const summaryStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 10,
+    paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(236, 230, 217, 0.4)',
+    borderBottomColor: 'rgba(226,232,240,0.4)',
   },
-  label: { fontSize: 13, color: '#8A8782', flex: 1 },
-  value: { fontSize: 13, color: '#1B1B1D', flex: 1, textAlign: 'right' },
+  label: { fontSize: 13, fontFamily: 'Inter_400Regular', color: colors.light.mutedForeground, flex: 1 },
+  value: { fontSize: 13, fontFamily: 'Inter_600SemiBold', color: colors.light.foreground, flex: 1, textAlign: 'right' },
 });
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F7F3EC' },
+  container: { flex: 1, backgroundColor: '#F5F7FA' },
 
   // Header
   header: {
-    backgroundColor: '#F7F3EC',
-    paddingHorizontal: 20,
-    paddingBottom: 16,
+    backgroundColor: colors.light.background,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(226,232,240,0.6)',
+    shadowColor: 'rgba(15,23,42,0.06)',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 10,
+    elevation: 3,
+    gap: 14,
   },
-  headerRow: { alignItems: 'center', gap: 12, marginBottom: 16 },
+  headerRow: { alignItems: 'center', gap: 10 },
   backBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#FFFFFF',
+    width: 38,
+    height: 38,
+    borderRadius: 11,
+    backgroundColor: colors.light.muted,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: 'rgba(30, 25, 15, 0.06)',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 12,
-    elevation: 2,
   },
-  headerTitle: { flex: 1, fontSize: 18, color: '#1B1B1D' },
-  headerRight: { alignItems: 'center', gap: 8 },
-  autoSavedText: { fontSize: 11, color: '#B8B4AC' },
+  headerTitle: { flex: 1, fontSize: 17, fontFamily: 'Inter_700Bold', color: colors.light.foreground },
+  headerRight: { alignItems: 'center', gap: 6 },
   draftBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     paddingHorizontal: 8,
     paddingVertical: 4,
-    backgroundColor: '#E3F8E9',
-    borderRadius: 999,
+    backgroundColor: colors.light.successLight,
+    borderRadius: 8,
   },
-  draftDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#2FBE5C' },
-  draftText: { fontSize: 11, color: '#2FBE5C' },
-  headerAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#FF8A3D',
+  draftDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.light.success },
+  draftText: { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: colors.light.success },
+  previewBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.light.border,
+  },
+  previewBtnText: { fontSize: 12, fontFamily: 'Inter_500Medium', color: colors.light.mutedForeground },
+  publishHeaderBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    backgroundColor: colors.light.primary,
+    borderRadius: 10,
+  },
+  publishHeaderBtnText: { fontSize: 13, fontFamily: 'Inter_700Bold', color: '#fff' },
+
+  // Step indicator
+  stepsRow: { alignItems: 'center', gap: 0, paddingBottom: 4 },
+  stepItem: { alignItems: 'center', gap: 5, paddingHorizontal: 4 },
+  stepItemActive: {},
+  stepItemDone: {},
+  stepCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: colors.light.border,
+    backgroundColor: '#F8FAFC',
     alignItems: 'center',
     justifyContent: 'center',
   },
+  stepCircleActive: { borderColor: colors.light.primary, backgroundColor: colors.light.primaryLight },
+  stepCircleDone: { borderColor: colors.light.success, backgroundColor: colors.light.success },
+  stepNum: { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: colors.light.mutedForeground },
+  stepNumActive: { color: colors.light.primary },
+  stepLabel: { fontSize: 10, fontFamily: 'Inter_400Regular', color: colors.light.mutedForeground, textAlign: 'center', maxWidth: 52 },
+  stepLabelActive: { fontFamily: 'Inter_600SemiBold', color: colors.light.primary },
+  stepLine: { width: 20, height: 2, backgroundColor: colors.light.border, marginHorizontal: 2 },
+  stepLineDone: { backgroundColor: colors.light.success },
 
-  // Step indicator
-  stepsRow: { alignItems: 'center', gap: 0 },
-  stepItem: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 999,
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: 4,
-  },
-  stepItemActive: { backgroundColor: '#2B2B2E' },
-  stepLabel: { fontSize: 13, color: '#8A8782' },
-  stepLabelActive: { color: '#FFFFFF' },
-  stepLabelDone: { color: '#1B1B1D' },
-  stepLine: { width: 12, height: 2, backgroundColor: '#ECE6D9' },
-  stepLineDone: { backgroundColor: '#1B1B1D' },
-
+  // Content
   scroll: { flex: 1 },
+  stepContent: { padding: 16 },
 
-  // Fields wrap
-  fieldWrap: { marginBottom: 16 },
-  fieldLabel: {
-    fontSize: 12,
-    color: '#8A8782',
-    marginBottom: 8,
-  },
-  pillsRow: { gap: 8 },
+  // Field components
+  fieldWrap: { marginBottom: 14 },
+  fieldLabel: { fontSize: 12, fontFamily: 'Inter_600SemiBold', color: colors.light.mutedForeground, marginBottom: 8 },
+  pillsRow: { gap: 8, flexWrap: 'wrap' },
   pill: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 999,
-    backgroundColor: '#F7F3EC',
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: 'rgba(226,232,240,0.8)',
+    backgroundColor: '#F8FAFC',
   },
-  pillActive: { backgroundColor: '#2B2B2E' },
-  pillText: { fontSize: 13, color: '#8A8782' },
-  pillTextActive: { color: '#FFFFFF' },
+  pillActive: { backgroundColor: colors.light.primaryLight, borderColor: colors.light.primary },
+  pillText: { fontSize: 13, fontFamily: 'Inter_500Medium', color: colors.light.mutedForeground },
+  pillTextActive: { color: colors.light.primary, fontFamily: 'Inter_600SemiBold' },
 
   // Media
-  mediaHint: { fontSize: 13, color: '#8A8782', marginBottom: 16 },
-  imageGrid: { gap: 12, marginBottom: 20 },
+  mediaHint: { fontSize: 13, fontFamily: 'Inter_400Regular', color: colors.light.mutedForeground, marginBottom: 14 },
+  imageGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 14 },
   addImageBtn: {
-    width: 100,
-    height: 100,
-    borderRadius: 20,
+    width: 90,
+    height: 90,
+    borderRadius: 12,
     borderWidth: 2,
+    borderColor: colors.light.primary + '40',
     borderStyle: 'dashed',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
+    backgroundColor: colors.light.primaryLight,
+    gap: 4,
   },
-  addImageText: { fontSize: 12, color: '#FF8A3D' },
+  addImageText: { fontSize: 10, fontFamily: 'Inter_500Medium', color: colors.light.primary },
   imagePlaceholder: {
-    width: 100,
-    height: 100,
-    borderRadius: 20,
-    backgroundColor: '#F7F3EC',
+    width: 90,
+    height: 90,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.light.border,
+    backgroundColor: '#F8FAFC',
     alignItems: 'center',
     justifyContent: 'center',
   },
   videoUpload: {
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    padding: 16,
-    borderRadius: 16,
-    backgroundColor: '#F7F3EC',
+    gap: 10,
+    padding: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.light.border,
+    backgroundColor: '#F8FAFC',
   },
-  videoIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#FDEEDD',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  videoTitle: { fontSize: 14, color: '#1B1B1D' },
-  videoSub: { fontSize: 12, color: '#8A8782' },
+  videoIcon: { width: 38, height: 38, borderRadius: 10, backgroundColor: colors.light.primaryLight, alignItems: 'center', justifyContent: 'center' },
+  videoTitle: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: colors.light.foreground },
+  videoSub: { fontSize: 11, fontFamily: 'Inter_400Regular', color: colors.light.mutedForeground },
 
-  // Specs
+  // Spec accordion
   specRow: {
     alignItems: 'center',
-    gap: 12,
-    paddingVertical: 14,
+    gap: 10,
+    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#ECE6D9',
+    borderBottomColor: 'rgba(226,232,240,0.5)',
   },
-  specIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#FDEEDD',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  specLabel: { fontSize: 14, color: '#1B1B1D' },
+  specIcon: { width: 28, height: 28, borderRadius: 8, backgroundColor: colors.light.primaryLight, alignItems: 'center', justifyContent: 'center' },
+  specLabel: { fontSize: 14, fontFamily: 'Inter_500Medium', color: colors.light.foreground },
+  specValueInput: { width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
 
   // Variants
   variantCard: {
-    backgroundColor: '#FBFAF7',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#ECE6D9',
-  },
-  variantHeader: { alignItems: 'center', gap: 8, marginBottom: 16 },
-  variantTitle: { fontSize: 14, color: '#1B1B1D' },
-  variantColorDot: { width: 16, height: 16, borderRadius: 8 },
-  variantFields: { gap: 12 },
-  variantField: { flex: 1 },
-  variantFieldLabel: { fontSize: 11, color: '#8A8782', marginBottom: 6 },
-  variantPicker: {
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#ECE6D9',
-  },
-  variantPickerText: { fontSize: 13, color: '#1B1B1D' },
-  variantPriceRow: {
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#ECE6D9',
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-  },
-  qtyBtn: {
-    width: 24,
-    height: 24,
+    borderColor: 'rgba(226,232,240,0.8)',
     borderRadius: 12,
-    backgroundColor: '#F7F3EC',
+    padding: 12,
+    marginBottom: 10,
+    backgroundColor: '#F8FAFC',
+  },
+  variantHeader: { alignItems: 'center', gap: 8, marginBottom: 10 },
+  variantTitle: { flex: 1, fontSize: 13, fontFamily: 'Inter_600SemiBold', color: colors.light.foreground },
+  variantColorDot: { width: 16, height: 16, borderRadius: 8, borderWidth: 1, borderColor: 'rgba(0,0,0,0.1)' },
+  variantFields: { gap: 10 },
+  variantField: { flex: 1 },
+  variantFieldLabel: { fontSize: 10, fontFamily: 'Inter_500Medium', color: colors.light.mutedForeground, marginBottom: 5 },
+  variantPicker: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: colors.light.border,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 7,
+    backgroundColor: '#fff',
+  },
+  variantPickerText: { fontSize: 12, fontFamily: 'Inter_500Medium', color: colors.light.foreground },
+  variantPriceRow: { alignItems: 'center', gap: 6 },
+  qtyBtn: {
+    width: 26,
+    height: 26,
+    borderRadius: 8,
+    backgroundColor: colors.light.primaryLight,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  qtyText: { fontSize: 13, color: '#1B1B1D' },
+  qtyText: { fontSize: 14, fontFamily: 'Inter_700Bold', color: colors.light.foreground, minWidth: 24, textAlign: 'center' },
   addVariantBtn: {
     alignItems: 'center',
-    justifyContent: 'center',
     gap: 8,
-    paddingVertical: 14,
-    borderRadius: 16,
-    backgroundColor: '#FDEEDD',
+    paddingVertical: 12,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: colors.light.primary + '40',
+    borderStyle: 'dashed',
+    backgroundColor: colors.light.primaryLight,
+    justifyContent: 'center',
   },
-  addVariantText: { fontSize: 14, color: '#FF8A3D' },
+  addVariantText: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: colors.light.primary },
 
   // Preview
   previewCard: {
-    marginBottom: 24,
-  },
-  previewLabel: { fontSize: 14, color: '#1B1B1D', marginBottom: 12 },
-  previewMockup: {
-    alignItems: 'center',
-    gap: 16,
-    padding: 16,
-    backgroundColor: '#FBFAF7',
-    borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#ECE6D9',
-  },
-  previewPhoneIcon: {
-    width: 60,
-    height: 80,
+    borderColor: 'rgba(226,232,240,0.8)',
     borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
+    padding: 14,
+    marginBottom: 14,
+    backgroundColor: '#F8FAFC',
   },
-  previewBrand: { fontSize: 11, color: '#8A8782', textTransform: 'uppercase' },
-  previewProductName: { fontSize: 16, color: '#1B1B1D' },
-  previewPrice: { fontSize: 18, color: '#1B1B1D' },
+  previewLabel: { fontSize: 13, fontFamily: 'Inter_700Bold', color: colors.light.foreground, marginBottom: 2 },
+  previewHint: { fontSize: 11, fontFamily: 'Inter_400Regular', color: colors.light.mutedForeground, marginBottom: 12 },
+  previewMockup: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  previewPhoneIcon: { width: 64, height: 80, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  previewBrand: { fontSize: 11, fontFamily: 'Inter_400Regular', color: colors.light.mutedForeground },
+  previewProductName: { fontSize: 14, fontFamily: 'Inter_700Bold', color: colors.light.foreground, lineHeight: 18 },
+  previewPrice: { fontSize: 16, fontFamily: 'Inter_700Bold', color: colors.light.primary, marginTop: 4 },
+  summaryRows: {},
 
-  // Summary
-  summaryRows: {
-    backgroundColor: '#FBFAF7',
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#ECE6D9',
-  },
-
-  // AI Rail
-  aiRail: { marginTop: 24 },
-  aiRailTitle: { fontSize: 14, color: '#1B1B1D', marginBottom: 12 },
-  aiRailCard: {
-    alignItems: 'center',
-    gap: 12,
-    padding: 16,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: '#ECE6D9',
-    shadowColor: 'rgba(30, 25, 15, 0.04)',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 12,
-    elevation: 2,
-  },
-  aiRailIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  aiRailCardTitle: { fontSize: 13, color: '#1B1B1D', marginBottom: 2 },
-  aiRailCardSub: { fontSize: 11, color: '#8A8782' },
-
-  // Bottom Bar
+  // Bottom bar
   bottomBar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    gap: 12,
-    alignItems: 'center',
+    backgroundColor: '#fff',
+    paddingTop: 12,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    gap: 8,
     borderTopWidth: 1,
-    borderTopColor: '#ECE6D9',
-    shadowColor: 'rgba(30, 25, 15, 0.08)',
+    borderTopColor: 'rgba(226,232,240,0.7)',
+    shadowColor: 'rgba(15,23,42,0.08)',
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 1,
     shadowRadius: 16,
-    elevation: 10,
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
+    elevation: 8,
   },
-  cancelBtn: { paddingHorizontal: 12, paddingVertical: 12 },
-  cancelBtnText: { fontSize: 14, color: '#8A8782' },
-  saveDraftBtn: { paddingHorizontal: 12, paddingVertical: 12 },
-  saveDraftText: { fontSize: 14, color: '#1B1B1D' },
   prevBtn: {
-    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 14,
     paddingVertical: 12,
-    borderRadius: 999,
-    backgroundColor: '#F7F3EC',
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: colors.light.border,
+    backgroundColor: '#F8FAFC',
   },
-  prevBtnText: { fontSize: 14, color: '#1B1B1D' },
+  prevBtnText: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: colors.light.foreground },
+  saveDraftBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: colors.light.border,
+  },
+  saveDraftText: { fontSize: 13, fontFamily: 'Inter_500Medium', color: colors.light.mutedForeground },
   nextBtn: {
+    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    backgroundColor: '#2B2B2E',
-    borderRadius: 999,
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 12,
+    backgroundColor: colors.light.primary,
+    borderRadius: 12,
   },
-  nextBtnText: { fontSize: 15, color: '#FFFFFF' },
+  nextBtnText: { fontSize: 15, fontFamily: 'Inter_700Bold', color: '#fff' },
   publishBtn: {
+    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 8,
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    backgroundColor: '#2B2B2E',
-    borderRadius: 999,
+    paddingVertical: 12,
+    backgroundColor: colors.light.success,
+    borderRadius: 12,
+    shadowColor: colors.light.success,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 4,
   },
-  publishBtnText: { fontSize: 15, color: '#FFFFFF' },
+  publishBtnText: { fontSize: 15, fontFamily: 'Inter_700Bold', color: '#fff' },
 });
