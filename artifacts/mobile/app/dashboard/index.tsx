@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  Alert,
   Platform,
   Pressable,
   ScrollView,
@@ -121,7 +122,14 @@ export default function DashboardScreen() {
   const chartDays = language === 'ar' ? CHART_DAYS_AR : CHART_DAYS_EN;
 
   function handleAction(route: string | null) {
-    if (route) router.push(route as any);
+    if (route) {
+      router.push(route as any);
+    } else {
+      Alert.alert(
+        language === 'ar' ? 'قريباً' : 'Coming Soon',
+        language === 'ar' ? 'هذه الميزة قيد التطوير' : 'This feature is under development',
+      );
+    }
   }
 
   return (
@@ -508,7 +516,7 @@ export default function DashboardScreen() {
               key={tab.key}
               style={styles.bottomNavItem}
               onPress={() => {
-                if (tab.key === 'profile') router.back();
+                if (tab.key === 'profile') router.push('/(tabs)/profile');
                 else setActiveTab(tab.key);
               }}
             >

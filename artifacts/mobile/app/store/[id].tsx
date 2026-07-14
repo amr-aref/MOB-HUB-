@@ -71,7 +71,7 @@ export default function StoreScreen() {
   }
   function handleCall() { Linking.openURL(`tel:${store.phone}`); }
   function handleWhatsApp() {
-    Linking.openURL(`https://wa.me/${store.whatsapp.replace('+', '')}`);
+    Linking.openURL(`https://wa.me/${store.whatsapp.replace(/\+/g, '')}`);
   }
   function handleMaps() {
     const url = Platform.OS === 'ios'
