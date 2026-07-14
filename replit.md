@@ -10,6 +10,7 @@ An Expo mobile marketplace app (Arabic RTL) for buying/comparing phones in Egypt
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
+- `pnpm --filter @workspace/db run seed` — seed the database with sample data (needed once after a fresh DB/import — tables exist but are empty until this runs)
 - Required env: `DATABASE_URL` — Postgres connection string (already provisioned)
 
 ## Stack

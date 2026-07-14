@@ -4,10 +4,8 @@ description: Egypt mobile phone marketplace — Expo app under artifacts/mobile.
 ---
 
 ## Design System
-- **Theme:** Premium White Liquid Glass — pure white headers, no blue gradient headers anywhere
-- **Blue accent `#2563EB`:** used only for active states, prices, CTAs, icons
-- **Color tokens:** `constants/colors.ts` already has the correct white Liquid Glass token system — do not change it
-- **Background:** `#F5F7FA` for page backgrounds, `#fff` for cards
+- **Theme (as of 2026-07-14):** "Soft Minimal / Warm Neumorphism" — warm cream backgrounds (`#F7F3EC`), soft white cards, orange accent (`#FF8A3D`). This superseded an earlier white Liquid Glass / blue-accent (`#2563EB`) direction — if colors look different from what an older note says, trust `constants/colors.ts` over memory.
+- **Color tokens:** always read `artifacts/mobile/constants/colors.ts` directly before describing the palette; it has changed direction at least once already.
 
 ## Screen Architecture
 - **Tabs:** `app/(tabs)/` — Home, Stores, Compare, Favorites, Profile
