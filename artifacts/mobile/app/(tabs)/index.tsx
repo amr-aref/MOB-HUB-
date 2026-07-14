@@ -71,7 +71,7 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       {/* Premium White Header */}
-      <BlurView intensity={12} tint="light" style={[styles.header, { paddingTop: topInset + 8 }]}>
+      <BlurView intensity={26} tint="light" style={[styles.header, { paddingTop: topInset + 8 }]}>
         <View style={isTablet ? styles.tabletCentered : undefined}>
           <View style={[styles.headerTop, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             {/* App Brand */}
@@ -343,12 +343,12 @@ const styles = StyleSheet.create({
 
   // Header
   header: {
-    backgroundColor: 'rgba(247, 243, 236, 0.97)',
+    backgroundColor: 'rgba(247, 243, 236, 0.82)',
     paddingHorizontal: 16,
-    paddingBottom: 14,
+    paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(226, 232, 240, 0.6)',
-    shadowColor: 'rgba(15,23,42,0.06)',
+    borderBottomColor: 'rgba(236, 230, 217, 0.8)',
+    shadowColor: 'rgba(30,25,15,0.06)',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 1,
     shadowRadius: 12,
@@ -421,7 +421,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  searchWrap: {},
+  searchWrap: { marginTop: 4 },
 
   // Scroll
   scroll: { flex: 1 },
@@ -468,12 +468,12 @@ const styles = StyleSheet.create({
   // Deals banner
   dealsBanner: {
     marginHorizontal: 16,
-    borderRadius: colors.radiusLg,
+    borderRadius: 22,
     overflow: 'hidden',
     shadowColor: colors.light.primary,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.16,
+    shadowRadius: 20,
     elevation: 6,
   },
   dealsGradient: {

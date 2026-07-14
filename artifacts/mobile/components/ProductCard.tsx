@@ -132,10 +132,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.04)',
-    shadowColor: colors.light.shadowMid,
+    shadowColor: '#1E190F',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
+    shadowOpacity: 0.05,
+    shadowRadius: 14,
     elevation: 2,
   },
   inner: {
@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
   },
   brand: { fontSize: 12, color: colors.light.mutedForeground },
   priceRow: { alignItems: 'center', gap: 6, marginTop: 4 },
-  price: { fontSize: 16, fontWeight: '700', color: colors.light.foreground },
+  price: { fontSize: 17, fontWeight: '700', color: colors.light.foreground, letterSpacing: -0.2 },
   originalPrice: {
     fontSize: 12,
     color: colors.light.textTertiary,

@@ -101,7 +101,7 @@ export default function TabLayout() {
         tabBarShowLabel: false,
         tabBarStyle: tabBarStyle as any,
         tabBarBackground: isTablet || isWeb ? undefined : () => (
-          <BlurView intensity={20} tint="light" style={[StyleSheet.absoluteFill, { borderRadius: 999, overflow: 'hidden' }]} />
+          <BlurView intensity={28} tint="light" style={[StyleSheet.absoluteFill, { borderRadius: 999, overflow: 'hidden' }]} />
         ),
       }}
       tabBar={isTablet ? (props) => <TabletSidebar {...props} isRTL={isRTL} t={t} /> : undefined}
@@ -167,15 +167,15 @@ const styles = StyleSheet.create({
     bottom: 24,
     left: 24,
     right: 24,
-    backgroundColor: 'rgba(255, 255, 255, 0.92)',
+    backgroundColor: 'rgba(255, 255, 255, 0.72)',
     borderRadius: 999,
-    height: 60,
+    height: 64,
     borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.06)',
-    shadowColor: '#000',
+    borderColor: 'rgba(255, 255, 255, 0.5)',
+    shadowColor: '#1E190F',
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
+    shadowOpacity: 0.10,
+    shadowRadius: 24,
     elevation: 10,
     flexDirection: 'row',
     alignItems: 'center',

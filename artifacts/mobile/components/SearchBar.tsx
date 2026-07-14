@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import colors from '@/constants/colors';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -16,6 +17,7 @@ export default function SearchBar({ value, onChangeText, placeholder, isRTL = fa
   const { isRTL: rtlContext } = useLanguage();
   const rtl = isRTL || rtlContext;
   const fontFam = getFontFamily(rtl, 'regular');
+  const [isFocused, setIsFocused] = useState(false);
 
   const inputStyle = [
     styles.input,
@@ -23,16 +25,19 @@ export default function SearchBar({ value, onChangeText, placeholder, isRTL = fa
   ];
 
   return (
-    <View style={[styles.container, { flexDirection: rtl ? 'row-reverse' : 'row' }]}>
-      <Ionicons name="search-outline" size={20} color="#9E9BA4" />
+    <View style={[styles.container, isFocused && styles.containerFocused, { flexDirection: rtl ? 'row-reverse' : 'row' }]}>
+      <BlurView intensity={24} tint="light" style={[StyleSheet.absoluteFill, styles.blurLayer]} />
+      <Ionicons name="search-outline" size={19} color={colors.light.mutedForeground} />
       <TextInput
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor="rgba(120, 115, 105, 0.7)"
+        placeholderTextColor={colors.light.textTertiary}
         style={inputStyle}
         returnKeyType="search"
         autoCorrect={false}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
       />
       {value.length > 0 && (
         <Ionicons
@@ -43,8 +48,8 @@ export default function SearchBar({ value, onChangeText, placeholder, isRTL = fa
         />
       )}
       <View style={[styles.actionIcons, { flexDirection: rtl ? 'row-reverse' : 'row' }]}>
-        <Ionicons name="mic-outline" size={20} color={colors.light.mutedForeground} style={{ marginHorizontal: 6 }} />
-        <Ionicons name="camera-outline" size={20} color={colors.light.mutedForeground} style={{ marginHorizontal: 6 }} />
+        <Ionicons name="mic-outline" size={19} color={colors.light.mutedForeground} style={{ marginHorizontal: 4 }} />
+        <Ionicons name="camera-outline" size={19} color={colors.light.mutedForeground} style={{ marginHorizontal: 4 }} />
       </View>
     </View>
   );
@@ -52,19 +57,30 @@ export default function SearchBar({ value, onChangeText, placeholder, isRTL = fa
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'rgba(255, 255, 255, 0.75)',
+    backgroundColor: 'rgba(255, 255, 255, 0.55)',
     borderRadius: 999,
-    borderWidth: 0,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.6)',
     paddingHorizontal: 16,
     height: 48,
     alignItems: 'center',
     flexDirection: 'row',
-    gap: 10,
+    gap: 12,
+    overflow: 'hidden',
     shadowColor: '#1E190F',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 2,
+  },
+  containerFocused: {
+    borderColor: colors.light.primaryMid,
+    shadowColor: colors.light.primary,
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+  },
+  blurLayer: {
+    borderRadius: 999,
   },
   input: {
     flex: 1,
@@ -74,5 +90,6 @@ const styles = StyleSheet.create({
   },
   actionIcons: {
     alignItems: 'center',
+    gap: 4,
   }
 });
