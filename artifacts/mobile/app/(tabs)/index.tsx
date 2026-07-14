@@ -91,7 +91,14 @@ export default function HomeScreen() {
 
             {/* Actions */}
             <View style={[styles.headerActions, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <Pressable style={styles.iconBtn} hitSlop={8}>
+              <Pressable
+                style={styles.iconBtn}
+                hitSlop={8}
+                onPress={() => router.push('/notifications')}
+                accessibilityRole="button"
+                accessibilityLabel={language === 'ar' ? 'الإشعارات' : 'Notifications'}
+                accessibilityHint={language === 'ar' ? 'فتح صفحة الإشعارات' : 'Open notifications'}
+              >
                 <Ionicons name="notifications-outline" size={20} color={colors.light.foreground} />
                 <View style={styles.notifDot} />
               </Pressable>
@@ -127,7 +134,7 @@ export default function HomeScreen() {
       >
         {/* Categories */}
         <View style={styles.section}>
-          <SectionHeader title={t('categories')} onPress={() => {}} t={t} isRTL={isRTL} />
+          <SectionHeader title={t('categories')} onPress={() => router.push({ pathname: '/products', params: { filter: 'all' } })} t={t} isRTL={isRTL} />
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -190,7 +197,13 @@ export default function HomeScreen() {
 
         {/* Today's Deals Banner */}
         <View style={styles.section}>
-          <Pressable style={styles.dealsBanner}>
+          <Pressable
+            style={styles.dealsBanner}
+            onPress={() => router.push({ pathname: '/products', params: { filter: 'featured' } })}
+            accessibilityRole="button"
+            accessibilityLabel={language === 'ar' ? 'عروض اليوم' : "Today's Deals"}
+            accessibilityHint={language === 'ar' ? 'عرض جميع العروض المميزة' : 'View all featured deals and offers'}
+          >
             <LinearGradient
               colors={['#FF8A3D', '#FF6B1A']}
               start={{ x: 0, y: 0 }}
@@ -229,7 +242,7 @@ export default function HomeScreen() {
 
         {/* New Arrivals */}
         <View style={styles.section}>
-          <SectionHeader title={t('newArrivals')} onPress={() => {}} t={t} isRTL={isRTL} />
+          <SectionHeader title={t('newArrivals')} onPress={() => router.push({ pathname: '/products', params: { filter: 'new' } })} t={t} isRTL={isRTL} />
           {isTablet ? (
             <View style={[styles.tabletGrid, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               {newArrivals.map((product) => (
@@ -262,7 +275,7 @@ export default function HomeScreen() {
 
         {/* Best Sellers */}
         <View style={styles.section}>
-          <SectionHeader title={t('bestSellers')} onPress={() => {}} t={t} isRTL={isRTL} />
+          <SectionHeader title={t('bestSellers')} onPress={() => router.push({ pathname: '/products', params: { filter: 'bestSeller' } })} t={t} isRTL={isRTL} />
           {isTablet ? (
             <View style={[styles.tabletGrid, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               {bestSellers.map((product) => (

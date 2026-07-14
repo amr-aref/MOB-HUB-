@@ -1,33 +1,45 @@
 ---
 name: Mobile Marketplace Architecture
-description: Egypt mobile phone marketplace — Expo app under artifacts/mobile. Phase 2 design+screens complete as of July 2026.
+description: Egypt mobile phone marketplace Expo app — key decisions, patterns, and sprint history
 ---
 
-## Design System
-- **Theme (as of 2026-07-14):** "Soft Minimal / Warm Neumorphism" — warm cream backgrounds (`#F7F3EC`), soft white cards, orange accent (`#FF8A3D`). This superseded an earlier white Liquid Glass / blue-accent (`#2563EB`) direction — if colors look different from what an older note says, trust `constants/colors.ts` over memory.
-- **Color tokens:** always read `artifacts/mobile/constants/colors.ts` directly before describing the palette; it has changed direction at least once already.
+## Overview
+MOB HUB — Expo 54 / React Native 0.81 monorepo app. Arabic RTL default, "Liquid Glass" design. pnpm workspace at `/artifacts/mobile`.
 
-## Screen Architecture
-- **Tabs:** `app/(tabs)/` — Home, Stores, Compare, Favorites, Profile
-- **Stack screens:** `app/product/[id].tsx`, `app/store/[id].tsx`, `app/dashboard/index.tsx`, `app/dashboard/add-product.tsx`
-- **Dashboard routes** registered in `app/_layout.tsx` as `dashboard/index` and `dashboard/add-product`
+## Navigation
+- Expo Router file-based. Root Stack in `app/_layout.tsx`.
+- Tab group: `app/(tabs)/_layout.tsx`.
+- Dynamic routes: `app/store/[id].tsx`, `app/product/[id].tsx`.
+- Static routes added in Sprint A1: `app/notifications/index.tsx`, `app/products/index.tsx`, `app/stores-list/index.tsx`.
 
-## Key Decisions
-- **StoreCard `listMode` prop:** When `listMode=true` removes the fixed `width: 260` + `marginRight: 12` so it renders full-width in vertical lists. Used in Stores tab and Home "Top Rated" section.
-- **Followers count:** Computed inline as `store.reviewsCount * 3 + 450` — NOT in the Store data model.
-- **No new packages:** Charts use `View`-based bar visuals. No `react-native-maps`.
-- **Dashboard store:** Hardcoded to `stores[0]` (Mobile World) as the "owner's store".
-- **Mock data for dashboard:** Stats, orders, messages, reviews all inline-defined in `app/dashboard/index.tsx`.
-- **Add Product wizard:** 5 steps — Basic Info → Media → Variants → Pricing → Publish. Each step in the same file, toggled by `currentStep` state.
+## Key Contexts
+- `FavoritesContext` — `toggleFavoriteProduct(id)`, `toggleFavoriteStore(id)`, `isProductFavorite(id)`, `isStoreFavorite(id)`. AsyncStorage-backed.
+- `LanguageContext` — `t(key)`, `isRTL`, `language`. Use `language === 'ar'` for conditional strings.
 
-**Why white headers:** The Enterprise UI Constitution spec required removal of all `LinearGradient` blue headers from tab screens; blue is reserved for interactive elements only for a premium/calm feel.
+## Component Conventions
+- `ProductCard` — `width` prop is `number` (default 170). Compute numeric width with `useWindowDimensions`; never pass a percentage string.
+- `StoreCard` — `listMode` prop for vertical list appearance.
+- `CategoryChip` — `label`, `icon`, `iconColor`, `isSelected`, `onPress`.
 
-## Tablet/Phone Responsiveness
-- **Convention:** `useLayout()` (`hooks/useLayout.ts`, `isTablet = width >= 768`) gates all tablet-only styling. Phone layout must stay the exact default (no `isTablet` check = phone behavior), so tablet work is always additive, never a rewrite of the phone path.
-- **Content-width pattern:** on screens that are a single scrolling column (not the existing 35/65 split screens), wrap the scrollable content in a `tabletInner` style (`width:'100%', maxWidth: 760, alignSelf:'center'`) only when `isTablet`, so headers/nav bars stay full-bleed but content doesn't stretch edge-to-edge on wide screens.
-- Most tab/detail screens already had tablet handling (grid reflow, 35/65 split, `TabletSidebar`) before this; `app/dashboard/index.tsx` and `app/dashboard/products.tsx` (seller dashboard) were the gap — they had zero `useLayout` usage — and were retrofitted with the `tabletInner` pattern plus a 2-column product grid on tablet.
+## API Hooks (from lib/api-client-react)
+- `useGetProducts(params?)` — `{ isNew, isBestSeller, isFeatured, category, storeId, ... }`
+- `useGetStores(params?)` — `{ isVerified, sort, governorate, ... }`
+- `useGetCategories()`
+- TS6305/TS7006 errors on API hooks are pre-existing (unbuilt dist) — do not attempt to fix.
 
-## Web-only visual upgrades (Platform-specific files)
-- **Pattern:** to give the web-preview a richer effect that can't run on native RN (e.g. raw DOM/SVG/CSS `backdrop-filter` tricks), add a `Component.web.tsx` (+ `.web.css`) sibling next to the existing native `Component.tsx`. Metro auto-picks `.web.tsx` when bundling for web and falls back to the plain `.tsx` for iOS/Android — no `Platform.OS` branching needed, zero risk to native.
-- **Why:** the user asked for a React-Bits `GlassSurface` (SVG-displacement glass effect, DOM-only) explicitly scoped to "web preview only, keep GlassCard/BlurView for native" — this file-extension split was the way to satisfy that without touching the native code path at all.
-- Applied so far only to `components/GlassCard` (used in `app/store/[id].tsx`). Other blur/glass spots (tab bar, headers) still use `expo-blur` directly on both platforms — not yet migrated, revisit only if asked.
+## Sprint A1 Decisions
+**Why:** Reserve Best Deal and Save Comparison use session-local `useState` (not AsyncStorage). There is no backend endpoint for reservations or saved comparisons. The Alert messages warn users of session-only persistence.
+
+**How to apply:** If a future sprint adds persistence for comparisons or reservations, add a `ComparisonContext` with AsyncStorage and wire `handleReserveBestDeal` / `handleSave` to it. The UI state (`isReserved`, `isSaved`) resets on `selected` change via `useEffect`.
+
+**GalleryViewerModal** — lives inline in `app/store/[id].tsx` before the `StoreScreen` export. Uses `useRef<any>(null)` for the FlatList ref to avoid TS2769 overload errors with the Reanimated-wrapped FlatList types. Gallery items are currently `LinearGradient` mock placeholders; when real images are integrated, replace the `renderItem` gradient with `<Image>`.
+
+## Port Configuration
+- Expo Metro: port 18115
+- API Server: port 8080
+- Metro API proxy: `metro.config.js` proxies `/api/*` → port 8080 via `enhanceMiddleware`
+
+## Phase History
+- Phase 1: Initial scaffold (seeded DB, workflows running)
+- Phase 2: Core screens + Liquid Glass design
+- Sprint A1: Interaction completion — 12 dead handlers eliminated, 3 new screens, GalleryViewerModal, Reserve/Save on Compare

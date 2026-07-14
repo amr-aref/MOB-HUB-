@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
+  Alert,
   Modal,
   Platform,
   Pressable,
@@ -37,6 +38,39 @@ export default function CompareScreen() {
   const [showPicker, setShowPicker] = useState(false);
   const [pickingSlot, setPickingSlot] = useState(0);
   const { isTablet } = useLayout();
+  const [isReserved, setIsReserved] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+
+  // Reset reservation/save state when the comparison changes
+  useEffect(() => {
+    setIsReserved(false);
+    setIsSaved(false);
+  }, [selected]);
+
+  function handleReserveBestDeal() {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setIsReserved(true);
+    Alert.alert(
+      language === 'ar' ? '✅ تم الحجز!' : '✅ Reserved!',
+      language === 'ar'
+        ? `تم حجز أفضل سعر لـ ${selected[0]?.model ?? ''}. سيتواصل معك المتجر خلال 24 ساعة.\n\n⚠️ ملاحظة: الحجز مؤقت لهذه الجلسة فقط.`
+        : `Best deal reserved for ${selected[0]?.model ?? ''}. The store will contact you within 24 hours.\n\n⚠️ Note: Reservation is session-only and does not persist.`,
+      [{ text: language === 'ar' ? 'حسناً' : 'OK' }],
+    );
+  }
+
+  function handleSave() {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setIsSaved(true);
+    const names = selected.map((p) => p.model).join(' vs ');
+    Alert.alert(
+      language === 'ar' ? '💾 تم الحفظ' : '💾 Saved',
+      language === 'ar'
+        ? `تم حفظ مقارنة ${names}.\n\n⚠️ ملاحظة: الحفظ مؤقت لهذه الجلسة فقط.`
+        : `${names} comparison saved.\n\n⚠️ Note: Saved for this session only.`,
+      [{ text: language === 'ar' ? 'حسناً' : 'OK' }],
+    );
+  }
 
   useEffect(() => {
     if (phoneSpecs.length >= 2 && selected.length === 0) {
@@ -420,16 +454,43 @@ export default function CompareScreen() {
                 })}
                 {/* Action buttons */}
                 <View style={[styles.priceActions, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                  <Pressable style={styles.reserveBtn}>
-                    <Ionicons name="bookmark-outline" size={16} color="#fff" />
+                  <Pressable
+                    style={[styles.reserveBtn, isReserved && { backgroundColor: '#059669' }]}
+                    onPress={handleReserveBestDeal}
+                    accessibilityRole="button"
+                    accessibilityLabel={language === 'ar' ? 'احجز أفضل عرض' : 'Reserve Best Deal'}
+                    accessibilityHint={language === 'ar' ? 'حجز أفضل سعر متاح للهاتف' : 'Reserve the best available price for this phone'}
+                  >
+                    <Ionicons
+                      name={isReserved ? 'bookmark' : 'bookmark-outline'}
+                      size={16}
+                      color="#fff"
+                    />
                     <Text style={styles.reserveBtnText}>
-                      {language === 'ar' ? 'احجز أفضل عرض' : 'Reserve Best Deal'}
+                      {isReserved
+                        ? (language === 'ar' ? 'تم الحجز ✓' : 'Reserved ✓')
+                        : (language === 'ar' ? 'احجز أفضل عرض' : 'Reserve Best Deal')}
                     </Text>
                   </Pressable>
-                  <Pressable style={styles.saveBtn}>
-                    <Ionicons name="heart-outline" size={16} color={colors.light.primary} />
-                    <Text style={styles.saveBtnText}>
-                      {language === 'ar' ? 'حفظ' : 'Save'}
+                  <Pressable
+                    style={[
+                      styles.saveBtn,
+                      isSaved && { backgroundColor: colors.light.primary, borderColor: colors.light.primary },
+                    ]}
+                    onPress={handleSave}
+                    accessibilityRole="button"
+                    accessibilityLabel={language === 'ar' ? 'حفظ المقارنة' : 'Save comparison'}
+                    accessibilityHint={language === 'ar' ? 'حفظ هذه المقارنة في الجلسة الحالية' : 'Save this comparison for the current session'}
+                  >
+                    <Ionicons
+                      name={isSaved ? 'heart' : 'heart-outline'}
+                      size={16}
+                      color={isSaved ? '#fff' : colors.light.primary}
+                    />
+                    <Text style={[styles.saveBtnText, isSaved && { color: '#fff' }]}>
+                      {isSaved
+                        ? (language === 'ar' ? 'محفوظ ✓' : 'Saved ✓')
+                        : (language === 'ar' ? 'حفظ' : 'Save')}
                     </Text>
                   </Pressable>
                 </View>

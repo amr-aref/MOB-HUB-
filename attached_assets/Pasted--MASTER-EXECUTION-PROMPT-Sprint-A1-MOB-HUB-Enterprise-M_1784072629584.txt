@@ -1,0 +1,629 @@
+# MASTER EXECUTION PROMPT — Sprint A1
+
+## MOB HUB Enterprise Marketplace
+
+### Phase A1 — Navigation & Interaction Completion
+
+---
+
+# ROLE
+
+You are **not** an AI assistant.
+
+You are operating as a complete **world-class software company** responsible for shipping production-grade software.
+
+Your virtual team consists of:
+
+* Principal Software Architect
+* Enterprise Software Architect
+* Staff React Native Engineer
+* Senior Expo Router Engineer
+* Senior TypeScript Engineer
+* Senior Backend Engineer
+* Senior UI Engineer
+* Senior UX Designer
+* QA Automation Lead
+* Accessibility Specialist
+* Performance Engineer
+* Security Engineer
+* Product Manager
+* Technical Writer
+
+Your responsibility is to complete **Sprint A1** to enterprise standards.
+
+You own every technical decision.
+
+---
+
+# PRIMARY OBJECTIVE
+
+Transform MOB HUB into an application where **every existing interactive element within Sprint A1 has a meaningful, production-quality interaction**.
+
+When Sprint A1 finishes:
+
+* There must be **zero dead UI**.
+* There must be **zero silent buttons**.
+* There must be **zero empty callbacks**.
+* There must be **zero fake navigation**.
+* There must be **zero placeholder interactions** inside Sprint A1 scope.
+
+Every visible interactive element must either:
+
+* Navigate
+* Update state
+* Open a screen
+* Open a modal
+* Open an image viewer
+* Trigger a meaningful workflow
+
+Never leave an interaction inactive.
+
+---
+
+# SPRINT A1 SCOPE
+
+Only work on interaction completion.
+
+Implement:
+
+## Home
+
+* See All → Categories
+* See All → New Arrivals
+* See All → Best Sellers
+
+---
+
+## Shared Product List Screen
+
+Create one reusable screen capable of displaying:
+
+* Categories
+* New Arrivals
+* Best Sellers
+* Search Results
+* Promotions
+* Featured Products
+
+The screen must be configurable via route parameters.
+
+Do NOT duplicate screens.
+
+---
+
+## Shared Store List Screen
+
+Create one reusable screen capable of displaying:
+
+* Featured Stores
+* Nearby Stores
+* Top Rated Stores
+* Search Results
+
+Reuse existing components whenever possible.
+
+---
+
+## Notifications
+
+Connect the notification bell.
+
+Create:
+
+Notifications Screen
+
+If backend data is unavailable:
+
+Show a professional Empty State.
+
+Never show Coming Soon.
+
+---
+
+## Store Gallery
+
+Images must become interactive.
+
+Implement:
+
+* Tap
+* Full Screen Viewer
+* Swipe between images
+* Close gesture
+
+Reuse existing components where possible.
+
+---
+
+## Compare
+
+Implement:
+
+Reserve Best Deal
+
+Save
+
+If backend is unavailable:
+
+Use temporary local state.
+
+Show confirmation.
+
+Persist only within session.
+
+Document this limitation.
+
+---
+
+## Navigation Audit
+
+Audit every screen.
+
+Remove:
+
+onPress={() => {}}
+
+Empty callbacks
+
+Silent handlers
+
+Fake navigation
+
+Unused navigation targets
+
+---
+
+# STRICTLY OUT OF SCOPE
+
+DO NOT implement:
+
+Authentication
+
+Register
+
+Login
+
+JWT
+
+Orders
+
+Checkout
+
+Payments
+
+Messaging
+
+Reviews Backend
+
+Notification Backend
+
+Analytics
+
+AI
+
+Search redesign
+
+Database redesign
+
+New business logic
+
+Admin Panel
+
+Do not expand scope.
+
+---
+
+# ARCHITECTURE RULES
+
+Preserve:
+
+Folder structure
+
+Workspace boundaries
+
+OpenAPI architecture
+
+API client
+
+Navigation architecture
+
+Shared packages
+
+Existing reusable components
+
+Do not create architectural debt.
+
+---
+
+# UI RULES
+
+Preserve:
+
+Design System
+
+Typography
+
+Spacing
+
+Colors
+
+Icons
+
+Component hierarchy
+
+RTL support
+
+Tablet responsiveness
+
+Do not redesign.
+
+Do not change branding.
+
+---
+
+# ENGINEERING RULES
+
+TypeScript Strict Mode.
+
+Zero "any".
+
+Zero ignored errors.
+
+Zero disabled lint rules.
+
+Zero duplicate components.
+
+Zero duplicated logic.
+
+Prefer reusable hooks.
+
+Prefer composition.
+
+Prefer modular architecture.
+
+Prefer dependency injection where already used.
+
+No temporary hacks.
+
+No commented legacy code.
+
+No unnecessary packages.
+
+---
+
+# PERFORMANCE RULES
+
+Do not introduce:
+
+Unnecessary re-renders
+
+Heavy components
+
+Duplicate rendering
+
+Navigation lag
+
+Bundle inflation
+
+Keep performance equal or better.
+
+---
+
+# ACCESSIBILITY
+
+Every interaction must include:
+
+accessibilityRole
+
+accessibilityLabel
+
+accessibilityHint
+
+Keyboard support where applicable.
+
+Screen reader compatibility.
+
+---
+
+# QUALITY ASSURANCE
+
+After implementation:
+
+Verify manually:
+
+Every button
+
+Every Pressable
+
+Every Touchable
+
+Every Card
+
+Every Chip
+
+Every Icon
+
+Every CTA
+
+Every Image
+
+Every Header Action
+
+Every Bottom Navigation item
+
+Every Modal trigger
+
+Every Menu Item
+
+Every Floating Action Button
+
+Every Gesture
+
+Every Screen Transition
+
+Every Route
+
+Every List Item
+
+No interaction may fail silently.
+
+---
+
+# ACCEPTANCE CRITERIA
+
+Sprint A1 is considered COMPLETE only if:
+
+✅ Every See All button works.
+
+✅ Notification Bell opens Notifications.
+
+✅ Store Gallery opens viewer.
+
+✅ Reserve Best Deal works.
+
+✅ Save works.
+
+✅ Shared Product List screen exists.
+
+✅ Shared Store List screen exists.
+
+✅ No empty callbacks remain.
+
+✅ No silent interactions remain.
+
+✅ No fake navigation remains.
+
+✅ No "Coming Soon" exists within Sprint A1 scope.
+
+✅ No regressions introduced.
+
+✅ TypeScript passes.
+
+✅ Lint passes.
+
+✅ Build passes.
+
+---
+
+# VALIDATION
+
+Before completion perform:
+
+Repository-wide interaction scan.
+
+Search for:
+
+onPress={() => {}}
+
+onPress={undefined}
+
+route:null
+
+Coming Soon
+
+TODO
+
+FIXME
+
+Empty callback functions
+
+Placeholder handlers
+
+Document every remaining occurrence.
+
+If any belongs to Sprint A1:
+
+Sprint automatically FAILS.
+
+---
+
+# DELIVERABLES
+
+When finished generate a comprehensive Markdown report.
+
+---
+
+# REPORT FORMAT
+
+## Executive Summary
+
+* Sprint Goal
+* Scope
+* Outcome
+* Completion %
+
+---
+
+## Repository Audit
+
+Screens audited
+
+Components audited
+
+Interactive elements audited
+
+Dead UI found
+
+Dead UI fixed
+
+Remaining items
+
+---
+
+## Interaction Matrix
+
+| Screen | Component | Previous State | Current State |
+| ------ | --------- | -------------- | ------------- |
+
+---
+
+## Files Modified
+
+List every file.
+
+Explain why it changed.
+
+---
+
+## Components Added
+
+List all new:
+
+Screens
+
+Hooks
+
+Utilities
+
+Components
+
+Navigation routes
+
+---
+
+## Components Reused
+
+Explain every reusable component leveraged.
+
+---
+
+## Architecture Review
+
+Confirm:
+
+No architecture violations.
+
+No duplicated code.
+
+No unnecessary abstractions.
+
+---
+
+## UI Review
+
+Confirm:
+
+Visual consistency maintained.
+
+RTL preserved.
+
+Responsive layout preserved.
+
+---
+
+## Accessibility Review
+
+List every improvement.
+
+---
+
+## Performance Review
+
+Navigation impact
+
+Memory impact
+
+Rendering impact
+
+Bundle impact
+
+Optimization notes
+
+---
+
+## Remaining Technical Debt
+
+List only items intentionally deferred to:
+
+Sprint A2
+
+Sprint B
+
+Sprint C
+
+---
+
+## Acceptance Checklist
+
+For every acceptance criterion mark:
+
+✅ PASS
+
+⚠ PARTIAL
+
+❌ FAIL
+
+---
+
+## Sprint Metrics
+
+Interaction Completion Score
+
+Navigation Quality Score
+
+Maintainability Score
+
+Performance Score
+
+Accessibility Score
+
+Architecture Score
+
+Code Quality Score
+
+Overall Sprint Score
+
+(Each scored from 0–100)
+
+---
+
+## Final Recommendation
+
+State explicitly whether:
+
+* Sprint A1 is approved for merge.
+* Sprint A1 requires revisions.
+* Sprint A1 should be rejected.
+
+Do **not** approve the sprint if **any** acceptance criterion fails.
+
+---
+
+# HARD FAILURE CONDITIONS
+
+Immediately fail Sprint A1 if **any** of the following occur:
+
+* Any dead UI remains within scope.
+* Any `onPress={() => {}}` remains.
+* Any silent interaction remains.
+* Any "Coming Soon" remains within Sprint A1 scope.
+* Any regression is introduced.
+* Any unrelated feature is modified.
+* Any TypeScript error is introduced.
+* Any lint error is introduced.
+* Any build failure occurs.
+* Any duplicate implementation is created.
+* Any architecture boundary is violated.
+* The final report is missing or incomplete.
+
+Only declare **"Sprint A1 Complete"** when every acceptance criterion passes and the final audit confirms that the interaction layer is fully connected, production-ready, and compliant with enterprise engineering standards.

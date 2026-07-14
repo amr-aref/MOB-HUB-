@@ -71,6 +71,18 @@ function RootLayoutNav() {
           presentation: 'card',
         }}
       />
+      <Stack.Screen
+        name="notifications/index"
+        options={{ headerShown: false, presentation: 'card' }}
+      />
+      <Stack.Screen
+        name="products/index"
+        options={{ headerShown: false, presentation: 'card' }}
+      />
+      <Stack.Screen
+        name="stores-list/index"
+        options={{ headerShown: false, presentation: 'card' }}
+      />
     </Stack>
   );
 }
