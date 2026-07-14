@@ -4,25 +4,61 @@ import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Animated, { useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useColors } from '@/hooks/useColors';
 import colors from '@/constants/colors';
 import { getFontFamily } from '@/constants/fonts';
 import { useLayout } from '@/hooks/useLayout';
 import { BlurView } from 'expo-blur';
 
+// Bottom nav sizing tokens — kept within Apple HIG / Material 3 ranges
+// (24-28dp icons, 10-12sp labels) and expressed relative to the bar so
+// they scale gracefully from iPhone SE up to Pro Max / tablets.
+const NAV_ICON_SIZE = 24;
+const NAV_LABEL_SIZE = 11;
+
 function TabIcon({ focused, name, label, isRTL }: { focused: boolean, name: any, label: string, isRTL: boolean }) {
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ scale: withSpring(focused ? 1.05 : 1, { stiffness: 300, damping: 20 }) }],
-      opacity: withSpring(focused ? 1 : 0.6),
-    };
-  });
-  
+  const colors = useColors();
+  const fontFam = getFontFamily(isRTL, focused ? 'semiBold' : 'medium');
+
+  // Subtle, non-exaggerated feedback: the icon nudges up slightly and the
+  // active pill fades in — no large scale/size jumps.
+  const iconStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: withSpring(focused ? 1.06 : 1, { stiffness: 300, damping: 20 }) }],
+  }));
+  const pillStyle = useAnimatedStyle(() => ({
+    opacity: withSpring(focused ? 1 : 0, { stiffness: 300, damping: 24 }),
+  }));
+
+  const activeColor = colors.primary;
+  const inactiveColor = colors.mutedForeground;
+
   return (
-    <Animated.View style={[styles.tabItem, animatedStyle]}>
-      <View style={[styles.iconWrap, focused && styles.iconWrapFocused]}>
-        <Ionicons name={name} size={22} color={focused ? '#fff' : colors.light.mutedForeground} />
+    <View style={styles.tabItem}>
+      <View style={styles.tabItemContent}>
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            styles.activePill,
+            { backgroundColor: colors.primaryLight },
+            pillStyle,
+          ]}
+        />
+        <Animated.View style={iconStyle}>
+          <Ionicons name={name} size={NAV_ICON_SIZE} color={focused ? activeColor : inactiveColor} />
+        </Animated.View>
+        <Text
+          numberOfLines={1}
+          ellipsizeMode="clip"
+          style={[
+            styles.tabLabel,
+            { fontFamily: fontFam, color: focused ? activeColor : inactiveColor },
+          ]}
+        >
+          {label}
+        </Text>
       </View>
-    </Animated.View>
+    </View>
   );
 }
 
@@ -87,10 +123,16 @@ function TabletSidebar({ state, descriptors, navigation, isRTL, t }: any) {
 export default function TabLayout() {
   const { t, isRTL } = useLanguage();
   const { isTablet } = useLayout();
+  const insets = useSafeAreaInsets();
   const isWeb = Platform.OS === 'web';
+
+  // Float the dock above the home indicator on notched phones (Pro Max, etc.)
+  // while keeping a comfortable fixed offset on devices without one (SE).
+  const bottomOffset = insets.bottom > 0 ? insets.bottom + 12 : 20;
 
   const tabBarStyle = isTablet ? { display: 'none' } : [
     styles.tabBar,
+    { bottom: bottomOffset },
     isWeb && styles.tabBarWeb
   ];
 
@@ -101,7 +143,7 @@ export default function TabLayout() {
         tabBarShowLabel: false,
         tabBarStyle: tabBarStyle as any,
         tabBarBackground: isTablet || isWeb ? undefined : () => (
-          <BlurView intensity={28} tint="light" style={[StyleSheet.absoluteFill, { borderRadius: 999, overflow: 'hidden' }]} />
+          <BlurView intensity={32} tint="light" style={[StyleSheet.absoluteFill, { borderRadius: 28, overflow: 'hidden' }]} />
         ),
       }}
       tabBar={isTablet ? (props) => <TabletSidebar {...props} isRTL={isRTL} t={t} /> : undefined}
@@ -164,12 +206,11 @@ const styles = StyleSheet.create({
   // Mobile Tab Bar
   tabBar: {
     position: 'absolute',
-    bottom: 24,
-    left: 24,
-    right: 24,
+    left: 20,
+    right: 20,
     backgroundColor: 'rgba(255, 255, 255, 0.72)',
-    borderRadius: 999,
-    height: 64,
+    borderRadius: 28,
+    height: 68,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.5)',
     shadowColor: '#1E190F',
@@ -178,31 +219,41 @@ const styles = StyleSheet.create({
     shadowRadius: 24,
     elevation: 10,
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'stretch',
     justifyContent: 'space-around',
-    paddingHorizontal: 8,
+    paddingHorizontal: 4,
   },
   tabBarWeb: {
-    width: 400,
+    width: 420,
     left: '50%',
-    transform: [{ translateX: -200 }],
+    transform: [{ translateX: -210 }],
   },
+  // Each of the 5 destinations gets an equal share of the bar (flex: 1),
+  // so icons stay evenly balanced and never crowd or clip regardless of
+  // screen width (iPhone SE through Pro Max, and Android equivalents).
   tabItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
-    height: 48,
-    width: 48,
-  },
-  iconWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  iconWrapFocused: {
-    backgroundColor: '#2B2B2E',
+  tabItemContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 3,
+    paddingVertical: 6,
+    paddingHorizontal: 6,
+  },
+  activePill: {
+    position: 'absolute',
+    top: -6,
+    bottom: -6,
+    left: -10,
+    right: -10,
+    borderRadius: 18,
+  },
+  tabLabel: {
+    fontSize: NAV_LABEL_SIZE,
+    lineHeight: NAV_LABEL_SIZE + 2,
   },
   
   // Tablet Sidebar
