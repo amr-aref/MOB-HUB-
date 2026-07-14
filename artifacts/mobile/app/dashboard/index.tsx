@@ -13,6 +13,7 @@ import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import colors from '@/constants/colors';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useLayout } from '@/hooks/useLayout';
 import {
   useGetStore,
   useGetProducts,
@@ -68,6 +69,7 @@ export default function DashboardScreen() {
   const { t, isRTL, language } = useLanguage();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { isTablet } = useLayout();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'analytics' | 'messages' | 'profile'>('dashboard');
 
   const topInset = Platform.OS === 'web' ? 67 : insets.top;
@@ -126,6 +128,7 @@ export default function DashboardScreen() {
     <View style={styles.container}>
       {/* Header */}
       <View style={[styles.header, { paddingTop: topInset + 8 }]}>
+        <View style={isTablet ? styles.tabletInner : undefined}>
         <View style={[styles.headerRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <View style={{ flex: 1 }}>
             <View style={[{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: 8 }]}>
@@ -173,13 +176,15 @@ export default function DashboardScreen() {
             <HeaderStat icon="cube-outline" value="350" color={colors.light.mutedForeground} />
           </View>
         </View>
+        </View>
       </View>
 
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={{ paddingBottom: bottomInset + 90 }}
+        contentContainerStyle={{ paddingBottom: bottomInset + 90, alignItems: isTablet ? 'center' : undefined }}
         showsVerticalScrollIndicator={false}
       >
+        <View style={isTablet ? styles.tabletInner : { width: '100%' }}>
         {/* Today's Overview */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
@@ -484,10 +489,12 @@ export default function DashboardScreen() {
             </Pressable>
           </View>
         </View>
+        </View>
       </ScrollView>
 
       {/* Bottom Navigation */}
       <View style={[styles.bottomNav, { paddingBottom: bottomInset + 6 }]}>
+        <View style={[styles.bottomNavInner, isTablet && styles.tabletInner]}>
         {([
           { key: 'dashboard', iconDefault: 'grid-outline', iconActive: 'grid', labelAr: 'الرئيسية', labelEn: 'Dashboard' },
           { key: 'products', iconDefault: 'cube-outline', iconActive: 'cube', labelAr: 'المنتجات', labelEn: 'Products' },
@@ -516,6 +523,7 @@ export default function DashboardScreen() {
             </Pressable>
           );
         })}
+        </View>
       </View>
     </View>
   );
@@ -811,7 +819,6 @@ const styles = StyleSheet.create({
   // Bottom nav
   bottomNav: {
     backgroundColor: '#fff',
-    flexDirection: 'row',
     borderTopWidth: 1,
     borderTopColor: 'rgba(226,232,240,0.7)',
     paddingTop: 8,
@@ -822,7 +829,11 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     elevation: 10,
   },
+  bottomNavInner: { flexDirection: 'row', width: '100%' },
   bottomNavItem: { flex: 1, alignItems: 'center', gap: 3, paddingVertical: 4 },
   bottomNavLabel: { fontSize: 10, fontFamily: 'Inter_400Regular', color: colors.light.mutedForeground },
   bottomNavLabelActive: { fontFamily: 'Inter_600SemiBold', color: colors.light.primary },
+
+  // Tablet
+  tabletInner: { width: '100%', maxWidth: 760, alignSelf: 'center' },
 });

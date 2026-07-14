@@ -21,3 +21,8 @@ description: Egypt mobile phone marketplace — Expo app under artifacts/mobile.
 - **Add Product wizard:** 5 steps — Basic Info → Media → Variants → Pricing → Publish. Each step in the same file, toggled by `currentStep` state.
 
 **Why white headers:** The Enterprise UI Constitution spec required removal of all `LinearGradient` blue headers from tab screens; blue is reserved for interactive elements only for a premium/calm feel.
+
+## Tablet/Phone Responsiveness
+- **Convention:** `useLayout()` (`hooks/useLayout.ts`, `isTablet = width >= 768`) gates all tablet-only styling. Phone layout must stay the exact default (no `isTablet` check = phone behavior), so tablet work is always additive, never a rewrite of the phone path.
+- **Content-width pattern:** on screens that are a single scrolling column (not the existing 35/65 split screens), wrap the scrollable content in a `tabletInner` style (`width:'100%', maxWidth: 760, alignSelf:'center'`) only when `isTablet`, so headers/nav bars stay full-bleed but content doesn't stretch edge-to-edge on wide screens.
+- Most tab/detail screens already had tablet handling (grid reflow, 35/65 split, `TabletSidebar`) before this; `app/dashboard/index.tsx` and `app/dashboard/products.tsx` (seller dashboard) were the gap — they had zero `useLayout` usage — and were retrofitted with the `tabletInner` pattern plus a 2-column product grid on tablet.

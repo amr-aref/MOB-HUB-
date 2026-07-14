@@ -14,6 +14,7 @@ import { useRouter } from 'expo-router';
 import colors from '@/constants/colors';
 import { getFontFamily } from '@/constants/fonts';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useLayout } from '@/hooks/useLayout';
 import { products, stores } from '@/data/mockData';
 import { AnimatedPressable, ChartBar } from '@/components/admin/AdminComponents';
 import { AnimatedCounter } from '@/components/admin/AnimatedCounter';
@@ -39,7 +40,8 @@ export default function ProductsScreen() {
   const { t, isRTL, language } = useLanguage();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  
+  const { isTablet } = useLayout();
+
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -68,6 +70,7 @@ export default function ProductsScreen() {
     <View style={styles.container}>
       {/* Header */}
       <View style={[styles.header, { paddingTop: topInset + 16 }]}>
+        <View style={isTablet ? styles.tabletInner : undefined}>
         <View style={[styles.headerRow, { flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center' }]}>
           <AnimatedPressable onPress={() => router.back()} style={styles.backBtn}>
             <Ionicons name={isRTL ? 'chevron-forward' : 'chevron-back'} size={22} color={colors.light.foreground} />
@@ -107,9 +110,11 @@ export default function ProductsScreen() {
             <Ionicons name="scan-outline" size={20} color={colors.light.foreground} />
           </AnimatedPressable>
         </View>
+        </View>
       </View>
 
-      <ScrollView style={styles.scroll} contentContainerStyle={{ paddingBottom: bottomInset + 100 }}>
+      <ScrollView style={styles.scroll} contentContainerStyle={{ paddingBottom: bottomInset + 100, alignItems: isTablet ? 'center' : undefined }}>
+        <View style={isTablet ? styles.tabletInner : { width: '100%' }}>
         {/* Categories row */}
         <ScrollView 
           horizontal 
@@ -168,9 +173,9 @@ export default function ProductsScreen() {
         </ScrollView>
 
         {/* Products Grid */}
-        <View style={styles.productsGrid}>
+        <View style={[styles.productsGrid, isTablet && { flexDirection: isRTL ? 'row-reverse' : 'row', flexWrap: 'wrap' }]}>
           {storeProducts.map((product, idx) => (
-            <ProductCard key={product.id} product={product} isRTL={isRTL} isAr={isAr} fontFamilyLTR={fontFamilyLTR} fontFamilyRTL={fontFamilyRTL} delay={idx * 100} />
+            <ProductCard key={product.id} product={product} isRTL={isRTL} isAr={isAr} fontFamilyLTR={fontFamilyLTR} fontFamilyRTL={fontFamilyRTL} delay={idx * 100} isTablet={isTablet} />
           ))}
         </View>
 
@@ -189,7 +194,7 @@ export default function ProductsScreen() {
             </View>
           ))}
         </View>
-
+        </View>
       </ScrollView>
 
       {/* FAB */}
@@ -204,7 +209,7 @@ export default function ProductsScreen() {
   );
 }
 
-function ProductCard({ product, isRTL, isAr, fontFamilyLTR, fontFamilyRTL, delay }: any) {
+function ProductCard({ product, isRTL, isAr, fontFamilyLTR, fontFamilyRTL, delay, isTablet }: any) {
   const opacity = useSharedValue(0);
   const translateY = useSharedValue(20);
 
@@ -221,7 +226,7 @@ function ProductCard({ product, isRTL, isAr, fontFamilyLTR, fontFamilyRTL, delay
   const name = isAr ? product.nameAr : product.nameEn;
 
   return (
-    <Animated.View style={[styles.productCard, animatedStyle]}>
+    <Animated.View style={[styles.productCard, isTablet && styles.productCardTablet, animatedStyle]}>
       <View style={styles.cardInner}>
         <View style={styles.productImageContainer}>
           <View style={[styles.productImage, { backgroundColor: product.imageColor + '10' }]}>
@@ -388,6 +393,7 @@ const styles = StyleSheet.create({
 
   productsGrid: { paddingHorizontal: 20, gap: 16, paddingBottom: 24 },
   productCard: { width: '100%' },
+  productCardTablet: { width: '48%' },
   cardInner: {
     backgroundColor: '#fff',
     borderRadius: 24,
@@ -480,4 +486,7 @@ const styles = StyleSheet.create({
   },
   fabText: { color: '#fff', fontSize: 15 },
   fabIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' },
+
+  // Tablet
+  tabletInner: { width: '100%', maxWidth: 760, alignSelf: 'center' },
 });
