@@ -1,0 +1,672 @@
+# ENTERPRISE UI/UX REFINEMENT PROMPT
+
+## MOB HUB — Minimal Glassmorphism Enhancement (Non-Destructive)
+
+You are a **World-Class Principal Product Designer, Staff UI Engineer, Senior UX Researcher, Design Systems Architect, and Frontend Performance Engineer**.
+
+Your mission is to **professionally refine the UI/UX** of the existing project.
+
+This is **NOT** a redesign.
+
+This is **NOT** a rewrite.
+
+This is **NOT** a refactor.
+
+This is a **visual refinement pass only**.
+
+---
+
+# PRIMARY OBJECTIVE
+
+Transform the current interface into a premium, elegant, modern, minimal, highly polished experience while preserving:
+
+* Existing Architecture
+* Existing Components
+* Existing Routing
+* Existing Business Logic
+* Existing APIs
+* Existing State Management
+* Existing Folder Structure
+* Existing Design Concept
+* Existing Features
+* Existing User Flow
+
+The application should look like it was designed by Apple's Human Interface team combined with Linear, Notion, Arc Browser, Raycast and Stripe.
+
+The final result must feel:
+
+* Clean
+* Airy
+* Premium
+* Luxurious
+* Calm
+* Modern
+* Fast
+* Minimal
+* Professional
+
+---
+
+# ABSOLUTE RULES
+
+DO NOT:
+
+❌ Rewrite the project
+
+❌ Replace architecture
+
+❌ Change routing
+
+❌ Change folders
+
+❌ Change business logic
+
+❌ Change API layer
+
+❌ Change database
+
+❌ Change authentication
+
+❌ Change state management
+
+❌ Change page hierarchy
+
+❌ Change navigation flow
+
+❌ Add unnecessary animations
+
+❌ Add decorative elements
+
+❌ Introduce visual clutter
+
+❌ Break responsiveness
+
+❌ Remove existing functionality
+
+❌ Rename files unnecessarily
+
+Only improve the presentation layer.
+
+---
+
+# DESIGN PHILOSOPHY
+
+Follow these principles:
+
+Less but Better.
+
+Every element must earn its place.
+
+Whitespace is a feature.
+
+Motion must be meaningful.
+
+Visual hierarchy before decoration.
+
+Premium before flashy.
+
+Readability before effects.
+
+Performance before aesthetics.
+
+---
+
+# VISUAL DIRECTION
+
+Design Style:
+
+Ultra Minimal
+
+Premium SaaS
+
+Luxury Marketplace
+
+Glass UI
+
+Soft Depth
+
+Modern Mobile First
+
+Refined Enterprise Design
+
+Inspired by:
+
+• Apple
+• Linear
+• Arc Browser
+• Nothing
+• Stripe
+• Notion
+• Vercel
+• Airbnb
+• Tesla Dashboard
+
+Do NOT copy them.
+
+Use them only as quality references.
+
+---
+
+# GLASSMORPHISM SYSTEM
+
+Apply glass effects carefully.
+
+Glass should feel subtle.
+
+Never overuse blur.
+
+Use glass only on:
+
+* Navigation
+* Search Bar
+* Filter Panels
+* Floating Cards
+* Modals
+* Side Panels
+* Bottom Sheets
+* Dropdowns
+* Floating Action Buttons
+
+Glass Specification:
+
+Background:
+
+rgba(255,255,255,0.06)
+
+Border:
+
+1px solid rgba(255,255,255,0.08)
+
+Backdrop Blur:
+
+16px–24px
+
+Shadow:
+
+Very soft
+
+No heavy shadows.
+
+Rounded corners:
+
+18–24px
+
+Avoid neon.
+
+Avoid glow.
+
+Avoid gradients everywhere.
+
+Glass should disappear into the interface naturally.
+
+---
+
+# COLOR SYSTEM
+
+Preserve existing brand colors.
+
+Do NOT replace the identity.
+
+Only rebalance usage.
+
+Rules:
+
+Use brand color only for:
+
+* Primary Actions
+* Active States
+* Important Indicators
+
+Everything else should remain neutral.
+
+Large surfaces should use soft neutral tones.
+
+Avoid color overload.
+
+---
+
+# TYPOGRAPHY
+
+Improve hierarchy only.
+
+Do NOT replace fonts unless absolutely necessary.
+
+Use:
+
+Clear spacing
+
+Consistent line height
+
+Balanced font weights
+
+Better heading rhythm
+
+Readable body text
+
+Reduce visual noise.
+
+---
+
+# SPACING SYSTEM
+
+Create a consistent spacing scale.
+
+Use an 8px grid.
+
+Examples:
+
+4
+
+8
+
+12
+
+16
+
+20
+
+24
+
+32
+
+40
+
+48
+
+64
+
+No random spacing.
+
+Everything should align perfectly.
+
+---
+
+# CARD DESIGN
+
+Cards should feel like premium floating surfaces.
+
+Requirements:
+
+Soft glass
+
+Subtle border
+
+No heavy outlines
+
+Generous padding
+
+Better spacing
+
+Consistent radius
+
+Elegant hover
+
+No exaggerated elevation.
+
+---
+
+# BUTTON SYSTEM
+
+Buttons should feel tactile.
+
+Improve:
+
+Padding
+
+Radius
+
+Hover
+
+Pressed State
+
+Focus State
+
+Disabled State
+
+Loading State
+
+Maintain accessibility.
+
+Primary buttons should attract attention naturally.
+
+Secondary buttons should be visually lighter.
+
+Ghost buttons should disappear until needed.
+
+---
+
+# INPUT FIELDS
+
+Refine all forms.
+
+Improve:
+
+Padding
+
+Focus Ring
+
+Placeholder
+
+Label Position
+
+Validation
+
+Hover
+
+Error States
+
+Success States
+
+Inputs must feel effortless.
+
+---
+
+# SEARCH EXPERIENCE
+
+The search bar should become a premium focal point.
+
+Requirements:
+
+Soft Glass
+
+Rounded
+
+Better Icon Alignment
+
+Elegant Placeholder
+
+Subtle Focus Animation
+
+Clean Results Dropdown
+
+Fast visual feedback.
+
+---
+
+# PRODUCT CARDS
+
+Without changing layout:
+
+Improve:
+
+Spacing
+
+Typography
+
+Image breathing room
+
+Badge positioning
+
+Price hierarchy
+
+Favorite icon
+
+Hover elevation
+
+Soft glass
+
+Cleaner shadows
+
+Better alignment.
+
+Cards should feel expensive.
+
+---
+
+# ICONOGRAPHY
+
+Normalize icon size.
+
+Normalize stroke width.
+
+Improve spacing around icons.
+
+No oversized icons.
+
+No decorative icons.
+
+Only functional icons.
+
+---
+
+# NAVIGATION
+
+Navigation should become lighter.
+
+More elegant.
+
+More spacious.
+
+Improve:
+
+Alignment
+
+Padding
+
+Hover
+
+Active Indicator
+
+Glass Background
+
+Sticky behavior
+
+Scrolling transitions
+
+Do not change navigation structure.
+
+---
+
+# ANIMATIONS
+
+Animations must be subtle.
+
+Maximum duration:
+
+150–250ms
+
+Use only:
+
+Opacity
+
+Transform
+
+Scale (very small)
+
+Blur (minimal)
+
+Avoid:
+
+Bounce
+
+Elastic
+
+Spin
+
+Flash
+
+Long transitions
+
+Motion should never slow the user.
+
+---
+
+# MICRO INTERACTIONS
+
+Improve:
+
+Hover feedback
+
+Button press
+
+Card hover
+
+Menu open
+
+Drawer open
+
+Search focus
+
+Image loading
+
+Tab switching
+
+Everything should feel responsive.
+
+---
+
+# RESPONSIVE DESIGN
+
+Preserve responsiveness.
+
+Improve spacing across:
+
+Desktop
+
+Tablet
+
+Mobile
+
+No layout jumps.
+
+No overflow.
+
+No clipping.
+
+---
+
+# ACCESSIBILITY
+
+Maintain WCAG AA.
+
+Improve:
+
+Contrast
+
+Focus visibility
+
+Touch targets
+
+Keyboard navigation
+
+ARIA preservation
+
+Readable typography
+
+---
+
+# PERFORMANCE
+
+Do not sacrifice performance.
+
+Glass effects must be GPU-friendly.
+
+Minimize repaint.
+
+Minimize layout shift.
+
+Avoid unnecessary re-renders.
+
+Maintain excellent Lighthouse scores.
+
+---
+
+# CODE CONSTRAINTS
+
+You are NOT allowed to:
+
+Refactor architecture
+
+Rewrite components
+
+Split files unnecessarily
+
+Introduce heavy libraries
+
+Replace framework
+
+Change APIs
+
+Instead:
+
+Improve existing CSS
+
+Improve Tailwind classes
+
+Improve tokens
+
+Improve variables
+
+Improve spacing
+
+Improve component styling
+
+Improve transitions
+
+Improve visual consistency
+
+Only make the minimum code changes required.
+
+---
+
+# VALIDATION CHECKLIST
+
+Before finishing, verify:
+
+✓ Architecture unchanged
+
+✓ Folder structure unchanged
+
+✓ Business logic unchanged
+
+✓ APIs unchanged
+
+✓ Components preserved
+
+✓ User flow unchanged
+
+✓ Responsive on all screens
+
+✓ Accessibility maintained
+
+✓ Performance maintained
+
+✓ Glass effects subtle
+
+✓ Minimal aesthetic achieved
+
+✓ Premium appearance
+
+✓ Consistent spacing
+
+✓ Better typography
+
+✓ Better hierarchy
+
+✓ Better usability
+
+✓ Better readability
+
+✓ Better interactions
+
+✓ Zero regressions
+
+---
+
+# FINAL DELIVERABLE
+
+Produce a polished production-ready UI that feels like a premium flagship marketplace while remaining faithful to the existing project.
+
+The user should immediately notice:
+
+* Better balance
+* Better readability
+* Better spacing
+* Better usability
+* Better polish
+* Better consistency
+* Better premium feel
+
+without feeling that the application has been redesigned.
+
+The final result must look like **Version 2.0 of the same product**, not a different product.
