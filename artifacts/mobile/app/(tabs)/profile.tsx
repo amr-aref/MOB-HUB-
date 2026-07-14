@@ -15,6 +15,7 @@ import * as Haptics from 'expo-haptics';
 import colors from '@/constants/colors';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Language } from '@/data/translations';
+import { useLayout } from '@/hooks/useLayout';
 
 function SettingsRow({
   icon,
@@ -67,9 +68,10 @@ export default function ProfileScreen() {
   const { t, isRTL, language, setLanguage } = useLanguage();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { isTablet } = useLayout();
 
-  const topInset = Platform.OS === 'web' ? 67 : insets.top;
-  const bottomInset = Platform.OS === 'web' ? 34 : 0;
+  const topInset = isTablet ? 24 : (Platform.OS === 'web' ? 67 : insets.top);
+  const bottomInset = isTablet ? 0 : (Platform.OS === 'web' ? 34 : 0);
 
   function handleLanguageChange(lang: Language) {
     Haptics.selectionAsync();
@@ -84,179 +86,190 @@ export default function ProfileScreen() {
   return (
     <ScrollView
       style={styles.container}
-      contentContainerStyle={{ paddingBottom: bottomInset + 100 }}
+      contentContainerStyle={[
+        { paddingBottom: bottomInset + 100 },
+        isTablet && styles.tabletScrollContent
+      ]}
       showsVerticalScrollIndicator={false}
     >
-      {/* Premium White Hero Header */}
-      <View style={[styles.hero, { paddingTop: topInset + 20 }]}>
-        {/* Background decoration */}
-        <View style={styles.heroBg} />
-        <View style={styles.heroBg2} />
+      <View style={isTablet ? [styles.tabletRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }] : undefined}>
+        
+        {/* Tablet Left / Mobile Top - Hero */}
+        <View style={isTablet ? { width: '35%' } : undefined}>
+          <View style={[styles.hero, { paddingTop: topInset + 20 }, isTablet && styles.tabletHero]}>
+            {/* Background decoration */}
+            <View style={styles.heroBg} />
+            <View style={styles.heroBg2} />
 
-        {/* Avatar */}
-        <View style={styles.avatarWrap}>
-          <View style={styles.avatar}>
-            <Ionicons name="person" size={38} color={colors.light.primary} />
+            {/* Avatar */}
+            <View style={styles.avatarWrap}>
+              <View style={styles.avatar}>
+                <Ionicons name="person" size={38} color={colors.light.primary} />
+              </View>
+              <Pressable style={styles.editBadge} onPress={() => handlePress('Edit')}>
+                <Ionicons name="pencil" size={11} color="#fff" />
+              </Pressable>
+            </View>
+
+            <Text style={[styles.userName, { textAlign: isRTL ? 'right' : 'left' }]}>
+              {t('guestUser')}
+            </Text>
+            <Text style={[styles.userSubtitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+              {language === 'ar' ? 'مستخدم زائر' : 'Guest User'}
+            </Text>
+
+            {/* Sign In CTA */}
+            <Pressable
+              onPress={() => handlePress(t('signIn'))}
+              style={styles.signInBtn}
+            >
+              <Ionicons name="log-in-outline" size={18} color="#fff" />
+              <Text style={styles.signInText}>{t('signIn')}</Text>
+            </Pressable>
           </View>
-          <Pressable style={styles.editBadge} onPress={() => handlePress('Edit')}>
-            <Ionicons name="pencil" size={11} color="#fff" />
-          </Pressable>
         </View>
 
-        <Text style={[styles.userName, { textAlign: isRTL ? 'right' : 'left' }]}>
-          {t('guestUser')}
-        </Text>
-        <Text style={[styles.userSubtitle, { textAlign: isRTL ? 'right' : 'left' }]}>
-          {language === 'ar' ? 'مستخدم زائر' : 'Guest User'}
-        </Text>
-
-        {/* Sign In CTA */}
-        <Pressable
-          onPress={() => handlePress(t('signIn'))}
-          style={styles.signInBtn}
-        >
-          <Ionicons name="log-in-outline" size={18} color="#fff" />
-          <Text style={styles.signInText}>{t('signIn')}</Text>
-        </Pressable>
-      </View>
-
-      <View style={styles.content}>
-        {/* ── My Store Section ─────────────────────────────────── */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
-            {language === 'ar' ? 'متجري' : 'My Store'}
-          </Text>
-          <Pressable
-            style={({ pressed }) => [styles.storeCard, pressed && styles.pressed]}
-            onPress={() => router.push('/dashboard')}
-          >
-            <View style={[styles.storeCardInner, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <View style={styles.storeAvatar}>
-                <Ionicons name="storefront" size={22} color="#fff" />
-              </View>
-              <View style={{ flex: 1, marginLeft: isRTL ? 0 : 12, marginRight: isRTL ? 12 : 0 }}>
-                <Text style={[styles.storeCardName, { textAlign: isRTL ? 'right' : 'left' }]}>
-                  {language === 'ar' ? 'موبايل وورلد' : 'Mobile World'}
-                </Text>
-                <View style={[styles.storeCardMeta, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                  <View style={styles.openIndicator} />
-                  <Text style={styles.storeCardStatus}>
-                    {language === 'ar' ? 'مفتوح · ٣٤٢ منتج' : 'Open · 342 products'}
-                  </Text>
+        {/* Tablet Right / Mobile Bottom - Content */}
+        <View style={isTablet ? { width: '65%' } : undefined}>
+          <View style={styles.content}>
+            {/* ── My Store Section ─────────────────────────────────── */}
+            <View style={styles.section}>
+              <Text style={[styles.sectionLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
+                {language === 'ar' ? 'متجري' : 'My Store'}
+              </Text>
+              <Pressable
+                style={({ pressed }) => [styles.storeCard, pressed && styles.pressed]}
+                onPress={() => router.push('/dashboard')}
+              >
+                <View style={[styles.storeCardInner, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                  <View style={styles.storeAvatar}>
+                    <Ionicons name="storefront" size={22} color="#fff" />
+                  </View>
+                  <View style={{ flex: 1, marginLeft: isRTL ? 0 : 12, marginRight: isRTL ? 12 : 0 }}>
+                    <Text style={[styles.storeCardName, { textAlign: isRTL ? 'right' : 'left' }]}>
+                      {language === 'ar' ? 'موبايل وورلد' : 'Mobile World'}
+                    </Text>
+                    <View style={[styles.storeCardMeta, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                      <View style={styles.openIndicator} />
+                      <Text style={styles.storeCardStatus}>
+                        {language === 'ar' ? 'مفتوح · ٣٤٢ منتج' : 'Open · 342 products'}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={styles.dashboardBtn}>
+                    <Ionicons name="grid-outline" size={16} color={colors.light.primary} />
+                    <Text style={styles.dashboardBtnText}>
+                      {language === 'ar' ? 'لوحة التحكم' : 'Dashboard'}
+                    </Text>
+                  </View>
                 </View>
-              </View>
-              <View style={styles.dashboardBtn}>
-                <Ionicons name="grid-outline" size={16} color={colors.light.primary} />
-                <Text style={styles.dashboardBtnText}>
-                  {language === 'ar' ? 'لوحة التحكم' : 'Dashboard'}
-                </Text>
+              </Pressable>
+            </View>
+
+            {/* ── Language selector ─────────────────────────────────── */}
+            <View style={styles.section}>
+              <Text style={[styles.sectionLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
+                {t('language')}
+              </Text>
+              <View style={[styles.langRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                <Pressable
+                  onPress={() => handleLanguageChange('ar')}
+                  style={[styles.langBtn, language === 'ar' && styles.langBtnActive]}
+                >
+                  <Text style={styles.langFlag}>🇪🇬</Text>
+                  <Text style={[styles.langText, language === 'ar' && styles.langTextActive]}>
+                    {t('arabic')}
+                  </Text>
+                  {language === 'ar' && (
+                    <View style={styles.langCheck}>
+                      <Ionicons name="checkmark" size={13} color="#fff" />
+                    </View>
+                  )}
+                </Pressable>
+                <Pressable
+                  onPress={() => handleLanguageChange('en')}
+                  style={[styles.langBtn, language === 'en' && styles.langBtnActive]}
+                >
+                  <Text style={styles.langFlag}>🇬🇧</Text>
+                  <Text style={[styles.langText, language === 'en' && styles.langTextActive]}>
+                    {t('english')}
+                  </Text>
+                  {language === 'en' && (
+                    <View style={styles.langCheck}>
+                      <Ionicons name="checkmark" size={13} color="#fff" />
+                    </View>
+                  )}
+                </Pressable>
               </View>
             </View>
-          </Pressable>
-        </View>
 
-        {/* ── Language selector ─────────────────────────────────── */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
-            {t('language')}
-          </Text>
-          <View style={[styles.langRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <Pressable
-              onPress={() => handleLanguageChange('ar')}
-              style={[styles.langBtn, language === 'ar' && styles.langBtnActive]}
-            >
-              <Text style={styles.langFlag}>🇪🇬</Text>
-              <Text style={[styles.langText, language === 'ar' && styles.langTextActive]}>
-                {t('arabic')}
+            {/* ── Settings ─────────────────────────────────────────── */}
+            <View style={styles.section}>
+              <Text style={[styles.sectionLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
+                {t('settings')}
               </Text>
-              {language === 'ar' && (
-                <View style={styles.langCheck}>
-                  <Ionicons name="checkmark" size={13} color="#fff" />
-                </View>
-              )}
-            </Pressable>
-            <Pressable
-              onPress={() => handleLanguageChange('en')}
-              style={[styles.langBtn, language === 'en' && styles.langBtnActive]}
-            >
-              <Text style={styles.langFlag}>🇬🇧</Text>
-              <Text style={[styles.langText, language === 'en' && styles.langTextActive]}>
-                {t('english')}
+              <View style={styles.settingsList}>
+                <SettingsRow
+                  icon="notifications-outline"
+                  label={t('notifications')}
+                  onPress={() => handlePress(t('notifications'))}
+                  isRTL={isRTL}
+                />
+                <SettingsRow
+                  icon="shield-checkmark-outline"
+                  label={t('privacyPolicy')}
+                  onPress={() => handlePress(t('privacyPolicy'))}
+                  isRTL={isRTL}
+                />
+                <SettingsRow
+                  icon="document-text-outline"
+                  label={t('termsOfService')}
+                  onPress={() => handlePress(t('termsOfService'))}
+                  isRTL={isRTL}
+                />
+              </View>
+            </View>
+
+            {/* ── About ─────────────────────────────────────────────── */}
+            <View style={styles.section}>
+              <Text style={[styles.sectionLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
+                {t('about')}
               </Text>
-              {language === 'en' && (
-                <View style={styles.langCheck}>
-                  <Ionicons name="checkmark" size={13} color="#fff" />
-                </View>
-              )}
-            </Pressable>
-          </View>
-        </View>
+              <View style={styles.settingsList}>
+                <SettingsRow
+                  icon="star-outline"
+                  label={t('rateApp')}
+                  onPress={() => handlePress(t('rateApp'))}
+                  isRTL={isRTL}
+                />
+                <SettingsRow
+                  icon="share-social-outline"
+                  label={t('shareApp')}
+                  onPress={() => handlePress(t('shareApp'))}
+                  isRTL={isRTL}
+                />
+                <SettingsRow
+                  icon="information-circle-outline"
+                  label={t('appVersion')}
+                  onPress={() => {}}
+                  isRTL={isRTL}
+                  value="1.0.0"
+                />
+              </View>
+            </View>
 
-        {/* ── Settings ─────────────────────────────────────────── */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
-            {t('settings')}
-          </Text>
-          <View style={styles.settingsList}>
-            <SettingsRow
-              icon="notifications-outline"
-              label={t('notifications')}
-              onPress={() => handlePress(t('notifications'))}
-              isRTL={isRTL}
-            />
-            <SettingsRow
-              icon="shield-checkmark-outline"
-              label={t('privacyPolicy')}
-              onPress={() => handlePress(t('privacyPolicy'))}
-              isRTL={isRTL}
-            />
-            <SettingsRow
-              icon="document-text-outline"
-              label={t('termsOfService')}
-              onPress={() => handlePress(t('termsOfService'))}
-              isRTL={isRTL}
-            />
-          </View>
-        </View>
-
-        {/* ── About ─────────────────────────────────────────────── */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
-            {t('about')}
-          </Text>
-          <View style={styles.settingsList}>
-            <SettingsRow
-              icon="star-outline"
-              label={t('rateApp')}
-              onPress={() => handlePress(t('rateApp'))}
-              isRTL={isRTL}
-            />
-            <SettingsRow
-              icon="share-social-outline"
-              label={t('shareApp')}
-              onPress={() => handlePress(t('shareApp'))}
-              isRTL={isRTL}
-            />
-            <SettingsRow
-              icon="information-circle-outline"
-              label={t('appVersion')}
-              onPress={() => {}}
-              isRTL={isRTL}
-              value="1.0.0"
-            />
-          </View>
-        </View>
-
-        {/* ── Sign out ──────────────────────────────────────────── */}
-        <View style={[styles.section, { marginBottom: 0 }]}>
-          <View style={styles.settingsList}>
-            <SettingsRow
-              icon="log-out-outline"
-              label={t('signOut')}
-              onPress={() => handlePress(t('signOut'))}
-              isRTL={isRTL}
-              danger
-            />
+            {/* ── Sign out ──────────────────────────────────────────── */}
+            <View style={[styles.section, { marginBottom: 0 }]}>
+              <View style={styles.settingsList}>
+                <SettingsRow
+                  icon="log-out-outline"
+                  label={t('signOut')}
+                  onPress={() => handlePress(t('signOut'))}
+                  isRTL={isRTL}
+                  danger
+                />
+              </View>
+            </View>
           </View>
         </View>
       </View>
@@ -266,6 +279,22 @@ export default function ProfileScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F7FA' },
+
+  tabletScrollContent: {
+    maxWidth: 900,
+    alignSelf: 'center',
+    width: '100%',
+    padding: 24,
+  },
+  tabletRow: {
+    gap: 24,
+  },
+  tabletHero: {
+    borderRadius: colors.radiusLg,
+    borderBottomWidth: 0,
+    borderWidth: 1,
+    borderColor: 'rgba(226,232,240,0.6)',
+  },
 
   // Hero
   hero: {

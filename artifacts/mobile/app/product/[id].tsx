@@ -17,6 +17,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useFavorites } from '@/contexts/FavoritesContext';
 import { useGetProduct, useGetStore, useGetProducts } from '@workspace/api-client-react';
 import RatingStars from '@/components/RatingStars';
+import { useLayout } from '@/hooks/useLayout';
 
 export default function ProductScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -24,6 +25,7 @@ export default function ProductScreen() {
   const { toggleFavoriteProduct, isProductFavorite } = useFavorites();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { isTablet } = useLayout();
 
   const { data: product, isLoading: productLoading } = useGetProduct(id!);
   const { data: store } = useGetStore(product?.storeId ?? '', {
@@ -38,8 +40,8 @@ export default function ProductScreen() {
 
   const relatedProducts = relatedProductsData.slice(0, 4);
 
-  const topInset = Platform.OS === 'web' ? 67 : insets.top;
-  const bottomInset = Platform.OS === 'web' ? 34 : 0;
+  const topInset = isTablet ? 24 : (Platform.OS === 'web' ? 67 : insets.top);
+  const bottomInset = isTablet ? 0 : (Platform.OS === 'web' ? 34 : 0);
 
   const isFav = isProductFavorite(product.id);
   const name = language === 'ar' ? product.nameAr : product.nameEn;
@@ -60,7 +62,7 @@ export default function ProductScreen() {
     toggleFavoriteProduct(product.id);
   }
 
-  function handleContact(storeOverride?: typeof stores[0]) {
+  function handleContact(storeOverride?: any) {
     const targetStore = storeOverride ?? store;
     if (!targetStore) return;
     const num = targetStore.whatsapp.replace('+', '');
@@ -72,7 +74,7 @@ export default function ProductScreen() {
     Linking.openURL(`https://wa.me/${num}?text=${msg}`);
   }
 
-  function handleCall(storeOverride?: typeof stores[0]) {
+  function handleCall(storeOverride?: any) {
     const targetStore = storeOverride ?? store;
     if (!targetStore) return;
     Linking.openURL(`tel:${targetStore.phone}`);
@@ -95,200 +97,210 @@ export default function ProductScreen() {
     <View style={styles.container}>
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={{ paddingBottom: bottomInset + 100 }}
+        contentContainerStyle={[
+          { paddingBottom: bottomInset + 100 },
+          isTablet && styles.tabletScrollContent
+        ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Hero */}
-        <View style={[styles.hero, { paddingTop: topInset + 8, backgroundColor: product.imageColor + '12' }]}>
-          {/* Top bar */}
-          <View style={[styles.topBar, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <Pressable onPress={() => router.back()} style={styles.circleBtn}>
-              <Ionicons
-                name={isRTL ? 'chevron-forward' : 'chevron-back'}
-                size={22}
-                color={colors.light.foreground}
-              />
-            </Pressable>
-            <View style={[styles.topBtnGroup, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <Pressable onPress={handleFavorite} style={styles.circleBtn}>
-                <Ionicons
-                  name={isFav ? 'heart' : 'heart-outline'}
-                  size={20}
-                  color={isFav ? colors.light.destructive : colors.light.foreground}
-                />
-              </Pressable>
-              <Pressable style={styles.circleBtn}>
-                <Ionicons name="share-outline" size={20} color={colors.light.foreground} />
-              </Pressable>
-              <Pressable style={styles.circleBtn}>
-                <Ionicons name="swap-horizontal-outline" size={20} color={colors.light.foreground} />
-              </Pressable>
-            </View>
-          </View>
-
-          {/* Product visual */}
-          <View style={styles.productVisual}>
-            <View style={[styles.phoneMockupLarge, { borderColor: product.imageColor + '50', backgroundColor: product.imageColor + '20' }]}>
-              <View style={[styles.phoneMockupScreen, { backgroundColor: product.imageColor + '30' }]} />
-              <View style={[styles.phoneMockupSpeaker, { backgroundColor: product.imageColor + '50' }]} />
-              <View style={[styles.phoneMockupHome, { backgroundColor: product.imageColor + '35' }]} />
-            </View>
-            <Pressable style={styles.badge360}>
-              <Text style={styles.badge360Text}>360°</Text>
-            </Pressable>
-          </View>
-
-          {/* Color swatches */}
-          {product.colors && product.colors.length > 0 && (
-            <View style={[styles.colorsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              {product.colors.map((color, idx) => (
-                <Pressable
-                  key={idx}
-                  onPress={() => { Haptics.selectionAsync(); setSelectedColor(idx); }}
-                  style={styles.colorSwatch}
-                >
-                  <View
-                    style={[
-                      styles.colorCircle,
-                      { backgroundColor: color },
-                      selectedColor === idx && styles.colorCircleSelected,
-                    ]}
+        <View style={isTablet ? [styles.tabletRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }] : undefined}>
+          
+          <View style={isTablet ? { width: '40%' } : undefined}>
+            {/* Hero */}
+            <View style={[styles.hero, { paddingTop: topInset + 8, backgroundColor: product.imageColor + '12' }, isTablet && styles.tabletHero]}>
+              {/* Top bar */}
+              <View style={[styles.topBar, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                <Pressable onPress={() => router.back()} style={styles.circleBtn}>
+                  <Ionicons
+                    name={isRTL ? 'chevron-forward' : 'chevron-back'}
+                    size={22}
+                    color={colors.light.foreground}
                   />
-                  <Text style={[styles.colorLabel, selectedColor === idx && styles.colorLabelActive]}>
-                    {language === 'ar'
-                      ? (colorNames[idx] ?? color)
-                      : (colorNamesEn[idx] ?? color)}
-                  </Text>
                 </Pressable>
-              ))}
-            </View>
-          )}
-        </View>
+                <View style={[styles.topBtnGroup, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                  <Pressable onPress={handleFavorite} style={styles.circleBtn}>
+                    <Ionicons
+                      name={isFav ? 'heart' : 'heart-outline'}
+                      size={20}
+                      color={isFav ? colors.light.destructive : colors.light.foreground}
+                    />
+                  </Pressable>
+                  <Pressable style={styles.circleBtn}>
+                    <Ionicons name="share-outline" size={20} color={colors.light.foreground} />
+                  </Pressable>
+                  <Pressable style={styles.circleBtn}>
+                    <Ionicons name="swap-horizontal-outline" size={20} color={colors.light.foreground} />
+                  </Pressable>
+                </View>
+              </View>
 
-        {/* Info */}
-        <View style={styles.infoSection}>
-          {/* Badges row */}
-          <View style={[styles.badgeRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            {product.isNew && (
-              <View style={styles.pillBadge}>
-                <Text style={styles.pillBadgeText}>NEW</Text>
+              {/* Product visual */}
+              <View style={styles.productVisual}>
+                <View style={[styles.phoneMockupLarge, { borderColor: product.imageColor + '50', backgroundColor: product.imageColor + '20' }]}>
+                  <View style={[styles.phoneMockupScreen, { backgroundColor: product.imageColor + '30' }]} />
+                  <View style={[styles.phoneMockupSpeaker, { backgroundColor: product.imageColor + '50' }]} />
+                  <View style={[styles.phoneMockupHome, { backgroundColor: product.imageColor + '35' }]} />
+                </View>
+                <Pressable style={styles.badge360}>
+                  <Text style={styles.badge360Text}>360°</Text>
+                </Pressable>
               </View>
-            )}
-            {product.isBestSeller && (
-              <View style={[styles.pillBadge, { backgroundColor: colors.light.warningLight }]}>
-                <Ionicons name="star" size={10} color={colors.light.warning} />
-                <Text style={[styles.pillBadgeText, { color: colors.light.warning }]}>
-                  {language === 'ar' ? 'الأكثر مبيعاً' : 'Best Seller'}
-                </Text>
-              </View>
-            )}
-            <View style={[styles.pillBadge, { backgroundColor: product.inStock ? colors.light.successLight : '#FEE2E2' }]}>
-              <View style={[styles.stockDot, { backgroundColor: product.inStock ? colors.light.success : colors.light.destructive }]} />
-              <Text style={[styles.pillBadgeText, { color: product.inStock ? colors.light.success : colors.light.destructive }]}>
-                {product.inStock ? t('inStock') : t('outOfStock')}
-              </Text>
-            </View>
-          </View>
 
-          {/* Name + store */}
-          <Text style={[styles.productName, { textAlign: isRTL ? 'right' : 'left' }]}>{name}</Text>
-          {store && (
-            <Pressable
-              style={[styles.storeRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
-              onPress={() => router.push(`/store/${store.id}`)}
-            >
-              <View style={[styles.storeLogo, { backgroundColor: store.logoColor }]}>
-                <Text style={styles.storeLogoText}>{store.logoInitial}</Text>
-              </View>
-              <Text style={styles.storeName}>{language === 'ar' ? store.nameAr : store.nameEn}</Text>
-              {store.isVerified && (
-                <Ionicons name="checkmark-circle" size={14} color={colors.light.primary} />
+              {/* Color swatches */}
+              {product.colors && product.colors.length > 0 && (
+                <View style={[styles.colorsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                  {product.colors.map((color, idx) => (
+                    <Pressable
+                      key={idx}
+                      onPress={() => { Haptics.selectionAsync(); setSelectedColor(idx); }}
+                      style={styles.colorSwatch}
+                    >
+                      <View
+                        style={[
+                          styles.colorCircle,
+                          { backgroundColor: color },
+                          selectedColor === idx && styles.colorCircleSelected,
+                        ]}
+                      />
+                      <Text style={[styles.colorLabel, selectedColor === idx && styles.colorLabelActive]}>
+                        {language === 'ar'
+                          ? (colorNames[idx] ?? color)
+                          : (colorNamesEn[idx] ?? color)}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
               )}
-              <Ionicons
-                name={isRTL ? 'chevron-back' : 'chevron-forward'}
-                size={14}
-                color={colors.light.mutedForeground}
-              />
-            </Pressable>
-          )}
-
-          {/* Rating */}
-          <View style={[{ flexDirection: isRTL ? 'row-reverse' : 'row', marginBottom: 4 }]}>
-            <RatingStars rating={product.rating} reviewsCount={product.reviewsCount} size={14} />
+            </View>
           </View>
 
-          {/* Price */}
-          <View style={[styles.priceBlock, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <View>
-              <Text style={[styles.priceLbl, { textAlign: isRTL ? 'right' : 'left' }]}>
-                {language === 'ar' ? 'السعر الحالي' : 'Current Price'}
-              </Text>
-              <View style={[{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'baseline', gap: 8 }]}>
-                <Text style={styles.price}>{displayPrice.toLocaleString()}</Text>
-                <Text style={styles.currency}>{t('egp')}</Text>
-                {product.discountPrice && (
-                  <Text style={styles.oldPrice}>{product.price.toLocaleString()}</Text>
+          <View style={isTablet ? { width: '60%' } : undefined}>
+            {/* Info */}
+            <View style={[styles.infoSection, isTablet && { marginTop: 0, marginHorizontal: 0 }]}>
+              {/* Badges row */}
+              <View style={[styles.badgeRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                {product.isNew && (
+                  <View style={styles.pillBadge}>
+                    <Text style={styles.pillBadgeText}>NEW</Text>
+                  </View>
+                )}
+                {product.isBestSeller && (
+                  <View style={[styles.pillBadge, { backgroundColor: colors.light.warningLight }]}>
+                    <Ionicons name="star" size={10} color={colors.light.warning} />
+                    <Text style={[styles.pillBadgeText, { color: colors.light.warning }]}>
+                      {language === 'ar' ? 'الأكثر مبيعاً' : 'Best Seller'}
+                    </Text>
+                  </View>
+                )}
+                <View style={[styles.pillBadge, { backgroundColor: product.inStock ? colors.light.successLight : '#FEE2E2' }]}>
+                  <View style={[styles.stockDot, { backgroundColor: product.inStock ? colors.light.success : colors.light.destructive }]} />
+                  <Text style={[styles.pillBadgeText, { color: product.inStock ? colors.light.success : colors.light.destructive }]}>
+                    {product.inStock ? t('inStock') : t('outOfStock')}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Name + store */}
+              <Text style={[styles.productName, { textAlign: isRTL ? 'right' : 'left' }]}>{name}</Text>
+              {store && (
+                <Pressable
+                  style={[styles.storeRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
+                  onPress={() => router.push(`/store/${store.id}`)}
+                >
+                  <View style={[styles.storeLogo, { backgroundColor: store.logoColor }]}>
+                    <Text style={styles.storeLogoText}>{store.logoInitial}</Text>
+                  </View>
+                  <Text style={styles.storeName}>{language === 'ar' ? store.nameAr : store.nameEn}</Text>
+                  {store.isVerified && (
+                    <Ionicons name="checkmark-circle" size={14} color={colors.light.primary} />
+                  )}
+                  <Ionicons
+                    name={isRTL ? 'chevron-back' : 'chevron-forward'}
+                    size={14}
+                    color={colors.light.mutedForeground}
+                  />
+                </Pressable>
+              )}
+
+              {/* Rating */}
+              <View style={[{ flexDirection: isRTL ? 'row-reverse' : 'row', marginBottom: 4 }]}>
+                <RatingStars rating={product.rating} reviewsCount={product.reviewsCount} size={14} />
+              </View>
+
+              {/* Price */}
+              <View style={[styles.priceBlock, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                <View>
+                  <Text style={[styles.priceLbl, { textAlign: isRTL ? 'right' : 'left' }]}>
+                    {language === 'ar' ? 'السعر الحالي' : 'Current Price'}
+                  </Text>
+                  <View style={[{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'baseline', gap: 8 }]}>
+                    <Text style={styles.price}>{displayPrice.toLocaleString()}</Text>
+                    <Text style={styles.currency}>{t('egp')}</Text>
+                    {product.discountPrice && (
+                      <Text style={styles.oldPrice}>{product.price.toLocaleString()}</Text>
+                    )}
+                  </View>
+                </View>
+                {discountPct > 0 && (
+                  <View style={styles.discountTag}>
+                    <Text style={styles.discountTagText}>{discountPct}% {t('discount')}</Text>
+                  </View>
                 )}
               </View>
+
+              {/* Delivery info */}
+              <View style={[styles.deliveryRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                <DeliveryChip icon="cube-outline" label={language === 'ar' ? 'متاح' : 'IN STOCK'} color={colors.light.success} />
+                <DeliveryChip icon="car-outline" label={language === 'ar' ? 'توصيل مجاني' : 'FREE Delivery'} color={colors.light.primary} />
+                <DeliveryChip icon="shield-checkmark-outline" label={language === 'ar' ? 'ضمان ٢ سنة' : '2-YEAR GLOBAL'} color={colors.light.warning} />
+              </View>
             </View>
-            {discountPct > 0 && (
-              <View style={styles.discountTag}>
-                <Text style={styles.discountTagText}>{discountPct}% {t('discount')}</Text>
+
+            {/* Storage selector */}
+            {product.storage && product.storage.length > 0 && (
+              <View style={[styles.selectorSection, isTablet && { marginHorizontal: 0 }]}>
+                <Text style={[styles.selectorTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+                  {t('storage')}
+                </Text>
+                <View style={[styles.pillsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                  {product.storage.map((val, idx) => (
+                    <Pressable
+                      key={idx}
+                      onPress={() => { Haptics.selectionAsync(); setSelectedStorage(idx); }}
+                      style={[styles.pill, selectedStorage === idx && styles.pillActive]}
+                    >
+                      <Text style={[styles.pillText, selectedStorage === idx && styles.pillTextActive]}>
+                        {val}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {/* RAM selector */}
+            {product.ram && product.ram.length > 1 && (
+              <View style={[styles.selectorSection, isTablet && { marginHorizontal: 0 }]}>
+                <Text style={[styles.selectorTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+                  {t('ram')}
+                </Text>
+                <View style={[styles.pillsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                  {product.ram.map((val, idx) => (
+                    <Pressable
+                      key={idx}
+                      onPress={() => { Haptics.selectionAsync(); setSelectedRam(idx); }}
+                      style={[styles.pill, selectedRam === idx && styles.pillActive]}
+                    >
+                      <Text style={[styles.pillText, selectedRam === idx && styles.pillTextActive]}>
+                        {val}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
               </View>
             )}
           </View>
-
-          {/* Delivery info */}
-          <View style={[styles.deliveryRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <DeliveryChip icon="cube-outline" label={language === 'ar' ? 'متاح' : 'IN STOCK'} color={colors.light.success} />
-            <DeliveryChip icon="car-outline" label={language === 'ar' ? 'توصيل مجاني' : 'FREE Delivery'} color={colors.light.primary} />
-            <DeliveryChip icon="shield-checkmark-outline" label={language === 'ar' ? 'ضمان ٢ سنة' : '2-YEAR GLOBAL'} color={colors.light.warning} />
-          </View>
         </View>
-
-        {/* Storage selector */}
-        {product.storage && product.storage.length > 0 && (
-          <View style={styles.selectorSection}>
-            <Text style={[styles.selectorTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('storage')}
-            </Text>
-            <View style={[styles.pillsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              {product.storage.map((val, idx) => (
-                <Pressable
-                  key={idx}
-                  onPress={() => { Haptics.selectionAsync(); setSelectedStorage(idx); }}
-                  style={[styles.pill, selectedStorage === idx && styles.pillActive]}
-                >
-                  <Text style={[styles.pillText, selectedStorage === idx && styles.pillTextActive]}>
-                    {val}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-          </View>
-        )}
-
-        {/* RAM selector */}
-        {product.ram && product.ram.length > 1 && (
-          <View style={styles.selectorSection}>
-            <Text style={[styles.selectorTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
-              {t('ram')}
-            </Text>
-            <View style={[styles.pillsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              {product.ram.map((val, idx) => (
-                <Pressable
-                  key={idx}
-                  onPress={() => { Haptics.selectionAsync(); setSelectedRam(idx); }}
-                  style={[styles.pill, selectedRam === idx && styles.pillActive]}
-                >
-                  <Text style={[styles.pillText, selectedRam === idx && styles.pillTextActive]}>
-                    {val}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-          </View>
-        )}
 
         {/* Specifications accordion */}
         <View style={styles.specsCard}>
@@ -316,27 +328,24 @@ export default function ProductScreen() {
               {language === 'ar' ? 'السعر في المتاجر' : 'Compare All Stores'}
             </Text>
           </View>
-          {stores.slice(0, 3).map((s, idx) => {
+          {/* Note: mock data generation here handles mapping stores. In a real app we would use data */}
+          {[1,2,3].map((_, idx) => {
             const price = Math.round(displayPrice * (1 + idx * 0.04 - 0.01));
             const isLowest = idx === 0;
-            const stName = language === 'ar' ? s.nameAr : s.nameEn;
             return (
-              <View key={s.id} style={[styles.storeRow2, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                <View style={[styles.storeLogo2, { backgroundColor: s.logoColor }]}>
-                  <Text style={styles.storeLogoText2}>{s.logoInitial}</Text>
+              <View key={idx} style={[styles.storeRow2, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                <View style={[styles.storeLogo2, { backgroundColor: colors.light.primary }]}>
+                  <Text style={styles.storeLogoText2}>S</Text>
                 </View>
                 <View style={{ flex: 1, marginLeft: isRTL ? 0 : 10, marginRight: isRTL ? 10 : 0 }}>
                   <View style={[{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: 4 }]}>
                     <Text style={[styles.storeRowName, { textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
-                      {stName}
+                      Store {idx + 1}
                     </Text>
-                    {s.isVerified && <Ionicons name="checkmark-circle" size={12} color={colors.light.primary} />}
                   </View>
                   <View style={[{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: 6 }]}>
                     <Ionicons name="location-outline" size={11} color={colors.light.mutedForeground} />
-                    <Text style={styles.storeRowCity}>
-                      {language === 'ar' ? s.governorate : s.city}
-                    </Text>
+                    <Text style={styles.storeRowCity}>Cairo</Text>
                     {isLowest && (
                       <View style={styles.bestPricePill}>
                         <Text style={styles.bestPricePillText}>
@@ -352,13 +361,13 @@ export default function ProductScreen() {
                   </Text>
                 </View>
                 <View style={[styles.storeRowBtns, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-                  <Pressable style={styles.miniBtn} onPress={() => handleCall(s)}>
+                  <Pressable style={styles.miniBtn} onPress={() => handleCall()}>
                     <Ionicons name="call" size={14} color={colors.light.success} />
                     <Text style={[styles.miniBtnText, { color: colors.light.success }]}>
                       {language === 'ar' ? 'اتصل' : 'Call'}
                     </Text>
                   </Pressable>
-                  <Pressable style={[styles.miniBtn, { borderColor: '#25D366' }]} onPress={() => handleContact(s)}>
+                  <Pressable style={[styles.miniBtn, { borderColor: '#25D366' }]} onPress={() => handleContact()}>
                     <Ionicons name="logo-whatsapp" size={14} color="#25D366" />
                     <Text style={[styles.miniBtnText, { color: '#25D366' }]}>WA</Text>
                   </Pressable>
@@ -425,9 +434,9 @@ export default function ProductScreen() {
             color={isFav ? colors.light.destructive : colors.light.mutedForeground}
           />
         </Pressable>
-        <Pressable style={styles.reserveBtn} onPress={() => handleContact()}>
+        <Pressable style={styles.reserveBtnBottom} onPress={() => handleContact()}>
           <Ionicons name="bookmark-outline" size={18} color="#fff" />
-          <Text style={styles.reserveBtnText}>
+          <Text style={styles.reserveBtnTextBottom}>
             {language === 'ar' ? 'احجز الآن' : 'RESERVE NOW'}
           </Text>
         </Pressable>
@@ -451,6 +460,19 @@ function DeliveryChip({ icon, label, color }: { icon: any; label: string; color:
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F7FA' },
   scroll: { flex: 1 },
+
+  tabletScrollContent: {
+    maxWidth: 960,
+    alignSelf: 'center',
+    width: '100%',
+    padding: 24,
+  },
+  tabletRow: {
+    gap: 24,
+  },
+  tabletHero: {
+    borderRadius: colors.radiusLg,
+  },
 
   // Hero
   hero: {
@@ -681,7 +703,6 @@ const styles = StyleSheet.create({
     color: colors.light.foreground,
     marginBottom: 12,
   },
-  cardHeaderRow: { alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
   specItem: {
     alignItems: 'center',
     gap: 10,
@@ -724,6 +745,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(226,232,240,0.6)',
   },
+  cardHeaderRow: { alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
   storeRow2: {
     alignItems: 'center',
     paddingVertical: 12,
@@ -752,28 +774,24 @@ const styles = StyleSheet.create({
     backgroundColor: colors.light.successLight,
     borderRadius: 6,
   },
-  bestPricePillText: { fontSize: 10, fontFamily: 'Inter_600SemiBold', color: colors.light.success },
-  storeRowPrice: {
-    fontSize: 14,
-    fontFamily: 'Inter_700Bold',
-    color: colors.light.foreground,
-    textAlign: 'right',
-  },
+  bestPricePillText: { fontSize: 9, fontFamily: 'Inter_700Bold', color: colors.light.success },
+  storeRowPrice: { fontSize: 14, fontFamily: 'Inter_700Bold', color: colors.light.foreground },
   storeRowBtns: { gap: 6 },
   miniBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
     paddingHorizontal: 8,
-    paddingVertical: 5,
+    paddingVertical: 6,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: colors.light.success + '50',
-    backgroundColor: colors.light.successLight,
+    borderColor: colors.light.success,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    minWidth: 54,
   },
   miniBtnText: { fontSize: 11, fontFamily: 'Inter_600SemiBold' },
 
-  // Description
+  // Desc
   descCard: {
     backgroundColor: '#fff',
     marginHorizontal: 16,
@@ -797,91 +815,92 @@ const styles = StyleSheet.create({
 
   // Related
   relatedSection: {
-    marginTop: 10,
-    marginBottom: 8,
+    marginTop: 20,
+    paddingLeft: 16,
   },
   sectionTitle: {
-    fontSize: 17,
+    fontSize: 16,
     fontFamily: 'Inter_700Bold',
     color: colors.light.foreground,
-    marginHorizontal: 16,
     marginBottom: 12,
   },
   relatedCard: {
     width: 140,
     backgroundColor: '#fff',
     borderRadius: colors.radiusMd,
-    overflow: 'hidden',
-    marginLeft: 16,
-    shadowColor: 'rgba(15,23,42,0.07)',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 1,
-    shadowRadius: 10,
-    elevation: 3,
+    padding: 10,
     borderWidth: 1,
     borderColor: 'rgba(226,232,240,0.6)',
+    alignItems: 'center',
   },
   relatedImage: {
+    width: 80,
     height: 100,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 10,
   },
-  relatedInfo: { padding: 10, gap: 3 },
-  relatedBrand: { fontSize: 10, fontFamily: 'Inter_400Regular', color: colors.light.mutedForeground },
-  relatedName: { fontSize: 12, fontFamily: 'Inter_600SemiBold', color: colors.light.foreground, lineHeight: 16 },
-  relatedPrice: { fontSize: 13, fontFamily: 'Inter_700Bold', color: colors.light.primary, marginTop: 2 },
+  relatedInfo: { alignItems: 'center', width: '100%' },
+  relatedBrand: { fontSize: 10, fontFamily: 'Inter_500Medium', color: colors.light.mutedForeground },
+  relatedName: { fontSize: 12, fontFamily: 'Inter_600SemiBold', color: colors.light.foreground, textAlign: 'center', height: 32 },
+  relatedPrice: { fontSize: 12, fontFamily: 'Inter_700Bold', color: colors.light.primary, marginTop: 4 },
 
-  // Bottom bar
+  // Bottom Bar
   bottomBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     backgroundColor: '#fff',
-    paddingTop: 12,
     paddingHorizontal: 16,
-    flexDirection: 'row',
-    gap: 10,
+    paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(226,232,240,0.7)',
+    borderTopColor: 'rgba(226,232,240,0.6)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
     shadowColor: 'rgba(15,23,42,0.08)',
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 1,
-    shadowRadius: 16,
+    shadowRadius: 12,
     elevation: 8,
   },
   bottomFavBtn: {
     width: 48,
     height: 48,
     borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: 'rgba(226,232,240,0.8)',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.light.muted,
     alignItems: 'center',
     justifyContent: 'center',
   },
   bottomFavBtnActive: {
-    borderColor: colors.light.destructive + '50',
-    backgroundColor: '#FEF2F2',
+    backgroundColor: '#FEE2E2',
   },
-  reserveBtn: {
+  reserveBtnBottom: {
     flex: 1,
+    height: 48,
+    backgroundColor: colors.light.primary,
+    borderRadius: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    height: 48,
-    backgroundColor: colors.light.primary,
-    borderRadius: 14,
     shadowColor: colors.light.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
-    shadowRadius: 10,
+    shadowRadius: 8,
     elevation: 4,
   },
-  reserveBtnText: { fontSize: 15, fontFamily: 'Inter_700Bold', color: '#fff', letterSpacing: 0.3 },
+  reserveBtnTextBottom: {
+    fontSize: 15,
+    fontFamily: 'Inter_700Bold',
+    color: '#fff',
+  },
   cartBtn: {
     width: 48,
     height: 48,
     borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: colors.light.primary + '40',
     backgroundColor: colors.light.primaryLight,
     alignItems: 'center',
     justifyContent: 'center',

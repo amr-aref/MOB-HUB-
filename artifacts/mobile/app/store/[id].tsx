@@ -23,6 +23,7 @@ import RatingStars from '@/components/RatingStars';
 import ProductCard from '@/components/ProductCard';
 import { getFontFamily } from '@/constants/fonts';
 import GlassCard from '@/components/GlassCard';
+import { useLayout } from '@/hooks/useLayout';
 
 const GALLERY_COLORS = [
   ['#1E3A8A', '#3B82F6'],
@@ -37,6 +38,7 @@ export default function StoreScreen() {
   const { toggleFavoriteStore, isStoreFavorite } = useFavorites();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { isTablet } = useLayout();
 
   const { data: store, isLoading: storeLoading } = useGetStore(id!);
   const { data: storeProducts = [] } = useGetStoreProducts(id!);
@@ -45,8 +47,8 @@ export default function StoreScreen() {
 
   if (storeLoading || !store) return null;
 
-  const topInset = Platform.OS === 'web' ? 67 : insets.top;
-  const bottomInset = Platform.OS === 'web' ? 34 : 0;
+  const topInset = isTablet ? 24 : (Platform.OS === 'web' ? 67 : insets.top);
+  const bottomInset = isTablet ? 0 : (Platform.OS === 'web' ? 34 : 0);
 
   const fontFamBold = getFontFamily(isRTL, 'bold');
   const fontFamSemi = getFontFamily(isRTL, 'semiBold');
@@ -97,7 +99,10 @@ export default function StoreScreen() {
     <View style={styles.container}>
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={{ paddingBottom: bottomInset + 80 }}
+        contentContainerStyle={[
+          { paddingBottom: bottomInset + 80 },
+          isTablet && styles.tabletScrollContent
+        ]}
         showsVerticalScrollIndicator={false}
       >
         {/* Hero cover */}
@@ -106,7 +111,7 @@ export default function StoreScreen() {
             colors={store.coverGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={[styles.hero, { paddingTop: topInset + 8 }]}
+            style={[styles.hero, { paddingTop: topInset + 8 }, isTablet && styles.tabletHero]}
           >
             <View style={[styles.heroTopBar, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <Pressable
@@ -162,7 +167,7 @@ export default function StoreScreen() {
         </Animated.View>
 
         {/* Quick contact bar */}
-        <Animated.View entering={FadeInUp.delay(100).springify().stiffness(300).damping(28)} style={[styles.contactBar, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <Animated.View entering={FadeInUp.delay(100).springify().stiffness(300).damping(28)} style={[styles.contactBar, { flexDirection: isRTL ? 'row-reverse' : 'row' }, isTablet && { marginHorizontal: 0 }]}>
           <ContactBtn icon="call" label={language === 'ar' ? 'اتصال' : 'Call'} onPress={handleCall} color={colors.light.success} fontFam={fontFamSemi} />
           <ContactBtn icon="logo-whatsapp" label="WhatsApp" onPress={handleWhatsApp} color="#25D366" fontFam={fontFamSemi} />
           <ContactBtn icon="navigate" label={language === 'ar' ? 'الاتجاهات' : 'Navigate'} onPress={handleMaps} color={colors.light.primary} fontFam={fontFamSemi} />
@@ -176,7 +181,7 @@ export default function StoreScreen() {
         </Animated.View>
 
         {/* Store Information */}
-        <Animated.View entering={FadeInUp.delay(150).springify().stiffness(300).damping(28)} style={styles.card}>
+        <Animated.View entering={FadeInUp.delay(150).springify().stiffness(300).damping(28)} style={[styles.card, isTablet && { marginHorizontal: 0 }]}>
           <Text style={[styles.cardTitle, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamBold }]}>
             {language === 'ar' ? 'معلومات المتجر' : 'Store Information'}
           </Text>
@@ -245,7 +250,7 @@ export default function StoreScreen() {
 
         {/* Product Categories */}
         {storeCategories.length > 0 && (
-          <Animated.View entering={FadeInUp.delay(200).springify().stiffness(300).damping(28)} style={styles.categoriesCard}>
+          <Animated.View entering={FadeInUp.delay(200).springify().stiffness(300).damping(28)} style={[styles.categoriesCard, isTablet && { marginHorizontal: 0 }]}>
             <Text style={[styles.cardTitle, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamBold }]}>
               {language === 'ar' ? 'فئات المنتجات' : 'Product Categories'}
             </Text>
@@ -274,7 +279,7 @@ export default function StoreScreen() {
         {/* Featured Products */}
         {storeProducts.length > 0 && (
           <Animated.View entering={FadeInUp.delay(250).springify().stiffness(300).damping(28)} style={styles.productsSection}>
-            <View style={[styles.sectionHeader, { flexDirection: isRTL ? 'row-reverse' : 'row', paddingHorizontal: 16 }]}>
+            <View style={[styles.sectionHeader, { flexDirection: isRTL ? 'row-reverse' : 'row', paddingHorizontal: isTablet ? 0 : 16 }]}>
               <Text style={[styles.cardTitle, { marginBottom: 0, textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamBold }]}>
                 {t('allProducts')}
               </Text>
@@ -282,30 +287,45 @@ export default function StoreScreen() {
                 {storeProducts.length} {language === 'ar' ? 'منتج' : 'products'}
               </Text>
             </View>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={[
-                styles.productsRow,
-                { paddingLeft: isRTL ? 0 : 16, paddingRight: isRTL ? 16 : 0 },
-              ]}
-            >
-              {storeProducts.map((product) => (
-                <View key={product.id} style={{ marginRight: isRTL ? 0 : 16, marginLeft: isRTL ? 16 : 0 }}>
-                  <ProductCard
-                    product={product}
-                    onPress={() => router.push(`/product/${product.id}`)}
-                    width={160}
-                  />
-                </View>
-              ))}
-            </ScrollView>
+            
+            {isTablet ? (
+              <View style={[styles.tabletGrid, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                {storeProducts.map((product) => (
+                  <View key={product.id} style={styles.tabletGridItem}>
+                    <ProductCard
+                      product={product}
+                      onPress={() => router.push(`/product/${product.id}`)}
+                      width="100%"
+                    />
+                  </View>
+                ))}
+              </View>
+            ) : (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={[
+                  styles.productsRow,
+                  { paddingLeft: isRTL ? 0 : 16, paddingRight: isRTL ? 16 : 0 },
+                ]}
+              >
+                {storeProducts.map((product) => (
+                  <View key={product.id} style={{ marginRight: isRTL ? 0 : 16, marginLeft: isRTL ? 16 : 0 }}>
+                    <ProductCard
+                      product={product}
+                      onPress={() => router.push(`/product/${product.id}`)}
+                      width={160}
+                    />
+                  </View>
+                ))}
+              </ScrollView>
+            )}
           </Animated.View>
         )}
 
         {/* Reviews */}
         {storeReviews.length > 0 && (
-          <Animated.View entering={FadeInUp.delay(300).springify().stiffness(300).damping(28)} style={styles.card}>
+          <Animated.View entering={FadeInUp.delay(300).springify().stiffness(300).damping(28)} style={[styles.card, isTablet && { marginHorizontal: 0 }]}>
             <View style={[styles.sectionHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <Text style={[styles.cardTitle, { marginBottom: 0, textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamBold }]}>
                 {t('storeReviews')}
@@ -344,7 +364,7 @@ export default function StoreScreen() {
         )}
 
         {/* Store Gallery */}
-        <Animated.View entering={FadeInUp.delay(350).springify().stiffness(300).damping(28)} style={styles.card}>
+        <Animated.View entering={FadeInUp.delay(350).springify().stiffness(300).damping(28)} style={[styles.card, isTablet && { marginHorizontal: 0 }]}>
           <Text style={[styles.cardTitle, { textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamBold }]}>
             {language === 'ar' ? 'معرض المتجر' : 'Store Gallery'}
           </Text>
@@ -367,7 +387,7 @@ export default function StoreScreen() {
         </Animated.View>
 
         {/* Map Section (Glass) */}
-        <Animated.View entering={FadeInUp.delay(400).springify().stiffness(300).damping(28)} style={[styles.card, { marginBottom: 16, backgroundColor: 'transparent', padding: 0, borderWidth: 0, shadowColor: 'transparent', elevation: 0 }]}>
+        <Animated.View entering={FadeInUp.delay(400).springify().stiffness(300).damping(28)} style={[styles.card, { marginBottom: 16, backgroundColor: 'transparent', padding: 0, borderWidth: 0, shadowColor: 'transparent', elevation: 0 }, isTablet && { marginHorizontal: 0 }]}>
           <View style={[styles.sectionHeader, { flexDirection: isRTL ? 'row-reverse' : 'row', paddingHorizontal: 16, paddingTop: 16 }]}>
             <Text style={[styles.cardTitle, { marginBottom: 0, textAlign: isRTL ? 'right' : 'left', fontFamily: fontFamBold }]}>
               {language === 'ar' ? 'الموقع على الخريطة' : 'Map'}
@@ -454,6 +474,24 @@ function ContactBtn({
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.light.background },
   scroll: { flex: 1 },
+
+  tabletScrollContent: {
+    maxWidth: 960,
+    alignSelf: 'center',
+    width: '100%',
+    padding: 24,
+  },
+  tabletHero: {
+    borderRadius: colors.radiusXl,
+  },
+  tabletGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 16,
+  },
+  tabletGridItem: {
+    width: '31.5%',
+  },
 
   hero: {
     alignItems: 'center',
@@ -733,93 +771,79 @@ const styles = StyleSheet.create({
 
   mapContainer: {
     height: 220,
-    marginHorizontal: 16,
     borderRadius: colors.radiusXl,
     overflow: 'hidden',
+    backgroundColor: '#E2E8F0',
     position: 'relative',
-    borderWidth: 1,
-    borderColor: 'rgba(37,99,235,0.2)',
+    margin: 16,
   },
-  mapGridH: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    height: 1,
-    backgroundColor: 'rgba(37,99,235,0.1)',
-  },
-  mapGridV: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    width: 1,
-    backgroundColor: 'rgba(37,99,235,0.1)',
-  },
+  mapGridH: { position: 'absolute', left: 0, right: 0, height: 1, backgroundColor: 'rgba(255,255,255,0.4)' },
+  mapGridV: { position: 'absolute', top: 0, bottom: 0, width: 1, backgroundColor: 'rgba(255,255,255,0.4)' },
   mapPinContainer: {
     position: 'absolute',
     top: '30%',
     left: '50%',
-    transform: [{ translateX: -30 }, { translateY: -40 }],
+    marginLeft: -24,
     alignItems: 'center',
-    shadowColor: 'rgba(0,0,0,0.2)',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 5,
   },
   mapPin: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 6,
-  },
-  mapPinLogo: {
     width: 48,
     height: 48,
-    borderRadius: 14,
+    borderRadius: 24,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: '#fff',
+  },
+  mapPinLogo: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  mapPinLogoText: { fontSize: 24, color: '#fff' },
+  mapPinLogoText: { fontSize: 16, color: '#fff' },
   mapPinTriangle: {
     width: 0,
     height: 0,
-    borderLeftWidth: 10,
-    borderRightWidth: 10,
-    borderTopWidth: 12,
+    borderLeftWidth: 8,
+    borderRightWidth: 8,
+    borderTopWidth: 10,
+    borderStyle: 'solid',
+    backgroundColor: 'transparent',
     borderLeftColor: 'transparent',
     borderRightColor: 'transparent',
     marginTop: -2,
   },
   glassCardWrapper: {
     position: 'absolute',
-    bottom: 16,
-    left: 16,
-    right: 16,
+    bottom: 12,
+    left: 12,
+    right: 12,
   },
   glassCardInner: {
     alignItems: 'center',
     gap: 12,
   },
-  glassStoreName: {
-    fontSize: 16,
-    color: colors.light.foreground,
-  },
-  glassStoreAddress: {
-    fontSize: 13,
-    color: colors.light.foreground,
-    opacity: 0.8,
-    marginTop: 4,
-  },
+  glassStoreName: { fontSize: 15, color: '#1B1B1D' },
+  glassStoreAddress: { fontSize: 12, color: 'rgba(27,27,29,0.7)', marginTop: 2 },
   glassDirectionsBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: colors.light.primary,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: colors.light.primary,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
+    shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 4,
+    elevation: 3,
   },
 });

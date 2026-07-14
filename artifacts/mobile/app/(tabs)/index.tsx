@@ -22,6 +22,7 @@ import SearchBar from '@/components/SearchBar';
 import CategoryChip from '@/components/CategoryChip';
 import StoreCard from '@/components/StoreCard';
 import ProductCard from '@/components/ProductCard';
+import { useLayout } from '@/hooks/useLayout';
 
 function SectionHeader({
   title,
@@ -55,9 +56,10 @@ export default function HomeScreen() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const { isTablet } = useLayout();
 
-  const topInset = Platform.OS === 'web' ? 67 : insets.top;
-  const bottomInset = Platform.OS === 'web' ? 34 : 0;
+  const topInset = isTablet ? 24 : (Platform.OS === 'web' ? 67 : insets.top);
+  const bottomInset = isTablet ? 0 : (Platform.OS === 'web' ? 34 : 0);
 
   const { data: featuredStores = [] } = useGetStores({ isVerified: 'true' });
   const { data: newArrivals = [] } = useGetProducts({ isNew: 'true' });
@@ -69,45 +71,47 @@ export default function HomeScreen() {
     <View style={styles.container}>
       {/* Premium White Header */}
       <View style={[styles.header, { paddingTop: topInset + 8 }]}>
-        <View style={[styles.headerTop, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-          {/* App Brand */}
-          <View style={[styles.brandRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <View style={styles.appIcon}>
-              <Ionicons name="phone-portrait" size={18} color="#fff" />
+        <View style={isTablet ? styles.tabletCentered : undefined}>
+          <View style={[styles.headerTop, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            {/* App Brand */}
+            <View style={[styles.brandRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <View style={styles.appIcon}>
+                <Ionicons name="phone-portrait" size={18} color="#fff" />
+              </View>
+              <View style={{ marginLeft: isRTL ? 0 : 10, marginRight: isRTL ? 10 : 0 }}>
+                <Text style={[styles.appName, { textAlign: isRTL ? 'right' : 'left' }]}>
+                  {t('appName')}
+                </Text>
+                <Text style={[styles.tagline, { textAlign: isRTL ? 'right' : 'left' }]}>
+                  {t('appTagline')}
+                </Text>
+              </View>
             </View>
-            <View style={{ marginLeft: isRTL ? 0 : 10, marginRight: isRTL ? 10 : 0 }}>
-              <Text style={[styles.appName, { textAlign: isRTL ? 'right' : 'left' }]}>
-                {t('appName')}
-              </Text>
-              <Text style={[styles.tagline, { textAlign: isRTL ? 'right' : 'left' }]}>
-                {t('appTagline')}
-              </Text>
+
+            {/* Actions */}
+            <View style={[styles.headerActions, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <Pressable style={styles.iconBtn} hitSlop={8}>
+                <Ionicons name="notifications-outline" size={20} color={colors.light.foreground} />
+                <View style={styles.notifDot} />
+              </Pressable>
+              <Pressable
+                style={styles.avatarBtn}
+                onPress={() => router.push('/(tabs)/profile')}
+              >
+                <Ionicons name="person" size={16} color="#fff" />
+              </Pressable>
             </View>
           </View>
 
-          {/* Actions */}
-          <View style={[styles.headerActions, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-            <Pressable style={styles.iconBtn} hitSlop={8}>
-              <Ionicons name="notifications-outline" size={20} color={colors.light.foreground} />
-              <View style={styles.notifDot} />
-            </Pressable>
-            <Pressable
-              style={styles.avatarBtn}
-              onPress={() => router.push('/(tabs)/profile')}
-            >
-              <Ionicons name="person" size={16} color="#fff" />
-            </Pressable>
+          {/* Search bar */}
+          <View style={styles.searchWrap}>
+            <SearchBar
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholder={t('searchPlaceholder')}
+              isRTL={isRTL}
+            />
           </View>
-        </View>
-
-        {/* Search bar */}
-        <View style={styles.searchWrap}>
-          <SearchBar
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            placeholder={t('searchPlaceholder')}
-            isRTL={isRTL}
-          />
         </View>
       </View>
 
@@ -116,6 +120,7 @@ export default function HomeScreen() {
         contentContainerStyle={[
           styles.scrollContent,
           { paddingBottom: bottomInset + 100 },
+          isTablet && styles.tabletScrollContent
         ]}
         showsVerticalScrollIndicator={false}
       >
@@ -154,25 +159,35 @@ export default function HomeScreen() {
             t={t}
             isRTL={isRTL}
           />
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={[
-              styles.horizontalList,
-              { paddingLeft: isRTL ? 0 : 16, paddingRight: isRTL ? 16 : 0 },
-            ]}
-          >
-            {featuredStores.map((store) => (
-              <StoreCard
-                key={store.id}
-                store={store}
-                onPress={() => router.push(`/store/${store.id}`)}
-              />
-            ))}
-          </ScrollView>
+          {isTablet ? (
+            <View style={[styles.tabletGrid, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              {featuredStores.map((store) => (
+                <View key={store.id} style={styles.tabletGridItem}>
+                  <StoreCard store={store} onPress={() => router.push(`/store/${store.id}`)} />
+                </View>
+              ))}
+            </View>
+          ) : (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={[
+                styles.horizontalList,
+                { paddingLeft: isRTL ? 0 : 16, paddingRight: isRTL ? 16 : 0 },
+              ]}
+            >
+              {featuredStores.map((store) => (
+                <StoreCard
+                  key={store.id}
+                  store={store}
+                  onPress={() => router.push(`/store/${store.id}`)}
+                />
+              ))}
+            </ScrollView>
+          )}
         </View>
 
-        {/* Today's Deals Banner — premium glass version */}
+        {/* Today's Deals Banner */}
         <View style={styles.section}>
           <Pressable style={styles.dealsBanner}>
             <LinearGradient
@@ -181,7 +196,6 @@ export default function HomeScreen() {
               end={{ x: 1, y: 0 }}
               style={styles.dealsGradient}
             >
-              {/* Glass shine overlay */}
               <View style={styles.dealsShine} />
               <View
                 style={[
@@ -215,50 +229,70 @@ export default function HomeScreen() {
         {/* New Arrivals */}
         <View style={styles.section}>
           <SectionHeader title={t('newArrivals')} onPress={() => {}} t={t} isRTL={isRTL} />
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={[
-              styles.horizontalList,
-              { paddingLeft: isRTL ? 0 : 16, paddingRight: isRTL ? 16 : 0 },
-            ]}
-          >
-            {newArrivals.map((product) => (
-              <View key={product.id} style={styles.productWrap}>
-                <ProductCard
-                  product={product}
-                  onPress={() => router.push(`/product/${product.id}`)}
-                  width={172}
-                />
-              </View>
-            ))}
-          </ScrollView>
+          {isTablet ? (
+            <View style={[styles.tabletGrid, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              {newArrivals.map((product) => (
+                <View key={product.id} style={styles.tabletGridItem}>
+                  <ProductCard product={product} onPress={() => router.push(`/product/${product.id}`)} width="100%" />
+                </View>
+              ))}
+            </View>
+          ) : (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={[
+                styles.horizontalList,
+                { paddingLeft: isRTL ? 0 : 16, paddingRight: isRTL ? 16 : 0 },
+              ]}
+            >
+              {newArrivals.map((product) => (
+                <View key={product.id} style={styles.productWrap}>
+                  <ProductCard
+                    product={product}
+                    onPress={() => router.push(`/product/${product.id}`)}
+                    width={172}
+                  />
+                </View>
+              ))}
+            </ScrollView>
+          )}
         </View>
 
         {/* Best Sellers */}
         <View style={styles.section}>
           <SectionHeader title={t('bestSellers')} onPress={() => {}} t={t} isRTL={isRTL} />
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={[
-              styles.horizontalList,
-              { paddingLeft: isRTL ? 0 : 16, paddingRight: isRTL ? 16 : 0 },
-            ]}
-          >
-            {bestSellers.map((product) => (
-              <View key={product.id} style={styles.productWrap}>
-                <ProductCard
-                  product={product}
-                  onPress={() => router.push(`/product/${product.id}`)}
-                  width={172}
-                />
-              </View>
-            ))}
-          </ScrollView>
+          {isTablet ? (
+            <View style={[styles.tabletGrid, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              {bestSellers.map((product) => (
+                <View key={product.id} style={styles.tabletGridItem}>
+                  <ProductCard product={product} onPress={() => router.push(`/product/${product.id}`)} width="100%" />
+                </View>
+              ))}
+            </View>
+          ) : (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={[
+                styles.horizontalList,
+                { paddingLeft: isRTL ? 0 : 16, paddingRight: isRTL ? 16 : 0 },
+              ]}
+            >
+              {bestSellers.map((product) => (
+                <View key={product.id} style={styles.productWrap}>
+                  <ProductCard
+                    product={product}
+                    onPress={() => router.push(`/product/${product.id}`)}
+                    width={172}
+                  />
+                </View>
+              ))}
+            </ScrollView>
+          )}
         </View>
 
-        {/* Top Rated Stores — full-width list */}
+        {/* Top Rated Stores */}
         <View style={styles.section}>
           <SectionHeader
             title={t('topRated')}
@@ -266,14 +300,15 @@ export default function HomeScreen() {
             t={t}
             isRTL={isRTL}
           />
-          <View style={styles.storeList}>
-            {topRatedStores.slice(0, 3).map((store) => (
-              <StoreCard
-                key={store.id}
-                store={store}
-                listMode
-                onPress={() => router.push(`/store/${store.id}`)}
-              />
+          <View style={[styles.storeList, isTablet && { flexDirection: 'row', flexWrap: 'wrap', gap: 12 }]}>
+            {topRatedStores.slice(0, isTablet ? 4 : 3).map((store) => (
+              <View key={store.id} style={isTablet && { width: '48.5%' }}>
+                <StoreCard
+                  store={store}
+                  listMode
+                  onPress={() => router.push(`/store/${store.id}`)}
+                />
+              </View>
             ))}
           </View>
         </View>
@@ -284,6 +319,26 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F7FA' },
+
+  tabletCentered: {
+    maxWidth: 900,
+    alignSelf: 'center',
+    width: '100%',
+  },
+  tabletScrollContent: {
+    maxWidth: 960,
+    alignSelf: 'center',
+    width: '100%',
+  },
+  tabletGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    paddingHorizontal: 16,
+  },
+  tabletGridItem: {
+    width: '48.5%',
+  },
 
   // Header
   header: {
@@ -297,12 +352,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 1,
     shadowRadius: 12,
     elevation: 3,
-    gap: 12,
     zIndex: 10,
   },
   headerTop: {
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginBottom: 12,
   },
   brandRow: {
     alignItems: 'center',
@@ -348,8 +403,8 @@ const styles = StyleSheet.create({
   },
   notifDot: {
     position: 'absolute',
-    top: 7,
-    right: 7,
+    top: 6,
+    right: 6,
     width: 7,
     height: 7,
     borderRadius: 3.5,
