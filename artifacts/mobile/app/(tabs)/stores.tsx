@@ -16,6 +16,7 @@ import { useGetStores } from '@workspace/api-client-react';
 import SearchBar from '@/components/SearchBar';
 import StoreCard from '@/components/StoreCard';
 import { useLayout } from '@/hooks/useLayout';
+import { BlurView } from 'expo-blur';
 
 const CITIES_AR = ['الكل', 'القاهرة', 'الإسكندرية', 'الجيزة'];
 const CITIES_EN = ['All', 'Cairo', 'Alexandria', 'Giza'];
@@ -51,7 +52,7 @@ export default function StoresScreen() {
   return (
     <View style={styles.container}>
       {/* Header */}
-      <View style={[styles.header, { paddingTop: topInset + 8 }]}>
+      <BlurView intensity={12} tint="light" style={[styles.header, { paddingTop: topInset + 8 }]}>
         <View style={isTablet ? styles.tabletCentered : undefined}>
           <View style={[styles.headerTop, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <Text style={[styles.title, { textAlign: isRTL ? 'right' : 'left' }]}>
@@ -96,7 +97,7 @@ export default function StoresScreen() {
             ))}
           </ScrollView>
         </View>
-      </View>
+      </BlurView>
 
       {/* Stats bar */}
       <View style={[styles.statsBar, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
@@ -181,7 +182,7 @@ const styles = StyleSheet.create({
   },
 
   header: {
-    backgroundColor: colors.light.background,
+    backgroundColor: 'rgba(247, 243, 236, 0.97)',
     paddingHorizontal: 16,
     paddingBottom: 12,
     borderBottomWidth: 1,
@@ -223,10 +224,10 @@ const styles = StyleSheet.create({
   filterChip: {
     paddingHorizontal: 16,
     paddingVertical: 7,
-    borderRadius: colors.radiusFull,
-    backgroundColor: colors.light.muted,
-    borderWidth: 1.5,
-    borderColor: 'transparent',
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.07)',
   },
   filterChipActive: {
     backgroundColor: colors.light.primaryLight,
@@ -274,7 +275,7 @@ const styles = StyleSheet.create({
   },
   scroll: { flex: 1 },
   scrollContent: { padding: 16, gap: 10 },
-  cardWrap: { marginBottom: 10 },
+  cardWrap: { marginBottom: 16 },
   empty: { alignItems: 'center', paddingTop: 64, gap: 10 },
   emptyIcon: {
     width: 64,

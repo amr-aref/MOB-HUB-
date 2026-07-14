@@ -56,7 +56,7 @@ function SettingsRow({
           <Ionicons
             name={isRTL ? 'chevron-back' : 'chevron-forward'}
             size={16}
-            color={colors.light.mutedForeground}
+            color="#C5C2BC"
           />
         )}
       </View>
@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     borderRadius: 100,
-    backgroundColor: 'rgba(37,99,235,0.06)',
+    backgroundColor: 'rgba(255,138,61,0.05)',
   },
   heroBg2: {
     position: 'absolute',
@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
     width: 160,
     height: 160,
     borderRadius: 80,
-    backgroundColor: 'rgba(37,99,235,0.04)',
+    backgroundColor: 'rgba(255,138,61,0.05)',
   },
   avatarWrap: {
     position: 'relative',
@@ -341,7 +341,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 3,
-    borderColor: 'rgba(37,99,235,0.2)',
+    borderColor: 'rgba(255,255,255,0.9)',
+    shadowColor: '#1E190F',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
   },
   editBadge: {
     position: 'absolute',
@@ -496,20 +500,15 @@ const styles = StyleSheet.create({
 
   // Settings
   settingsList: {
-    backgroundColor: '#fff',
-    borderRadius: colors.radiusLg,
+    backgroundColor: 'rgba(255,255,255,0.8)',
+    borderRadius: 16,
     overflow: 'hidden',
-    shadowColor: 'rgba(15,23,42,0.06)',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 1,
-    shadowRadius: 10,
-    elevation: 2,
     borderWidth: 1,
-    borderColor: 'rgba(226,232,240,0.6)',
+    borderColor: 'rgba(0,0,0,0.05)',
   },
   settingsRow: {
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(226,232,240,0.6)',
+    borderBottomColor: 'rgba(0,0,0,0.06)',
   },
   settingsRowInner: {
     alignItems: 'center',

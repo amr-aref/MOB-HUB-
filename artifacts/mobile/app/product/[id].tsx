@@ -158,10 +158,11 @@ export default function ProductScreen() {
                       <View
                         style={[
                           styles.colorCircle,
-                          { backgroundColor: color },
                           selectedColor === idx && styles.colorCircleSelected,
                         ]}
-                      />
+                      >
+                        <View style={[styles.colorInner, { backgroundColor: color }]} />
+                      </View>
                       <Text style={[styles.colorLabel, selectedColor === idx && styles.colorLabelActive]}>
                         {language === 'ar'
                           ? (colorNames[idx] ?? color)
@@ -308,7 +309,7 @@ export default function ProductScreen() {
             {t('specifications')}
           </Text>
           {specItems.map((spec, idx) => (
-            <View key={idx} style={[styles.specItem, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <View key={idx} style={[styles.specItem, { flexDirection: isRTL ? 'row-reverse' : 'row', backgroundColor: idx % 2 === 0 ? 'rgba(255,255,255,0.6)' : 'transparent' }]}>
               <View style={styles.specItemIcon}>
                 <Ionicons name={spec.icon as any} size={16} color={colors.light.primary} />
               </View>
@@ -542,12 +543,18 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    borderWidth: 2.5,
+    borderWidth: 2,
     borderColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   colorCircleSelected: {
-    borderColor: colors.light.foreground,
-    transform: [{ scale: 1.15 }],
+    borderColor: '#FF8A3D',
+  },
+  colorInner: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
   },
   colorLabel: {
     fontSize: 9,
@@ -614,7 +621,7 @@ const styles = StyleSheet.create({
   storeName: { fontSize: 13, fontFamily: 'Inter_500Medium', color: colors.light.mutedForeground, flex: 1 },
   priceBlock: { alignItems: 'flex-start', gap: 12 },
   priceLbl: { fontSize: 11, fontFamily: 'Inter_400Regular', color: colors.light.mutedForeground },
-  price: { fontSize: 28, fontFamily: 'Inter_700Bold', color: colors.light.foreground },
+  price: { fontSize: 32, fontFamily: 'Inter_800ExtraBold', color: '#2B2B2E' },
   currency: { fontSize: 14, fontFamily: 'Inter_500Medium', color: colors.light.mutedForeground },
   oldPrice: {
     fontSize: 16,
@@ -667,20 +674,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 10,
-    borderWidth: 1.5,
-    borderColor: 'rgba(226,232,240,0.8)',
-    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.1)',
+    backgroundColor: 'rgba(255,255,255,0.8)',
   },
   pillActive: {
-    backgroundColor: colors.light.primaryLight,
-    borderColor: colors.light.primary,
+    backgroundColor: '#2B2B2E',
+    borderColor: '#2B2B2E',
   },
   pillText: {
     fontSize: 13,
     fontFamily: 'Inter_600SemiBold',
-    color: colors.light.mutedForeground,
+    color: colors.light.foreground,
   },
-  pillTextActive: { color: colors.light.primary },
+  pillTextActive: { color: '#fff' },
 
   // Specs card
   specsCard: {
@@ -707,8 +714,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(226,232,240,0.5)',
+    paddingHorizontal: 12,
+    borderRadius: 8,
   },
   specItemIcon: {
     width: 32,
@@ -879,21 +886,16 @@ const styles = StyleSheet.create({
   },
   reserveBtnBottom: {
     flex: 1,
-    height: 48,
-    backgroundColor: colors.light.primary,
+    height: 52,
+    backgroundColor: '#2B2B2E',
     borderRadius: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    shadowColor: colors.light.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
   },
   reserveBtnTextBottom: {
-    fontSize: 15,
+    fontSize: 16,
     fontFamily: 'Inter_700Bold',
     color: '#fff',
   },

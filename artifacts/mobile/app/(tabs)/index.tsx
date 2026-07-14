@@ -18,6 +18,7 @@ import {
   useGetProducts,
   useGetCategories,
 } from '@workspace/api-client-react';
+import { BlurView } from 'expo-blur';
 import SearchBar from '@/components/SearchBar';
 import CategoryChip from '@/components/CategoryChip';
 import StoreCard from '@/components/StoreCard';
@@ -70,7 +71,7 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       {/* Premium White Header */}
-      <View style={[styles.header, { paddingTop: topInset + 8 }]}>
+      <BlurView intensity={12} tint="light" style={[styles.header, { paddingTop: topInset + 8 }]}>
         <View style={isTablet ? styles.tabletCentered : undefined}>
           <View style={[styles.headerTop, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             {/* App Brand */}
@@ -113,7 +114,7 @@ export default function HomeScreen() {
             />
           </View>
         </View>
-      </View>
+      </BlurView>
 
       <ScrollView
         style={styles.scroll}
@@ -191,7 +192,7 @@ export default function HomeScreen() {
         <View style={styles.section}>
           <Pressable style={styles.dealsBanner}>
             <LinearGradient
-              colors={['#1E40AF', '#2563EB', '#3B82F6']}
+              colors={['#FF8A3D', '#FF6B1A']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.dealsGradient}
@@ -342,7 +343,7 @@ const styles = StyleSheet.create({
 
   // Header
   header: {
-    backgroundColor: colors.light.background,
+    backgroundColor: 'rgba(247, 243, 236, 0.97)',
     paddingHorizontal: 16,
     paddingBottom: 14,
     borderBottomWidth: 1,
@@ -446,13 +447,11 @@ const styles = StyleSheet.create({
     gap: 2,
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: colors.radiusFull,
-    backgroundColor: colors.light.primaryLight,
   },
   seeAllText: {
-    fontSize: 12,
+    fontSize: 13,
     fontFamily: 'Inter_600SemiBold',
-    color: colors.light.primary,
+    color: '#FF8A3D',
   },
   chipsRow: {
     paddingHorizontal: 16,

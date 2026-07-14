@@ -92,13 +92,10 @@ export default function CategoryChip({
 const styles = StyleSheet.create({
   chip: {
     alignItems: 'center',
-    backgroundColor: colors.light.card,
-    borderRadius: 999,
-    shadowColor: colors.light.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 12,
-    elevation: 2,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.07)',
     padding: 6,
   },
   chipMd: {

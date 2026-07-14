@@ -113,6 +113,12 @@ export default function StoreScreen() {
             end={{ x: 1, y: 1 }}
             style={[styles.hero, { paddingTop: topInset + 8 }, isTablet && styles.tabletHero]}
           >
+            <LinearGradient
+              colors={['rgba(0,0,0,0.25)', 'rgba(0,0,0,0.5)']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 0, y: 1 }}
+              style={StyleSheet.absoluteFillObject}
+            />
             <View style={[styles.heroTopBar, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <Pressable
                 onPress={() => router.back()}
@@ -168,7 +174,7 @@ export default function StoreScreen() {
 
         {/* Quick contact bar */}
         <Animated.View entering={FadeInUp.delay(100).springify().stiffness(300).damping(28)} style={[styles.contactBar, { flexDirection: isRTL ? 'row-reverse' : 'row' }, isTablet && { marginHorizontal: 0 }]}>
-          <ContactBtn icon="call" label={language === 'ar' ? 'اتصال' : 'Call'} onPress={handleCall} color={colors.light.success} fontFam={fontFamSemi} />
+          <ContactBtn icon="call" label={language === 'ar' ? 'اتصال' : 'Call'} onPress={handleCall} color={colors.light.success} fontFam={fontFamSemi} primary />
           <ContactBtn icon="logo-whatsapp" label="WhatsApp" onPress={handleWhatsApp} color="#25D366" fontFam={fontFamSemi} />
           <ContactBtn icon="navigate" label={language === 'ar' ? 'الاتجاهات' : 'Navigate'} onPress={handleMaps} color={colors.light.primary} fontFam={fontFamSemi} />
           <ContactBtn
@@ -453,18 +459,20 @@ function ContactBtn({
   label,
   onPress,
   color,
-  fontFam
+  fontFam,
+  primary
 }: {
   icon: string;
   label: string;
   onPress: () => void;
   color: string;
   fontFam: string;
+  primary?: boolean;
 }) {
   return (
     <Pressable onPress={onPress} style={styles.contactBtn}>
-      <View style={[styles.contactBtnIcon, { backgroundColor: color + '15', borderColor: color + '25' }]}>
-        <Ionicons name={icon as any} size={24} color={color} />
+      <View style={[styles.contactBtnIcon, primary ? { backgroundColor: '#FF8A3D', borderColor: '#FF8A3D' } : { backgroundColor: color + '15', borderColor: color + '25' }]}>
+        <Ionicons name={icon as any} size={24} color={primary ? '#fff' : color} />
       </View>
       <Text style={[styles.contactBtnLabel, { fontFamily: fontFam }]} numberOfLines={1}>{label}</Text>
     </Pressable>
@@ -568,17 +576,20 @@ const styles = StyleSheet.create({
     gap: 12,
     flexWrap: 'wrap',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.15)',
     paddingHorizontal: 20,
     paddingVertical: 12,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
   },
-  statItem: { alignItems: 'center', gap: 4 },
+  statItem: {
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 12,
+    padding: 12,
+    minWidth: 70,
+  },
   statValue: { fontSize: 16, color: '#fff' },
   statLabel: { fontSize: 11, color: 'rgba(255,255,255,0.85)' },
-  statDivider: { width: 1, height: 28, backgroundColor: 'rgba(255,255,255,0.3)' },
+  statDivider: { display: 'none' },
   openPill: {
     flexDirection: 'row',
     alignItems: 'center',

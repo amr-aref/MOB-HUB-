@@ -14,8 +14,8 @@ interface GlassCardProps {
 export default function GlassCard({
   children,
   style,
-  intensity = 40,
-  borderRadius = 24,
+  intensity = 20,
+  borderRadius = 20,
   padding,
 }: GlassCardProps) {
   return (
@@ -40,11 +40,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 1,
     shadowRadius: 24,
     elevation: 4,
-    backgroundColor: 'rgba(255,255,255,0.4)', // fallback
+    backgroundColor: 'rgba(255,255,255,0.82)', // fallback
   },
   glassOverlay: {
     backgroundColor: 'rgba(255, 255, 255, 0.45)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.85)',
+    borderColor: 'rgba(255, 255, 255, 0.55)',
   },
 });

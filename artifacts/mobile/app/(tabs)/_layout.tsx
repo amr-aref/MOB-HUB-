@@ -7,6 +7,7 @@ import Animated, { useAnimatedStyle, withSpring } from 'react-native-reanimated'
 import colors from '@/constants/colors';
 import { getFontFamily } from '@/constants/fonts';
 import { useLayout } from '@/hooks/useLayout';
+import { BlurView } from 'expo-blur';
 
 function TabIcon({ focused, name, label, isRTL }: { focused: boolean, name: any, label: string, isRTL: boolean }) {
   const animatedStyle = useAnimatedStyle(() => {
@@ -30,6 +31,7 @@ function TabletSidebar({ state, descriptors, navigation, isRTL, t }: any) {
 
   return (
     <View style={[styles.sidebar, isRTL ? styles.sidebarRight : styles.sidebarLeft]}>
+      <Text style={[styles.sidebarLogoText, { textAlign: isRTL ? 'right' : 'left' }]}>MOB HUB</Text>
       <View style={styles.sidebarLogoWrap}>
         <View style={styles.appIcon}>
           <Ionicons name="phone-portrait" size={26} color="#fff" />
@@ -72,7 +74,7 @@ function TabletSidebar({ state, descriptors, navigation, isRTL, t }: any) {
               onPress={onPress}
               style={[styles.sidebarItem, isFocused && styles.sidebarItemFocused, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
             >
-              <Ionicons name={iconName as any} size={22} color={isFocused ? colors.light.primary : colors.light.mutedForeground} />
+              <Ionicons name={iconName as any} size={22} color={isFocused ? '#FF8A3D' : '#9E9BA4'} />
               <Text style={[styles.sidebarLabel, { fontFamily: fontFam, textAlign: isRTL ? 'right' : 'left' }, isFocused && styles.sidebarLabelFocused]}>{label}</Text>
             </Pressable>
           );
@@ -98,6 +100,9 @@ export default function TabLayout() {
         headerShown: false,
         tabBarShowLabel: false,
         tabBarStyle: tabBarStyle as any,
+        tabBarBackground: isTablet || isWeb ? undefined : () => (
+          <BlurView intensity={20} tint="light" style={[StyleSheet.absoluteFill, { borderRadius: 999, overflow: 'hidden' }]} />
+        ),
       }}
       tabBar={isTablet ? (props) => <TabletSidebar {...props} isRTL={isRTL} t={t} /> : undefined}
       sceneContainerStyle={isTablet ? { 
@@ -162,15 +167,16 @@ const styles = StyleSheet.create({
     bottom: 24,
     left: 24,
     right: 24,
-    backgroundColor: '#fff',
+    backgroundColor: 'rgba(255, 255, 255, 0.92)',
     borderRadius: 999,
-    height: 64,
-    borderWidth: 0,
-    shadowColor: colors.light.shadowMid,
+    height: 60,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.06)',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 1,
-    shadowRadius: 26,
-    elevation: 8,
+    shadowOpacity: 0.08,
+    shadowRadius: 20,
+    elevation: 10,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
@@ -189,14 +195,14 @@ const styles = StyleSheet.create({
     width: 48,
   },
   iconWrap: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
   iconWrapFocused: {
-    backgroundColor: colors.light.btnPrimaryBg,
+    backgroundColor: '#2B2B2E',
   },
   
   // Tablet Sidebar
@@ -205,13 +211,24 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: 220,
-    backgroundColor: '#fff',
+    backgroundColor: 'rgba(248, 246, 242, 1)',
     borderRightWidth: 1,
     borderLeftWidth: 1,
-    borderColor: 'rgba(226, 232, 240, 0.6)',
-    paddingTop: 40,
+    borderColor: 'rgba(0, 0, 0, 0.06)',
+    paddingTop: 60,
     paddingHorizontal: 16,
     zIndex: 50,
+  },
+  sidebarLogoText: {
+    position: 'absolute',
+    top: 24,
+    left: 20,
+    right: 20,
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: 1.5,
+    color: '#2B2B2E',
+    opacity: 0.5,
   },
   sidebarLeft: {
     left: 0,
@@ -250,14 +267,15 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   sidebarItemFocused: {
-    backgroundColor: colors.light.primaryLight,
+    backgroundColor: 'rgba(255, 138, 61, 0.10)',
+    borderRadius: 12,
   },
   sidebarLabel: {
     fontSize: 15,
-    color: colors.light.mutedForeground,
+    color: '#6B6870',
     flex: 1,
   },
   sidebarLabelFocused: {
-    color: colors.light.primary,
+    color: '#FF8A3D',
   },
 });

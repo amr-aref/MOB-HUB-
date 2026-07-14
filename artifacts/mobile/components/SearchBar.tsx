@@ -24,12 +24,12 @@ export default function SearchBar({ value, onChangeText, placeholder, isRTL = fa
 
   return (
     <View style={[styles.container, { flexDirection: rtl ? 'row-reverse' : 'row' }]}>
-      <Ionicons name="search-outline" size={20} color={colors.light.mutedForeground} />
+      <Ionicons name="search-outline" size={20} color="#9E9BA4" />
       <TextInput
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor={colors.light.textTertiary}
+        placeholderTextColor="rgba(120, 115, 105, 0.7)"
         style={inputStyle}
         returnKeyType="search"
         autoCorrect={false}
@@ -52,17 +52,18 @@ export default function SearchBar({ value, onChangeText, placeholder, isRTL = fa
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'rgba(251, 250, 247, 0.85)',
+    backgroundColor: 'rgba(255, 255, 255, 0.75)',
     borderRadius: 999,
     borderWidth: 0,
     paddingHorizontal: 16,
-    paddingVertical: 14,
+    height: 48,
     alignItems: 'center',
+    flexDirection: 'row',
     gap: 10,
-    shadowColor: colors.light.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 16,
+    shadowColor: '#1E190F',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
     elevation: 2,
   },
   input: {

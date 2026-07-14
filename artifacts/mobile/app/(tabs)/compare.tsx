@@ -142,8 +142,8 @@ export default function CompareScreen() {
     {
       label: language === 'ar' ? 'الأفضل عموماً' : 'Best Overall',
       icon: 'trophy',
-      color: '#F59E0B',
-      bgColor: '#FEF3C7',
+      color: '#CC5A00',
+      bgColor: 'rgba(255,138,61,0.08)',
       phoneIdx: selected.reduce((best, p, i, arr) => {
         const score = p._rearMp / 10 + p._batteryMah / 1000 + p._ramGb - p.priceEGP / 10000;
         const bestScore = arr[best]._rearMp / 10 + arr[best]._batteryMah / 1000 + arr[best]._ramGb - arr[best].priceEGP / 10000;
@@ -153,22 +153,22 @@ export default function CompareScreen() {
     {
       label: language === 'ar' ? 'أفضل كاميرا' : 'Best Camera',
       icon: 'camera',
-      color: '#8B5CF6',
-      bgColor: '#EDE9FE',
+      color: '#CC5A00',
+      bgColor: 'rgba(255,138,61,0.08)',
       phoneIdx: selected.reduce((best, p, i, arr) => p._rearMp > arr[best]._rearMp ? i : best, 0),
     },
     {
       label: language === 'ar' ? 'أفضل بطارية' : 'Best Battery',
       icon: 'battery-full',
-      color: '#10B981',
-      bgColor: '#D1FAE5',
+      color: '#CC5A00',
+      bgColor: 'rgba(255,138,61,0.08)',
       phoneIdx: selected.reduce((best, p, i, arr) => p._batteryMah > arr[best]._batteryMah ? i : best, 0),
     },
     {
       label: language === 'ar' ? 'أفضل قيمة' : 'Best Value',
       icon: 'pricetag',
-      color: '#2563EB',
-      bgColor: '#DBEAFE',
+      color: '#CC5A00',
+      bgColor: 'rgba(255,138,61,0.08)',
       phoneIdx: selected.reduce((best, p, i, arr) => p.priceEGP < arr[best].priceEGP ? i : best, 0),
     },
   ] : [];
@@ -617,13 +617,13 @@ const styles = StyleSheet.create({
   addSlotIcon: {
     width: 72,
     height: 110,
-    borderRadius: 14,
-    borderWidth: 2,
-    borderColor: colors.light.border,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: 'rgba(0,0,0,0.15)',
     borderStyle: 'dashed',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: 'rgba(255,255,255,0.6)',
   },
   addSlotText: {
     fontSize: 12,
@@ -706,7 +706,7 @@ const styles = StyleSheet.create({
   tableHeaderRow: {
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(226,232,240,0.8)',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: 'rgba(247,243,236,0.95)',
   },
   specLabelCol: {
     width: 100,

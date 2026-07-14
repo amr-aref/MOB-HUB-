@@ -53,7 +53,7 @@ export default function FavoritesScreen() {
               <Ionicons
                 name="storefront-outline"
                 size={16}
-                color={tab === 'stores' ? colors.light.primary : colors.light.mutedForeground}
+                color={tab === 'stores' ? '#fff' : colors.light.mutedForeground}
               />
               <Text style={[styles.segmentText, tab === 'stores' && styles.segmentTextActive]}>
                 {t('favoriteStores')} {favoriteStores.length > 0 ? `(${favoriteStores.length})` : ''}
@@ -66,7 +66,7 @@ export default function FavoritesScreen() {
               <Ionicons
                 name="phone-portrait-outline"
                 size={16}
-                color={tab === 'products' ? colors.light.primary : colors.light.mutedForeground}
+                color={tab === 'products' ? '#fff' : colors.light.mutedForeground}
               />
               <Text style={[styles.segmentText, tab === 'products' && styles.segmentTextActive]}>
                 {t('favoriteProducts')} {favoriteProducts.length > 0 ? `(${favoriteProducts.length})` : ''}
@@ -141,7 +141,7 @@ function EmptyState({ icon, text, hint }: { icon: string; text: string; hint: st
   return (
     <View style={emptyStyles.wrap}>
       <View style={emptyStyles.iconWrap}>
-        <Ionicons name={icon as any} size={40} color={colors.light.mutedForeground} />
+        <Ionicons name={icon as any} size={48} color={colors.light.mutedForeground} />
       </View>
       <Text style={emptyStyles.text}>{text}</Text>
       <Text style={emptyStyles.hint}>{hint}</Text>
@@ -152,14 +152,14 @@ function EmptyState({ icon, text, hint }: { icon: string; text: string; hint: st
 const emptyStyles = StyleSheet.create({
   wrap: {
     alignItems: 'center',
-    paddingTop: 80,
-    gap: 10,
+    paddingTop: 100,
+    gap: 16,
   },
   iconWrap: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: colors.light.muted,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(0,0,0,0.04)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -219,20 +219,22 @@ const styles = StyleSheet.create({
   },
   segmentRow: {
     flexDirection: 'row',
-    borderBottomWidth: 0,
+    backgroundColor: 'rgba(0,0,0,0.04)',
+    borderRadius: 12,
+    padding: 4,
+    marginBottom: 8,
   },
   segment: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
+    paddingVertical: 10,
     gap: 6,
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
+    borderRadius: 10,
   },
   segmentActive: {
-    borderBottomColor: colors.light.primary,
+    backgroundColor: '#2B2B2E',
   },
   segmentText: {
     fontSize: 14,
@@ -240,7 +242,7 @@ const styles = StyleSheet.create({
     color: colors.light.mutedForeground,
   },
   segmentTextActive: {
-    color: colors.light.primary,
+    color: '#fff',
     fontFamily: 'Inter_600SemiBold',
   },
   scroll: { flex: 1 },

@@ -20,10 +20,12 @@ const colors = {
     text: '#1B1B1D',
     tint: '#FF8A3D',
 
-    // Glass surfaces (kept as light warm-tinted translucents for map/overlay cards)
-    glass: 'rgba(255, 255, 255, 0.72)',
-    glassBorder: 'rgba(255, 255, 255, 0.85)',
-    glassStrong: 'rgba(255, 255, 255, 0.90)',
+    // Glass system
+    glass: 'rgba(255, 255, 255, 0.82)',
+    glassBorder: 'rgba(255, 255, 255, 0.10)',
+    glassMid: 'rgba(255, 255, 255, 0.12)',
+    glassStrong: 'rgba(255, 255, 255, 0.18)',
+    glassDark: 'rgba(0, 0, 0, 0.04)',
     glassDim: 'rgba(255, 255, 255, 0.45)',
 
     // Cards / elevated surfaces
@@ -66,6 +68,10 @@ const colors = {
     input: '#ECE6D9',
 
     // Shadows (diffuse, warm-toned — never cold gray)
+    shadowXs: { shadowColor: '#1E190F', shadowOffset: {width:0,height:1}, shadowOpacity: 0.04, shadowRadius: 3, elevation: 1 },
+    shadowSm: { shadowColor: '#1E190F', shadowOffset: {width:0,height:2}, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 },
+    shadowMd: { shadowColor: '#1E190F', shadowOffset: {width:0,height:4}, shadowOpacity: 0.08, shadowRadius: 12, elevation: 4 },
+    shadowLg: { shadowColor: '#1E190F', shadowOffset: {width:0,height:8}, shadowOpacity: 0.10, shadowRadius: 24, elevation: 8 },
     shadow: 'rgba(30, 25, 15, 0.06)',
     shadowMid: 'rgba(30, 25, 15, 0.10)',
     shadowStrong: 'rgba(30, 25, 15, 0.16)',

@@ -304,8 +304,8 @@ export default function DashboardScreen() {
               <Text style={styles.seeAllText}>{language === 'ar' ? 'عرض الكل' : 'See All'}</Text>
             </Pressable>
           </View>
-          {displayOrders.map((order) => (
-            <View key={order.id} style={[styles.orderRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          {displayOrders.map((order, idx) => (
+            <View key={order.id} style={[styles.orderRow, { flexDirection: isRTL ? 'row-reverse' : 'row', backgroundColor: idx % 2 === 0 ? 'rgba(0,0,0,0.02)' : 'transparent', borderRadius: 12 }]}>
               <View style={[styles.orderImage, { backgroundColor: '#1E3A8A22' }]}>
                 <Ionicons name="phone-portrait" size={18} color="#1E3A8A" />
               </View>
@@ -634,7 +634,7 @@ const styles = StyleSheet.create({
     width: '22%',
     minWidth: 74,
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: 'rgba(255,255,255,0.85)',
     borderRadius: 12,
     padding: 10,
     alignItems: 'center',
@@ -743,7 +743,7 @@ const styles = StyleSheet.create({
   },
 
   // Orders
-  orderRow: { alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: 'rgba(226,232,240,0.4)', gap: 10 },
+  orderRow: { alignItems: 'center', paddingVertical: 10, paddingHorizontal: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(226,232,240,0.4)', gap: 10 },
   orderImage: { width: 40, height: 40, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   orderProduct: { fontSize: 13, fontFamily: 'Inter_600SemiBold', color: colors.light.foreground },
   orderMeta: { fontSize: 11, fontFamily: 'Inter_400Regular', color: colors.light.mutedForeground, marginTop: 2 },
@@ -770,7 +770,7 @@ const styles = StyleSheet.create({
 
   // Chart
   chartSubtitle: { fontSize: 12, fontFamily: 'Inter_400Regular', color: colors.light.mutedForeground, marginBottom: 16 },
-  chartArea: { height: 120, alignItems: 'flex-end', gap: 6, marginBottom: 4 },
+  chartArea: { height: 160, alignItems: 'flex-end', gap: 6, marginBottom: 4, padding: 16, backgroundColor: '#fff', borderRadius: 16 },
   chartBar: { flex: 1, height: '100%', alignItems: 'center', justifyContent: 'flex-end', gap: 4, position: 'relative' },
   chartBarFill: { width: '80%', minHeight: 8 },
   chartLabel: { fontSize: 10, fontFamily: 'Inter_400Regular', color: colors.light.mutedForeground },

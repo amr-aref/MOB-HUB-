@@ -126,6 +126,12 @@ export default function StoreCard({
         end={{ x: 1, y: 1 }}
         style={listMode ? styles.listCover : styles.cover}
       >
+        <LinearGradient
+          colors={['transparent', 'rgba(0,0,0,0.3)']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          style={StyleSheet.absoluteFillObject}
+        />
         <View style={[styles.logo, { backgroundColor: 'rgba(255,255,255,0.25)' }, isRTL ? { right: 12 } : { left: 12 }]}>
           <Text style={[styles.logoText, { fontFamily: latinBold }]}>{store.logoInitial}</Text>
         </View>
@@ -145,7 +151,7 @@ export default function StoreCard({
 
         {store.isVerified && (
           <View style={[styles.verifiedBadge, isRTL ? { left: 12 } : { right: 12 }]}>
-            <Ionicons name="checkmark-circle" size={20} color={colors.light.verifiedBlue} />
+            <Ionicons name="checkmark" size={10} color={colors.light.verifiedBlue} />
           </View>
         )}
       </LinearGradient>
@@ -186,25 +192,29 @@ export default function StoreCard({
 const styles = StyleSheet.create({
   card: {
     width: 280,
-    borderRadius: colors.radiusLg,
+    borderRadius: 20,
     overflow: 'hidden',
     backgroundColor: colors.light.card,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.05)',
     shadowColor: colors.light.shadowMid,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 1,
-    shadowRadius: 24,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
     marginRight: 16,
   },
   listCard: {
-    borderRadius: colors.radiusLg,
+    borderRadius: 20,
     overflow: 'hidden',
     backgroundColor: colors.light.card,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.05)',
     shadowColor: colors.light.shadowMid,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 1,
-    shadowRadius: 24,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
   },
   cover: {
     height: 130,
@@ -226,6 +236,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.4)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 2,
   },
   logoText: { fontSize: 22, color: '#fff' },
   statusBadge: {
@@ -234,19 +249,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingVertical: 3,
     borderRadius: 999,
-    gap: 6,
+    gap: 4,
   },
-  statusDot: { width: 6, height: 6, borderRadius: 3 },
+  statusDot: { width: 4, height: 4, borderRadius: 2 },
   statusText: { fontSize: 11, color: '#fff' },
   verifiedBadge: {
     position: 'absolute',
     top: 12,
     backgroundColor: '#fff',
-    borderRadius: 10,
-    width: 20,
-    height: 20,
+    borderRadius: 8,
+    width: 16,
+    height: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
