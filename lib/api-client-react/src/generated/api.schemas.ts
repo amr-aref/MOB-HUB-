@@ -118,12 +118,37 @@ export interface ReviewDto {
   id: string;
   storeId?: string | null;
   productId?: string | null;
+  userId?: string | null;
   author: string;
   authorAr: string;
   rating: number;
+  title: string;
   textAr: string;
   textEn: string;
   date: string;
+  status: string;
+  helpfulCount: number;
+  verifiedPurchase: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateReviewBody {
+  author: string;
+  authorAr: string;
+  rating: number;
+  title?: string;
+  textEn: string;
+  textAr: string;
+  userId?: string;
+}
+
+export interface UpdateReviewBody {
+  rating: number;
+  title?: string;
+  textEn: string;
+  textAr: string;
+  userId: string;
 }
 
 export interface DashboardStatsDto {
@@ -191,6 +216,10 @@ isVerified?: string;
  */
 ids?: string;
 sort?: string;
+};
+
+export type DeleteReviewParams = {
+userId: string;
 };
 
 export type GetProductsParams = {

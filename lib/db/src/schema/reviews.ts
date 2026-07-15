@@ -1,4 +1,4 @@
-import { integer, pgTable, text } from "drizzle-orm/pg-core";
+import { boolean, integer, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { storesTable } from "./stores";
@@ -12,12 +12,25 @@ export const reviewsTable = pgTable("reviews", {
   productId: text("product_id").references(() => productsTable.id, {
     onDelete: "cascade",
   }),
+  /** Device-based pseudo user ID (auth is a future sprint) */
+  userId: text("user_id"),
   author: text("author").notNull(),
   authorAr: text("author_ar").notNull(),
   rating: integer("rating").notNull(),
+  /** Optional short title for the review */
+  title: text("title").notNull().default(""),
   textAr: text("text_ar").notNull(),
   textEn: text("text_en").notNull(),
+  /** Human-readable date string kept for display compatibility */
   date: text("date").notNull(),
+  /** Review lifecycle: active | pending | flagged */
+  status: text("status").notNull().default("active"),
+  /** Architecture-ready: helpful votes counter (Sprint B+) */
+  helpfulCount: integer("helpful_count").notNull().default(0),
+  /** Architecture-ready: verified purchase flag (Sprint C+) */
+  verifiedPurchase: boolean("verified_purchase").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 export const insertReviewSchema = createInsertSchema(reviewsTable);

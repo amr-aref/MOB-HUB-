@@ -126,6 +126,84 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ReviewDto"
+    post:
+      operationId: createStoreReview
+      tags: [stores]
+      summary: Submit a review for a store
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReviewBody"
+      responses:
+        "201":
+          description: Created review
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReviewDto"
+        "400":
+          description: Validation error
+        "404":
+          description: Store not found
+        "409":
+          description: Duplicate review
+
+  /reviews/{id}:
+    put:
+      operationId: updateReview
+      tags: [stores]
+      summary: Update an existing review
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateReviewBody"
+      responses:
+        "200":
+          description: Updated review
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReviewDto"
+        "400":
+          description: Validation error
+        "403":
+          description: Not your review
+        "404":
+          description: Review not found
+    delete:
+      operationId: deleteReview
+      tags: [stores]
+      summary: Delete a review
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: userId
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        "204":
+          description: Deleted
+        "403":
+          description: Not your review
+        "404":
+          description: Review not found
 
   /products:
     get:
@@ -581,20 +659,66 @@ components:
         productId:
           type: string
           nullable: true
+        userId:
+          type: string
+          nullable: true
         author: { type: string }
         authorAr: { type: string }
         rating: { type: integer }
+        title: { type: string }
         textAr: { type: string }
         textEn: { type: string }
         date: { type: string }
+        status: { type: string }
+        helpfulCount: { type: integer }
+        verifiedPurchase: { type: boolean }
+        createdAt: { type: string }
+        updatedAt: { type: string }
       required:
         - id
         - author
         - authorAr
         - rating
+        - title
         - textAr
         - textEn
         - date
+        - status
+        - helpfulCount
+        - verifiedPurchase
+        - createdAt
+        - updatedAt
+
+    CreateReviewBody:
+      type: object
+      properties:
+        author: { type: string }
+        authorAr: { type: string }
+        rating: { type: integer }
+        title: { type: string }
+        textEn: { type: string }
+        textAr: { type: string }
+        userId: { type: string }
+      required:
+        - author
+        - authorAr
+        - rating
+        - textEn
+        - textAr
+
+    UpdateReviewBody:
+      type: object
+      properties:
+        rating: { type: integer }
+        title: { type: string }
+        textEn: { type: string }
+        textAr: { type: string }
+        userId: { type: string }
+      required:
+        - rating
+        - textEn
+        - textAr
+        - userId
 
     DashboardStatsDto:
       type: object

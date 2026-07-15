@@ -144,14 +144,107 @@ export const GetStoreReviewsResponseItem = zod.object({
   "id": zod.string(),
   "storeId": zod.string().nullish(),
   "productId": zod.string().nullish(),
+  "userId": zod.string().nullish(),
   "author": zod.string(),
   "authorAr": zod.string(),
   "rating": zod.number(),
+  "title": zod.string(),
   "textAr": zod.string(),
   "textEn": zod.string(),
-  "date": zod.string()
+  "date": zod.string(),
+  "status": zod.string(),
+  "helpfulCount": zod.number(),
+  "verifiedPurchase": zod.boolean(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
 })
 export const GetStoreReviewsResponse = zod.array(GetStoreReviewsResponseItem)
+
+
+/**
+ * @summary Submit a review for a store
+ */
+export const CreateStoreReviewParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const CreateStoreReviewBody = zod.object({
+  "author": zod.string(),
+  "authorAr": zod.string(),
+  "rating": zod.number(),
+  "title": zod.string().optional(),
+  "textEn": zod.string(),
+  "textAr": zod.string(),
+  "userId": zod.string().optional()
+})
+
+export const CreateStoreReviewResponse = zod.object({
+  "id": zod.string(),
+  "storeId": zod.string().nullish(),
+  "productId": zod.string().nullish(),
+  "userId": zod.string().nullish(),
+  "author": zod.string(),
+  "authorAr": zod.string(),
+  "rating": zod.number(),
+  "title": zod.string(),
+  "textAr": zod.string(),
+  "textEn": zod.string(),
+  "date": zod.string(),
+  "status": zod.string(),
+  "helpfulCount": zod.number(),
+  "verifiedPurchase": zod.boolean(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Update an existing review
+ */
+export const UpdateReviewParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const UpdateReviewBody = zod.object({
+  "rating": zod.number(),
+  "title": zod.string().optional(),
+  "textEn": zod.string(),
+  "textAr": zod.string(),
+  "userId": zod.string()
+})
+
+export const UpdateReviewResponse = zod.object({
+  "id": zod.string(),
+  "storeId": zod.string().nullish(),
+  "productId": zod.string().nullish(),
+  "userId": zod.string().nullish(),
+  "author": zod.string(),
+  "authorAr": zod.string(),
+  "rating": zod.number(),
+  "title": zod.string(),
+  "textAr": zod.string(),
+  "textEn": zod.string(),
+  "date": zod.string(),
+  "status": zod.string(),
+  "helpfulCount": zod.number(),
+  "verifiedPurchase": zod.boolean(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Delete a review
+ */
+export const DeleteReviewParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const DeleteReviewQueryParams = zod.object({
+  "userId": zod.coerce.string()
+})
+
+export const DeleteReviewResponse = zod.void()
 
 
 /**
@@ -414,12 +507,19 @@ export const GetDashboardReviewsResponseItem = zod.object({
   "id": zod.string(),
   "storeId": zod.string().nullish(),
   "productId": zod.string().nullish(),
+  "userId": zod.string().nullish(),
   "author": zod.string(),
   "authorAr": zod.string(),
   "rating": zod.number(),
+  "title": zod.string(),
   "textAr": zod.string(),
   "textEn": zod.string(),
-  "date": zod.string()
+  "date": zod.string(),
+  "status": zod.string(),
+  "helpfulCount": zod.number(),
+  "verifiedPurchase": zod.boolean(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
 })
 export const GetDashboardReviewsResponse = zod.array(GetDashboardReviewsResponseItem)
 

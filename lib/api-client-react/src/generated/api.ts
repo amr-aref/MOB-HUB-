@@ -22,7 +22,9 @@ import type {
 import type {
   CategoryDto,
   CreateProductBody,
+  CreateReviewBody,
   DashboardStatsDto,
+  DeleteReviewParams,
   GetDashboardMessagesParams,
   GetDashboardOrdersParams,
   GetDashboardReviewsParams,
@@ -35,7 +37,8 @@ import type {
   PhoneSpecDto,
   ProductDto,
   ReviewDto,
-  StoreDto
+  StoreDto,
+  UpdateReviewBody
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -456,6 +459,230 @@ export function useGetStoreReviews<TData = Awaited<ReturnType<typeof getStoreRev
 
 
 
+
+export const getCreateStoreReviewUrl = (id: string,) => {
+
+
+
+
+  return `/api/stores/${id}/reviews`
+}
+
+/**
+ * @summary Submit a review for a store
+ */
+export const createStoreReview = async (id: string,
+    createReviewBody: CreateReviewBody, options?: RequestInit): Promise<ReviewDto> => {
+
+  return customFetch<ReviewDto>(getCreateStoreReviewUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(createReviewBody)
+  }
+);}
+
+
+
+
+
+export const getCreateStoreReviewMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createStoreReview>>, TError,{id: string;data: BodyType<CreateReviewBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createStoreReview>>, TError,{id: string;data: BodyType<CreateReviewBody>}, TContext> => {
+
+const mutationKey = ['createStoreReview'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createStoreReview>>, {id: string;data: BodyType<CreateReviewBody>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  createStoreReview(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateStoreReviewMutationResult = NonNullable<Awaited<ReturnType<typeof createStoreReview>>>
+    export type CreateStoreReviewMutationBody = BodyType<CreateReviewBody>
+    export type CreateStoreReviewMutationError = ErrorType<void>
+
+    /**
+ * @summary Submit a review for a store
+ */
+export const useCreateStoreReview = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createStoreReview>>, TError,{id: string;data: BodyType<CreateReviewBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createStoreReview>>,
+        TError,
+        {id: string;data: BodyType<CreateReviewBody>},
+        TContext
+      > => {
+      return useMutation(getCreateStoreReviewMutationOptions(options));
+    }
+
+export const getUpdateReviewUrl = (id: string,) => {
+
+
+
+
+  return `/api/reviews/${id}`
+}
+
+/**
+ * @summary Update an existing review
+ */
+export const updateReview = async (id: string,
+    updateReviewBody: UpdateReviewBody, options?: RequestInit): Promise<ReviewDto> => {
+
+  return customFetch<ReviewDto>(getUpdateReviewUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(updateReviewBody)
+  }
+);}
+
+
+
+
+
+export const getUpdateReviewMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateReview>>, TError,{id: string;data: BodyType<UpdateReviewBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateReview>>, TError,{id: string;data: BodyType<UpdateReviewBody>}, TContext> => {
+
+const mutationKey = ['updateReview'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateReview>>, {id: string;data: BodyType<UpdateReviewBody>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateReview(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateReviewMutationResult = NonNullable<Awaited<ReturnType<typeof updateReview>>>
+    export type UpdateReviewMutationBody = BodyType<UpdateReviewBody>
+    export type UpdateReviewMutationError = ErrorType<void>
+
+    /**
+ * @summary Update an existing review
+ */
+export const useUpdateReview = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateReview>>, TError,{id: string;data: BodyType<UpdateReviewBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateReview>>,
+        TError,
+        {id: string;data: BodyType<UpdateReviewBody>},
+        TContext
+      > => {
+      return useMutation(getUpdateReviewMutationOptions(options));
+    }
+
+export const getDeleteReviewUrl = (id: string,
+    params: DeleteReviewParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/reviews/${id}?${stringifiedParams}` : `/api/reviews/${id}`
+}
+
+/**
+ * @summary Delete a review
+ */
+export const deleteReview = async (id: string,
+    params: DeleteReviewParams, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteReviewUrl(id,params),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteReviewMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteReview>>, TError,{id: string;params: DeleteReviewParams}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteReview>>, TError,{id: string;params: DeleteReviewParams}, TContext> => {
+
+const mutationKey = ['deleteReview'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteReview>>, {id: string;params: DeleteReviewParams}> = (props) => {
+          const {id,params} = props ?? {};
+
+          return  deleteReview(id,params,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteReviewMutationResult = NonNullable<Awaited<ReturnType<typeof deleteReview>>>
+
+    export type DeleteReviewMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete a review
+ */
+export const useDeleteReview = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteReview>>, TError,{id: string;params: DeleteReviewParams}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteReview>>,
+        TError,
+        {id: string;params: DeleteReviewParams},
+        TContext
+      > => {
+      return useMutation(getDeleteReviewMutationOptions(options));
+    }
 
 export const getGetProductsUrl = (params?: GetProductsParams,) => {
   const normalizedParams = new URLSearchParams();

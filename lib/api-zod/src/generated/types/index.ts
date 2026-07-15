@@ -8,7 +8,9 @@
 
 export * from './categoryDto';
 export * from './createProductBody';
+export * from './createReviewBody';
 export * from './dashboardStatsDto';
+export * from './deleteReviewParams';
 export * from './getDashboardMessagesParams';
 export * from './getDashboardOrdersParams';
 export * from './getDashboardReviewsParams';
@@ -22,3 +24,4 @@ export * from './phoneSpecDto';
 export * from './productDto';
 export * from './reviewDto';
 export * from './storeDto';
+export * from './updateReviewBody';

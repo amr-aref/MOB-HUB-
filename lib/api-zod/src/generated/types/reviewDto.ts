@@ -10,10 +10,17 @@ export interface ReviewDto {
   id: string;
   storeId?: string | null;
   productId?: string | null;
+  userId?: string | null;
   author: string;
   authorAr: string;
   rating: number;
+  title: string;
   textAr: string;
   textEn: string;
   date: string;
+  status: string;
+  helpfulCount: number;
+  verifiedPurchase: boolean;
+  createdAt: string;
+  updatedAt: string;
 }

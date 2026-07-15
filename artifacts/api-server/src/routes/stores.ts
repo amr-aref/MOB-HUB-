@@ -5,7 +5,8 @@ import {
   productsTable,
   reviewsTable,
 } from "@workspace/db/schema";
-import { eq, ilike, or, sql, inArray } from "drizzle-orm";
+import { and, eq, ilike, or, sql, inArray } from "drizzle-orm";
+import { toReviewDto } from "./reviews";
 
 const router: IRouter = Router();
 
@@ -97,13 +98,18 @@ router.get("/stores/:id/products", async (req, res) => {
   res.json(rows);
 });
 
-// GET /stores/:id/reviews
+// GET /stores/:id/reviews  (active reviews only, mapped to ReviewDto)
 router.get("/stores/:id/reviews", async (req, res) => {
   const rows = await db
     .select()
     .from(reviewsTable)
-    .where(eq(reviewsTable.storeId, req.params.id));
-  res.json(rows);
+    .where(
+      and(
+        eq(reviewsTable.storeId, req.params.id),
+        eq(reviewsTable.status, "active"),
+      ),
+    );
+  res.json(rows.map(toReviewDto));
 });
 
 export default router;

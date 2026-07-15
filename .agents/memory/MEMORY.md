@@ -1,3 +1,5 @@
 - [Mobile Marketplace Architecture](mobile-marketplace.md) — Egypt mobile phone marketplace Expo app, enterprise-grade, white Liquid Glass design, Arabic RTL default, Phase 2 complete.
 - [Artifact registry can start empty on GitHub re-import](artifact-registry-reimport.md) — `listArtifacts()`/managed workflows can be empty despite `artifact.toml` files existing; recovery is manual `configureWorkflow`.
 - [Metro API proxy](metro-api-proxy.md) — `metro.config.js` proxies `/api/*` to port 8080 via `enhanceMiddleware`; needed because Replit path routing is inactive for manually configured workflows.
+- [Review system device-identity pattern](review-device-identity.md) — Reviews use AsyncStorage deviceId as pseudo-userId until auth lands; edit/delete gated on review.userId === deviceId client-side.
+- [api-zod index export collision](api-zod-export-collision.md) — Orval split mode generates same symbol names in both generated/api.ts (zod schemas) and generated/types/ (TS interfaces); api-zod/src/index.ts must export only from generated/api.
