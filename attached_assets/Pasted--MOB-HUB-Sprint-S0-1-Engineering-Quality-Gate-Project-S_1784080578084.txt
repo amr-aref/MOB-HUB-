@@ -1,0 +1,195 @@
+# MOB HUB — Sprint S0.1
+## Engineering Quality Gate & Project Stabilization
+
+Repository: Current Replit Workspace
+
+==========================================================
+ROLE
+==========================================================
+
+You are operating as a Senior Staff Software Engineer, Principal Architect, DevOps Engineer, and Tech Lead.
+
+Your mission is to strengthen the engineering foundation of the project.
+
+This is an infrastructure stabilization sprint.
+
+Feature development is STRICTLY FORBIDDEN.
+
+==========================================================
+OBJECTIVE
+==========================================================
+
+Audit, verify and stabilize the engineering environment without changing application behavior.
+
+The project must remain functionally identical after this sprint.
+
+==========================================================
+STRICT RULES
+==========================================================
+
+DO NOT:
+
+- Add new features.
+- Modify UI/UX.
+- Change navigation.
+- Modify business logic.
+- Change database schema.
+- Create new API endpoints.
+- Delete files.
+- Refactor unrelated code.
+- Introduce breaking changes.
+
+Only work on engineering quality and project stability.
+
+==========================================================
+TASKS
+==========================================================
+
+1. Inspect the entire workspace.
+
+2. Audit:
+
+- TypeScript configuration
+- ESLint configuration
+- React Hooks enforcement
+- Workspace configuration
+- Build configuration
+
+3. Verify React Hooks safety.
+
+Ensure:
+
+- react-hooks/rules-of-hooks
+- react-hooks/exhaustive-deps
+
+are correctly enforced.
+
+4. Search for engineering risks that could cause runtime failures similar to the previously discovered Product Detail crash.
+
+5. Verify all workspace packages are correctly configured.
+
+6. Detect:
+
+- invalid configurations
+- duplicated configs
+- missing lint rules
+- missing quality checks
+- inconsistent TypeScript settings
+
+7. Fix ONLY configuration issues that are completely safe and do not affect runtime behavior.
+
+If a change could alter application behavior:
+
+DO NOT APPLY IT.
+
+Document it instead.
+
+==========================================================
+VALIDATION
+==========================================================
+
+Before finishing, run every safe validation available inside Replit.
+
+Examples:
+
+- TypeScript type check
+- ESLint
+- Workspace validation
+- Build validation (if available)
+
+Do NOT claim validation succeeded unless it was actually executed.
+
+If something cannot run, explicitly explain why.
+
+==========================================================
+FINAL REPORT
+==========================================================
+
+Return a professional engineering report containing:
+
+# Executive Summary
+
+Overall project engineering health.
+
+---
+
+# Actions Performed
+
+Everything inspected.
+
+Everything modified.
+
+Everything intentionally left unchanged.
+
+---
+
+# Findings
+
+For every issue include:
+
+- Severity
+- File
+- Evidence
+- Root Cause
+- Risk
+- Recommendation
+
+---
+
+# Validation Results
+
+Report:
+
+✅ Passed
+
+⚠ Warning
+
+❌ Failed
+
+for every executed validation.
+
+---
+
+# Files Modified
+
+List every modified file.
+
+Explain why each file changed.
+
+---
+
+# Remaining Risks
+
+List only evidence-based risks.
+
+No assumptions.
+
+---
+
+# Final Verdict
+
+Choose exactly one:
+
+✅ PASS
+
+⚠ PASS WITH WARNINGS
+
+❌ FAIL
+
+Explain the decision.
+
+==========================================================
+SUCCESS CRITERIA
+==========================================================
+
+The project behavior is unchanged.
+
+No new features exist.
+
+Engineering quality is improved.
+
+Configuration is more robust.
+
+The workspace is more maintainable.
+
+The final report is complete, evidence-based, and professionally written.

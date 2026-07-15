@@ -3,14 +3,20 @@
  * Do not edit manually.
  * Api
  * MOB HUB Egypt — Mobile Phone Marketplace API
- * OpenAPI spec version: 0.2.0
+ * OpenAPI spec version: 0.3.0
  */
 
 export * from './categoryDto';
+export * from './chatMessageDto';
+export * from './conversationDto';
+export * from './createConversationBody';
 export * from './createProductBody';
 export * from './createReviewBody';
 export * from './dashboardStatsDto';
 export * from './deleteReviewParams';
+export * from './getConversationMessagesParams';
+export * from './getConversationParams';
+export * from './getConversationsParams';
 export * from './getDashboardMessagesParams';
 export * from './getDashboardOrdersParams';
 export * from './getDashboardReviewsParams';
@@ -18,10 +24,12 @@ export * from './getDashboardStatsParams';
 export * from './getProductsParams';
 export * from './getStoresParams';
 export * from './healthStatus';
+export * from './markReadBody';
 export * from './messageDto';
 export * from './orderDto';
 export * from './phoneSpecDto';
 export * from './productDto';
 export * from './reviewDto';
+export * from './sendMessageBody';
 export * from './storeDto';
 export * from './updateReviewBody';

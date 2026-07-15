@@ -22,6 +22,7 @@ import {
   useGetDashboardOrders,
   useGetDashboardMessages,
   useGetDashboardReviews,
+  useGetConversations,
 } from '@workspace/api-client-react';
 
 const STORE_ID = 's1';
@@ -81,6 +82,10 @@ export default function DashboardScreen() {
   const { data: statsData } = useGetDashboardStats({ storeId: STORE_ID });
   const { data: ordersData = [] } = useGetDashboardOrders({ storeId: STORE_ID });
   const { data: messagesData = [] } = useGetDashboardMessages({ storeId: STORE_ID });
+  const { data: conversationsData = [] } = useGetConversations(
+    { storeId: STORE_ID },
+    { query: { staleTime: 30_000 } },
+  );
   const { data: reviewsData = [] } = useGetDashboardReviews({ storeId: STORE_ID });
 
   // Keep the STORE variable name so all existing JSX references work unchanged
@@ -115,6 +120,8 @@ export default function DashboardScreen() {
   // Dashboard list data — fall back to module-level constants if API hasn't loaded
   const displayOrders = ordersData.length > 0 ? ordersData : RECENT_ORDERS;
   const displayMessages = messagesData.length > 0 ? messagesData : RECENT_MESSAGES;
+  // Real conversations from the messaging system (seller-side)
+  const displayConversations = conversationsData.slice(0, 3);
   // Use live API reviews; RECENT_REVIEWS kept as module-level fallback reference only
   const displayReviews = reviewsData;
 
@@ -354,40 +361,102 @@ export default function DashboardScreen() {
             <Text style={[styles.cardTitle, { textAlign: isRTL ? 'right' : 'left', marginBottom: 0 }]}>
               {language === 'ar' ? 'رسائل العملاء' : 'Customer Messages'}
             </Text>
-            <Pressable>
+            <Pressable onPress={() => router.push('/messages/index' as any)}>
               <Text style={styles.seeAllText}>{language === 'ar' ? 'عرض الكل' : 'See All'}</Text>
             </Pressable>
           </View>
-          {displayMessages.map((msg) => (
-            <View key={msg.id} style={[styles.messageRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <View style={styles.messageAvatar}>
-                <Ionicons name="person" size={16} color={colors.light.primary} />
-                {msg.unread > 0 && (
-                  <View style={styles.unreadBadge}>
-                    <Text style={styles.unreadBadgeText}>{msg.unread}</Text>
+          {displayConversations.length > 0 ? (
+            displayConversations.map((conv) => {
+              const productLabel =
+                language === 'ar'
+                  ? (conv.productNameAr ?? (language === 'ar' ? 'استفسار عام' : 'General inquiry'))
+                  : (conv.productNameEn ?? 'General inquiry');
+              const relTime = conv.lastMessageAt
+                ? (() => {
+                    const diff = Date.now() - new Date(conv.lastMessageAt).getTime();
+                    const mins = Math.floor(diff / 60000);
+                    if (mins < 60) return language === 'ar' ? `منذ ${mins} د` : `${mins}m ago`;
+                    const hrs = Math.floor(mins / 60);
+                    if (hrs < 24) return language === 'ar' ? `منذ ${hrs} س` : `${hrs}h ago`;
+                    return language === 'ar' ? `منذ ${Math.floor(hrs / 24)} ي` : `${Math.floor(hrs / 24)}d ago`;
+                  })()
+                : '';
+              return (
+                <Pressable
+                  key={conv.id}
+                  style={({ pressed }) => [
+                    styles.messageRow,
+                    { flexDirection: isRTL ? 'row-reverse' : 'row' },
+                    pressed && { opacity: 0.7 },
+                  ]}
+                  onPress={() => router.push(`/messages/${conv.id}` as any)}
+                >
+                  <View style={styles.messageAvatar}>
+                    <Ionicons name="person" size={16} color={colors.light.primary} />
+                    {conv.sellerUnreadCount > 0 && (
+                      <View style={styles.unreadBadge}>
+                        <Text style={styles.unreadBadgeText}>{conv.sellerUnreadCount > 9 ? '9+' : conv.sellerUnreadCount}</Text>
+                      </View>
+                    )}
                   </View>
-                )}
-              </View>
-              <View style={{ flex: 1, marginLeft: isRTL ? 0 : 10, marginRight: isRTL ? 10 : 0 }}>
-                <Text style={[styles.messageCustomer, { textAlign: isRTL ? 'right' : 'left' }]}>
-                  {msg.customer}
-                </Text>
-                <Text style={[styles.messageProduct, { textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
-                  {language === 'ar' ? msg.productAr : msg.productEn}
-                </Text>
-              </View>
-              <View style={{ alignItems: isRTL ? 'flex-start' : 'flex-end', gap: 3 }}>
-                <Text style={styles.messageTime}>{language === 'ar' ? msg.timeAr : msg.timeEn}</Text>
-                <View style={[styles.messageStatus, {
-                  backgroundColor: msg.status === 'PAID / RESERVED' ? colors.light.successLight : colors.light.primaryLight,
-                }]}>
-                  <Text style={[styles.messageStatusText, {
-                    color: msg.status === 'PAID / RESERVED' ? colors.light.success : colors.light.primary,
-                  }]}>{msg.status}</Text>
+                  <View style={{ flex: 1, marginLeft: isRTL ? 0 : 10, marginRight: isRTL ? 10 : 0 }}>
+                    <Text style={[styles.messageCustomer, { textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+                      {`${language === 'ar' ? 'عميل' : 'Customer'} · ${conv.buyerId.slice(0, 8)}`}
+                    </Text>
+                    <Text style={[styles.messageProduct, { textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+                      {productLabel}
+                    </Text>
+                    {conv.lastMessageText ? (
+                      <Text style={[styles.messageProduct, { textAlign: isRTL ? 'right' : 'left', color: colors.light.mutedForeground }]} numberOfLines={1}>
+                        {conv.lastMessageText}
+                      </Text>
+                    ) : null}
+                  </View>
+                  <View style={{ alignItems: isRTL ? 'flex-start' : 'flex-end', gap: 3 }}>
+                    <Text style={styles.messageTime}>{relTime}</Text>
+                    {conv.sellerUnreadCount > 0 && (
+                      <View style={[styles.messageStatus, { backgroundColor: colors.light.primaryLight }]}>
+                        <Text style={[styles.messageStatusText, { color: colors.light.primary }]}>
+                          {language === 'ar' ? 'جديد' : 'NEW'}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                </Pressable>
+              );
+            })
+          ) : (
+            displayMessages.map((msg) => (
+              <View key={msg.id} style={[styles.messageRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                <View style={styles.messageAvatar}>
+                  <Ionicons name="person" size={16} color={colors.light.primary} />
+                  {msg.unread > 0 && (
+                    <View style={styles.unreadBadge}>
+                      <Text style={styles.unreadBadgeText}>{msg.unread}</Text>
+                    </View>
+                  )}
+                </View>
+                <View style={{ flex: 1, marginLeft: isRTL ? 0 : 10, marginRight: isRTL ? 10 : 0 }}>
+                  <Text style={[styles.messageCustomer, { textAlign: isRTL ? 'right' : 'left' }]}>
+                    {msg.customer}
+                  </Text>
+                  <Text style={[styles.messageProduct, { textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+                    {language === 'ar' ? msg.productAr : msg.productEn}
+                  </Text>
+                </View>
+                <View style={{ alignItems: isRTL ? 'flex-start' : 'flex-end', gap: 3 }}>
+                  <Text style={styles.messageTime}>{language === 'ar' ? msg.timeAr : msg.timeEn}</Text>
+                  <View style={[styles.messageStatus, {
+                    backgroundColor: msg.status === 'PAID / RESERVED' ? colors.light.successLight : colors.light.primaryLight,
+                  }]}>
+                    <Text style={[styles.messageStatusText, {
+                      color: msg.status === 'PAID / RESERVED' ? colors.light.success : colors.light.primary,
+                    }]}>{msg.status}</Text>
+                  </View>
                 </View>
               </View>
-            </View>
-          ))}
+            ))
+          )}
         </View>
 
         {/* Latest Reviews */}

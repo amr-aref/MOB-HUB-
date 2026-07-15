@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
-  version: 0.2.0
+  version: 0.3.0
   description: MOB HUB Egypt — Mobile Phone Marketplace API
 servers:
   - url: /api
@@ -20,6 +20,8 @@ tags:
     description: Category operations
   - name: dashboard
     description: Seller dashboard operations
+  - name: messaging
+    description: Buyer–Seller conversation and messaging
 
 paths:
   /healthz:
@@ -416,6 +418,175 @@ paths:
                 $ref: "#/components/schemas/ProductDto"
         "400":
           description: Validation error
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # Messaging
+  # ───────────────────────────────────────────────────────────────────────────
+
+  /conversations:
+    get:
+      operationId: getConversations
+      tags: [messaging]
+      summary: List conversations (by buyerId or storeId)
+      parameters:
+        - name: buyerId
+          in: query
+          schema: { type: string }
+        - name: storeId
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: List of conversations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ConversationDto"
+        "400":
+          description: At least one of buyerId or storeId is required
+    post:
+      operationId: createConversation
+      tags: [messaging]
+      summary: Create or retrieve an existing conversation (idempotent)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateConversationBody"
+      responses:
+        "200":
+          description: Existing conversation returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConversationDto"
+        "201":
+          description: New conversation created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConversationDto"
+        "400":
+          description: Validation error
+        "404":
+          description: Store not found
+
+  /conversations/{id}:
+    get:
+      operationId: getConversation
+      tags: [messaging]
+      summary: Get a conversation by ID (participant check required)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: buyerId
+          in: query
+          schema: { type: string }
+        - name: storeId
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Conversation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConversationDto"
+        "403":
+          description: Not a participant
+        "404":
+          description: Not found
+
+  /conversations/{id}/messages:
+    get:
+      operationId: getConversationMessages
+      tags: [messaging]
+      summary: List messages in a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: buyerId
+          in: query
+          schema: { type: string }
+        - name: storeId
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ChatMessageDto"
+        "403":
+          description: Not a participant
+        "404":
+          description: Conversation not found
+    post:
+      operationId: sendMessage
+      tags: [messaging]
+      summary: Send a message in a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendMessageBody"
+      responses:
+        "201":
+          description: Message sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatMessageDto"
+        "400":
+          description: Validation error
+        "403":
+          description: Not a participant
+        "404":
+          description: Conversation not found
+
+  /conversations/{id}/read:
+    patch:
+      operationId: markConversationRead
+      tags: [messaging]
+      summary: Mark a conversation as read for a participant
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MarkReadBody"
+      responses:
+        "200":
+          description: Updated conversation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConversationDto"
+        "400":
+          description: Invalid readerType
+        "404":
+          description: Conversation not found
 
 components:
   schemas:
@@ -826,3 +997,93 @@ components:
         - model
         - price
         - category
+
+    # ─── Messaging schemas ────────────────────────────────────────────────────
+
+    ConversationDto:
+      type: object
+      properties:
+        id: { type: string }
+        storeId: { type: string }
+        buyerId: { type: string }
+        productId:
+          type: string
+          nullable: true
+        productNameAr:
+          type: string
+          nullable: true
+        productNameEn:
+          type: string
+          nullable: true
+        lastMessageText:
+          type: string
+          nullable: true
+        lastMessageAt:
+          type: string
+          nullable: true
+        buyerUnreadCount: { type: integer }
+        sellerUnreadCount: { type: integer }
+        status: { type: string }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+      required:
+        - id
+        - storeId
+        - buyerId
+        - buyerUnreadCount
+        - sellerUnreadCount
+        - status
+        - createdAt
+        - updatedAt
+
+    ChatMessageDto:
+      type: object
+      properties:
+        id: { type: string }
+        conversationId: { type: string }
+        senderType: { type: string }
+        senderId: { type: string }
+        type: { type: string }
+        content: { type: string }
+        status: { type: string }
+        createdAt: { type: string }
+      required:
+        - id
+        - conversationId
+        - senderType
+        - senderId
+        - type
+        - content
+        - status
+        - createdAt
+
+    CreateConversationBody:
+      type: object
+      properties:
+        buyerId: { type: string }
+        storeId: { type: string }
+        productId: { type: string }
+        productNameAr: { type: string }
+        productNameEn: { type: string }
+      required:
+        - buyerId
+        - storeId
+
+    SendMessageBody:
+      type: object
+      properties:
+        senderId: { type: string }
+        senderType: { type: string }
+        content: { type: string }
+        type: { type: string }
+      required:
+        - senderId
+        - senderType
+        - content
+
+    MarkReadBody:
+      type: object
+      properties:
+        readerType: { type: string }
+      required:
+        - readerType

@@ -15,7 +15,8 @@ import * as Haptics from 'expo-haptics';
 import colors from '@/constants/colors';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useFavorites } from '@/contexts/FavoritesContext';
-import { useGetProduct, useGetStore, useGetProducts } from '@workspace/api-client-react';
+import { useGetProduct, useGetStore, useGetProducts, useCreateConversation } from '@workspace/api-client-react';
+import { useDeviceId } from '@/hooks/useDeviceId';
 import RatingStars from '@/components/RatingStars';
 import { useLayout } from '@/hooks/useLayout';
 
@@ -36,6 +37,18 @@ export default function ProductScreen() {
     { query: { enabled: !!product?.category, queryKey: ['getProducts', product?.category ?? ''] } },
   );
 
+  // Hooks must be called unconditionally — before any early return
+  const deviceId = useDeviceId();
+  const { mutate: createConversation, isPending: creatingConv } = useCreateConversation({
+    mutation: {
+      onSuccess: (conv) => router.push(`/messages/${conv.id}` as any),
+    },
+  });
+
+  const [selectedColor, setSelectedColor] = useState(0);
+  const [selectedStorage, setSelectedStorage] = useState(0);
+  const [selectedRam, setSelectedRam] = useState(0);
+
   if (productLoading || !product) return null;
 
   const relatedProducts = relatedProductsData.slice(0, 4);
@@ -47,10 +60,6 @@ export default function ProductScreen() {
   const name = language === 'ar' ? product.nameAr : product.nameEn;
   const description = language === 'ar' ? product.descriptionAr : product.descriptionEn;
   const warranty = language === 'ar' ? product.warrantyAr : product.warranty;
-
-  const [selectedColor, setSelectedColor] = useState(0);
-  const [selectedStorage, setSelectedStorage] = useState(0);
-  const [selectedRam, setSelectedRam] = useState(0);
 
   const displayPrice = product.discountPrice ?? product.price;
   const discountPct = product.discountPrice
@@ -74,6 +83,19 @@ export default function ProductScreen() {
         : `Hello, I'm interested in: ${product!.nameEn}`,
     );
     Linking.openURL(`https://wa.me/${num}?text=${msg}`);
+  }
+
+  function handleMessageAboutProduct() {
+    if (!deviceId || !store) return;
+    createConversation({
+      data: {
+        buyerId: deviceId,
+        storeId: store!.id,
+        productId: product!.id,
+        productNameAr: product!.nameAr,
+        productNameEn: product!.nameEn,
+      },
+    });
   }
 
   function handleCall(storeOverride?: any) {
@@ -443,8 +465,14 @@ export default function ProductScreen() {
             {language === 'ar' ? 'احجز الآن' : 'RESERVE NOW'}
           </Text>
         </Pressable>
-        <Pressable style={styles.cartBtn}>
-          <Ionicons name="bag-handle-outline" size={22} color={colors.light.primary} />
+        <Pressable
+          style={[styles.cartBtn, creatingConv && { opacity: 0.6 }]}
+          onPress={handleMessageAboutProduct}
+          disabled={creatingConv || !deviceId || !store}
+          accessibilityRole="button"
+          accessibilityLabel={language === 'ar' ? 'اسأل عن المنتج' : 'Ask about product'}
+        >
+          <Ionicons name="chatbubble-outline" size={22} color={colors.light.primary} />
         </Pressable>
       </View>
     </View>

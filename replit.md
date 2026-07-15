@@ -4,14 +4,15 @@ An Expo mobile marketplace app (Arabic RTL) for buying/comparing phones in Egypt
 
 ## Run & Operate
 
-- Workflow `Mobile` — runs the Expo app (`pnpm --filter @workspace/mobile run dev`), reachable at `https://$REPLIT_EXPO_DEV_DOMAIN/`
-- Workflow `API Server` — runs the Express API (`pnpm --filter @workspace/api-server run dev`, port 8080), health check at `/api/healthz`
+- Workflow `artifacts/mobile: expo` — Expo mobile app, reachable at `https://$REPLIT_EXPO_DEV_DOMAIN/`
+- Workflow `artifacts/api-server: API Server` — Express API on port 8080
+- Workflow `artifacts/mockup-sandbox: Component Preview Server` — Vite design sandbox on port 8081 at `/__mockup`
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- `pnpm --filter @workspace/db run seed` — seed the database with sample data (needed once after a fresh DB/import — tables exist but are empty until this runs)
-- Required env: `DATABASE_URL` — Postgres connection string (already provisioned)
+- `pnpm --filter @workspace/db run seed` — seed the database with sample data
+- Required env: `DATABASE_URL` — runtime-managed by Replit (auto-provisioned, no action needed)
 
 ## Stack
 

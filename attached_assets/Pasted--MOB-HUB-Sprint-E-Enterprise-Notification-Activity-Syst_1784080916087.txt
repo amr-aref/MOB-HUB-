@@ -1,0 +1,304 @@
+# MOB HUB — Sprint E
+## Enterprise Notification & Activity System
+
+Repository: Current Replit Workspace
+
+==================================================================
+ROLE
+==================================================================
+
+You are operating as an elite enterprise software company composed of:
+
+• Principal Software Architect
+• Staff Backend Engineer
+• Senior React Native Engineer
+• UX Architect
+• Database Architect
+• Product Engineer
+• DevOps Engineer
+• Security Engineer
+• QA Lead
+
+Your mission is to design and implement a complete enterprise-grade notification platform for MOB HUB.
+
+This sprint must integrate seamlessly with every existing module.
+
+==================================================================
+OBJECTIVE
+==================================================================
+
+Build a centralized notification system for buyers and sellers.
+
+Notifications must become a core platform service used across the marketplace.
+
+The architecture must support future Push Notifications without requiring redesign.
+
+==================================================================
+STRICT RULES
+==================================================================
+
+DO NOT
+
+• redesign existing UI
+• modify colors
+• change typography
+• break existing APIs
+• duplicate logic
+• create temporary solutions
+• hardcode notification data
+• bypass architecture
+
+Everything must integrate with the existing architecture.
+
+==================================================================
+NOTIFICATION TYPES
+==================================================================
+
+Support notifications for:
+
+• New Message
+• New Order
+• Order Status Updated
+• Review Received
+• Product Approved
+• Product Rejected
+• Store Follow
+• Favorite Price Change
+• Promotional Campaign
+• System Announcement
+
+Architecture must support adding new notification types without changing existing code.
+
+==================================================================
+DATABASE
+==================================================================
+
+Design normalized tables.
+
+Each notification must include:
+
+• id
+• userId
+• type
+• title
+• body
+• metadata
+• readStatus
+• createdAt
+• expiresAt (optional)
+
+Add proper indexes.
+
+Follow existing Drizzle conventions.
+
+==================================================================
+API
+==================================================================
+
+Follow:
+
+OpenAPI
+
+↓
+
+Orval
+
+↓
+
+Generated Hooks
+
+↓
+
+Express
+
+↓
+
+Drizzle
+
+Implement endpoints:
+
+GET Notifications
+
+GET Notification
+
+PATCH Mark Read
+
+PATCH Mark All Read
+
+DELETE Notification
+
+GET Unread Count
+
+==================================================================
+FRONTEND
+==================================================================
+
+Implement:
+
+Notification Center
+
+Unread badge
+
+Notification List
+
+Empty State
+
+Loading State
+
+Error State
+
+Pull To Refresh
+
+Mark as Read
+
+Mark All as Read
+
+Delete Notification
+
+==================================================================
+HOME INTEGRATION
+==================================================================
+
+The notification bell must become fully functional.
+
+Display unread badge.
+
+Open Notification Center.
+
+Remove every placeholder behavior.
+
+==================================================================
+SELLER DASHBOARD
+==================================================================
+
+Display business notifications:
+
+• New Orders
+
+• New Reviews
+
+• New Messages
+
+• Product Status
+
+• Store Alerts
+
+==================================================================
+BUYER EXPERIENCE
+==================================================================
+
+Display notifications for:
+
+• Order Updates
+
+• Seller Replies
+
+• Review Responses
+
+• Favorite Product Changes
+
+==================================================================
+ARCHITECTURE
+==================================================================
+
+Notification service must be reusable.
+
+Avoid coupling UI directly to API.
+
+Follow:
+
+SOLID
+
+Clean Architecture
+
+DRY
+
+KISS
+
+Repository Pattern
+
+Reusable Hooks
+
+==================================================================
+VALIDATION
+==================================================================
+
+Before completion execute:
+
+• TypeScript
+
+• ESLint
+
+• Build
+
+• Workspace Validation
+
+Never claim validation passed unless executed.
+
+==================================================================
+REGRESSION TEST
+==================================================================
+
+Verify:
+
+Home
+
+Dashboard
+
+Orders
+
+Messaging
+
+Favorites
+
+Profile
+
+Navigation
+
+API Hooks
+
+remain fully functional.
+
+==================================================================
+FINAL REPORT
+==================================================================
+
+Return a professional engineering report.
+
+Include:
+
+Executive Summary
+
+Architecture
+
+Database Changes
+
+API Changes
+
+Frontend Changes
+
+Files Modified
+
+Validation Results
+
+Regression Results
+
+Remaining Risks
+
+Sprint Completion %
+
+Next Recommended Sprint
+
+Final Verdict
+
+Choose exactly one:
+
+✅ PASS
+
+⚠ PASS WITH WARNINGS
+
+❌ FAIL
+
+Never invent results.
+
+Every conclusion must be evidence-based.

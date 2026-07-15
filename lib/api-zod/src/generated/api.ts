@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Api
  * MOB HUB Egypt — Mobile Phone Marketplace API
- * OpenAPI spec version: 0.2.0
+ * OpenAPI spec version: 0.3.0
  */
 import * as zod from 'zod';
 
@@ -573,6 +573,168 @@ export const CreateDashboardProductResponse = zod.object({
   "isNew": zod.boolean(),
   "isBestSeller": zod.boolean(),
   "isFeatured": zod.boolean()
+})
+
+
+/**
+ * @summary List conversations (by buyerId or storeId)
+ */
+export const GetConversationsQueryParams = zod.object({
+  "buyerId": zod.coerce.string().optional(),
+  "storeId": zod.coerce.string().optional()
+})
+
+export const GetConversationsResponseItem = zod.object({
+  "id": zod.string(),
+  "storeId": zod.string(),
+  "buyerId": zod.string(),
+  "productId": zod.string().nullish(),
+  "productNameAr": zod.string().nullish(),
+  "productNameEn": zod.string().nullish(),
+  "lastMessageText": zod.string().nullish(),
+  "lastMessageAt": zod.string().nullish(),
+  "buyerUnreadCount": zod.number(),
+  "sellerUnreadCount": zod.number(),
+  "status": zod.string(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+export const GetConversationsResponse = zod.array(GetConversationsResponseItem)
+
+
+/**
+ * @summary Create or retrieve an existing conversation (idempotent)
+ */
+export const CreateConversationBody = zod.object({
+  "buyerId": zod.string(),
+  "storeId": zod.string(),
+  "productId": zod.string().optional(),
+  "productNameAr": zod.string().optional(),
+  "productNameEn": zod.string().optional()
+})
+
+export const CreateConversationResponse = zod.object({
+  "id": zod.string(),
+  "storeId": zod.string(),
+  "buyerId": zod.string(),
+  "productId": zod.string().nullish(),
+  "productNameAr": zod.string().nullish(),
+  "productNameEn": zod.string().nullish(),
+  "lastMessageText": zod.string().nullish(),
+  "lastMessageAt": zod.string().nullish(),
+  "buyerUnreadCount": zod.number(),
+  "sellerUnreadCount": zod.number(),
+  "status": zod.string(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Get a conversation by ID (participant check required)
+ */
+export const GetConversationParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const GetConversationQueryParams = zod.object({
+  "buyerId": zod.coerce.string().optional(),
+  "storeId": zod.coerce.string().optional()
+})
+
+export const GetConversationResponse = zod.object({
+  "id": zod.string(),
+  "storeId": zod.string(),
+  "buyerId": zod.string(),
+  "productId": zod.string().nullish(),
+  "productNameAr": zod.string().nullish(),
+  "productNameEn": zod.string().nullish(),
+  "lastMessageText": zod.string().nullish(),
+  "lastMessageAt": zod.string().nullish(),
+  "buyerUnreadCount": zod.number(),
+  "sellerUnreadCount": zod.number(),
+  "status": zod.string(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary List messages in a conversation
+ */
+export const GetConversationMessagesParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const GetConversationMessagesQueryParams = zod.object({
+  "buyerId": zod.coerce.string().optional(),
+  "storeId": zod.coerce.string().optional()
+})
+
+export const GetConversationMessagesResponseItem = zod.object({
+  "id": zod.string(),
+  "conversationId": zod.string(),
+  "senderType": zod.string(),
+  "senderId": zod.string(),
+  "type": zod.string(),
+  "content": zod.string(),
+  "status": zod.string(),
+  "createdAt": zod.string()
+})
+export const GetConversationMessagesResponse = zod.array(GetConversationMessagesResponseItem)
+
+
+/**
+ * @summary Send a message in a conversation
+ */
+export const SendMessageParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const SendMessageBody = zod.object({
+  "senderId": zod.string(),
+  "senderType": zod.string(),
+  "content": zod.string(),
+  "type": zod.string().optional()
+})
+
+export const SendMessageResponse = zod.object({
+  "id": zod.string(),
+  "conversationId": zod.string(),
+  "senderType": zod.string(),
+  "senderId": zod.string(),
+  "type": zod.string(),
+  "content": zod.string(),
+  "status": zod.string(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Mark a conversation as read for a participant
+ */
+export const MarkConversationReadParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const MarkConversationReadBody = zod.object({
+  "readerType": zod.string()
+})
+
+export const MarkConversationReadResponse = zod.object({
+  "id": zod.string(),
+  "storeId": zod.string(),
+  "buyerId": zod.string(),
+  "productId": zod.string().nullish(),
+  "productNameAr": zod.string().nullish(),
+  "productNameEn": zod.string().nullish(),
+  "lastMessageText": zod.string().nullish(),
+  "lastMessageAt": zod.string().nullish(),
+  "buyerUnreadCount": zod.number(),
+  "sellerUnreadCount": zod.number(),
+  "status": zod.string(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
 })
 
 

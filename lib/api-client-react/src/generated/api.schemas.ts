@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Api
  * MOB HUB Egypt — Mobile Phone Marketplace API
- * OpenAPI spec version: 0.2.0
+ * OpenAPI spec version: 0.3.0
  */
 export interface HealthStatus {
   status: string;
@@ -207,6 +207,52 @@ export interface CreateProductBody {
   inStock?: boolean;
 }
 
+export interface ConversationDto {
+  id: string;
+  storeId: string;
+  buyerId: string;
+  productId?: string | null;
+  productNameAr?: string | null;
+  productNameEn?: string | null;
+  lastMessageText?: string | null;
+  lastMessageAt?: string | null;
+  buyerUnreadCount: number;
+  sellerUnreadCount: number;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ChatMessageDto {
+  id: string;
+  conversationId: string;
+  senderType: string;
+  senderId: string;
+  type: string;
+  content: string;
+  status: string;
+  createdAt: string;
+}
+
+export interface CreateConversationBody {
+  buyerId: string;
+  storeId: string;
+  productId?: string;
+  productNameAr?: string;
+  productNameEn?: string;
+}
+
+export interface SendMessageBody {
+  senderId: string;
+  senderType: string;
+  content: string;
+  type?: string;
+}
+
+export interface MarkReadBody {
+  readerType: string;
+}
+
 export type GetStoresParams = {
 search?: string;
 governorate?: string;
@@ -251,6 +297,21 @@ storeId?: string;
 };
 
 export type GetDashboardReviewsParams = {
+storeId?: string;
+};
+
+export type GetConversationsParams = {
+buyerId?: string;
+storeId?: string;
+};
+
+export type GetConversationParams = {
+buyerId?: string;
+storeId?: string;
+};
+
+export type GetConversationMessagesParams = {
+buyerId?: string;
 storeId?: string;
 };
 

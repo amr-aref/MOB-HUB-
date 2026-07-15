@@ -1,0 +1,393 @@
+# MOB HUB — Sprint D
+## Enterprise Messaging Platform
+
+Repository: Current Replit Workspace
+
+==================================================================
+ROLE
+==================================================================
+
+You are operating as an elite software company composed of:
+
+• Principal Software Architect
+• Staff Backend Engineer
+• Senior React Native Engineer
+• Senior UX Engineer
+• Database Architect
+• Security Engineer
+• API Architect
+• DevOps Engineer
+• QA Lead
+
+Your mission is to design and implement a production-ready messaging platform for MOB HUB.
+
+The implementation must follow enterprise software engineering standards.
+
+==================================================================
+OBJECTIVE
+==================================================================
+
+Build a complete Buyer ↔ Seller messaging system tightly integrated with the existing marketplace.
+
+The system must be modular, scalable, maintainable and ready for future real-time upgrades.
+
+==================================================================
+STRICT RULES
+==================================================================
+
+DO NOT
+
+• redesign existing UI
+• change application theme
+• modify unrelated features
+• break existing APIs
+• duplicate business logic
+• duplicate components
+• use mock data
+• create temporary hacks
+• hardcode users
+• hardcode stores
+• bypass architecture
+
+Everything must integrate with the existing project architecture.
+
+==================================================================
+FEATURES TO IMPLEMENT
+==================================================================
+
+1. Conversation System
+
+Implement conversations between buyers and sellers.
+
+Each conversation belongs to:
+
+• Buyer
+• Seller
+• Store
+• Optional Product
+
+Conversation list must display:
+
+• last message
+• unread count
+• timestamp
+• participant
+• store
+
+==================================================================
+
+2. Message System
+
+Support:
+
+• Text Messages
+• Image Messages (architecture ready)
+• System Messages
+
+Each message must contain:
+
+• id
+• conversationId
+• sender
+• receiver
+• createdAt
+• status
+• type
+• content
+
+==================================================================
+
+3. Chat Screen
+
+Create a professional chat experience.
+
+Include:
+
+• message bubbles
+• timestamps
+• read/unread states
+• typing area
+• auto scroll
+• empty state
+• loading state
+• error state
+
+==================================================================
+
+4. Store Integration
+
+From Store Detail
+
+"Message Seller"
+
+must immediately open or create a conversation.
+
+Never create duplicate conversations.
+
+==================================================================
+
+5. Product Integration
+
+From Product Detail
+
+"Ask About Product"
+
+opens conversation linked to the selected product.
+
+==================================================================
+
+6. Dashboard Integration
+
+Seller Dashboard
+
+New Messages section must display:
+
+• latest conversations
+• unread messages
+• quick open chat
+
+==================================================================
+
+7. Database
+
+Design proper normalized schema.
+
+Tables should support future scalability.
+
+Include relations for:
+
+• Conversations
+• Participants
+• Messages
+
+Follow existing Drizzle conventions.
+
+==================================================================
+
+8. API
+
+Follow existing architecture.
+
+OpenAPI
+
+↓
+
+Orval
+
+↓
+
+React Hooks
+
+↓
+
+Express
+
+↓
+
+Drizzle
+
+Maintain contract-first development.
+
+Implement REST endpoints including:
+
+GET Conversations
+
+GET Conversation
+
+POST Conversation
+
+GET Messages
+
+POST Message
+
+PATCH Read Status
+
+Only add endpoints required for Sprint D.
+
+==================================================================
+
+9. UX
+
+Professional messaging experience.
+
+Support:
+
+• loading skeletons
+• empty states
+• retry states
+• unread badge
+• smooth transitions
+
+Do not redesign existing application style.
+
+==================================================================
+
+10. Security
+
+Messages must only be accessible to conversation participants.
+
+Never expose unrelated conversations.
+
+Prepare architecture for future Authentication integration.
+
+Do not fake permissions.
+
+==================================================================
+QUALITY REQUIREMENTS
+==================================================================
+
+Follow:
+
+• SOLID
+• Clean Architecture
+• DRY
+• KISS
+• Type Safety
+• Reusable Components
+
+Avoid large components.
+
+Avoid duplicated code.
+
+Avoid inline business logic.
+
+==================================================================
+VALIDATION
+==================================================================
+
+Before finishing execute every available validation.
+
+Including:
+
+• TypeScript
+• ESLint
+• Build
+• Workspace validation
+
+Never report success without executing validation.
+
+==================================================================
+REGRESSION TEST
+==================================================================
+
+Verify that Sprint D does NOT break:
+
+• Home
+• Stores
+• Product Detail
+• Store Detail
+• Compare
+• Favorites
+• Dashboard
+• Existing API Hooks
+• Navigation
+
+==================================================================
+FINAL REPORT
+==================================================================
+
+Return a complete engineering report.
+
+--------------------------------------------------
+
+# Executive Summary
+
+Overall Sprint Result
+
+--------------------------------------------------
+
+# Architecture
+
+Explain the implemented messaging architecture.
+
+--------------------------------------------------
+
+# Database
+
+Tables created
+
+Relations
+
+Indexes
+
+Future scalability
+
+--------------------------------------------------
+
+# API
+
+Endpoints added
+
+OpenAPI changes
+
+Generated Hooks
+
+--------------------------------------------------
+
+# Frontend
+
+Screens
+
+Components
+
+Navigation
+
+Reusable UI
+
+--------------------------------------------------
+
+# Files Modified
+
+Explain why every modified file changed.
+
+--------------------------------------------------
+
+# Validation Results
+
+TypeScript
+
+ESLint
+
+Build
+
+Regression
+
+--------------------------------------------------
+
+# Risks
+
+Remaining technical debt.
+
+Future improvements.
+
+--------------------------------------------------
+
+# Sprint Completion
+
+Estimated Sprint D completion.
+
+--------------------------------------------------
+
+# Next Recommended Sprint
+
+Recommend exactly ONE next sprint.
+
+Explain why.
+
+--------------------------------------------------
+
+# Final Verdict
+
+Choose exactly one:
+
+✅ PASS
+
+⚠ PASS WITH WARNINGS
+
+❌ FAIL
+
+The report must be evidence-based.
+
+Never invent results.
+
+Never claim successful validation unless it was actually executed.

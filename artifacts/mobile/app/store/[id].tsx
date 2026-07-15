@@ -33,6 +33,7 @@ import {
   useGetStoreReviews,
   useGetCategories,
   useDeleteReview,
+  useCreateConversation,
   getGetStoreReviewsQueryKey,
   getGetStoreQueryKey,
   type ReviewDto,
@@ -268,6 +269,12 @@ export default function StoreScreen() {
     },
   });
 
+  const { mutate: createConversation } = useCreateConversation({
+    mutation: {
+      onSuccess: (conv) => router.push(`/messages/${conv.id}` as any),
+    },
+  });
+
   function handleDeleteReview(review: ReviewDto) {
     Alert.alert(t("deleteReview"), t("deleteReviewConfirm"), [
       { text: t("cancel"), style: "cancel" },
@@ -326,6 +333,11 @@ export default function StoreScreen() {
   function handleWhatsApp() {
     Linking.openURL(`https://wa.me/${store!.whatsapp.replace(/\+/g, "")}`);
   }
+  function handleMessageSeller() {
+    if (!deviceId) return;
+    createConversation({ data: { buyerId: deviceId, storeId: store!.id } });
+  }
+
   function handleMaps() {
     const url =
       Platform.OS === "ios"
@@ -546,6 +558,13 @@ export default function StoreScreen() {
             color={
               isFav ? colors.light.destructive : colors.light.mutedForeground
             }
+            fontFam={fontFamSemi}
+          />
+          <ContactBtn
+            icon="chatbubble-outline"
+            label={language === "ar" ? "رسالة" : "Message"}
+            onPress={handleMessageSeller}
+            color={colors.light.primary}
             fontFam={fontFamSemi}
           />
         </Animated.View>

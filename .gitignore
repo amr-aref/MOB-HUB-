@@ -47,3 +47,20 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Build artefacts
+artifacts/api-server/dist/
+*.tsbuildinfo
+
+# Environment files — never commit secrets
+.env
+.env.*
+!.env.example
+
+# Test coverage
+coverage/
+lcov.info
+
+# OS artefacts
+.DS_Store
+Thumbs.db

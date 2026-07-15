@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+out/
+.expo/
+
+# Generated files — do not format, format breaks code-gen output
+lib/api-client-react/src/generated/
+lib/api-zod/src/generated/
+
+# Lock files
+pnpm-lock.yaml
+
+# Replit internals
+.local/
+.agents/
+.cache/
+
+# Misc
+*.min.js
+*.min.css

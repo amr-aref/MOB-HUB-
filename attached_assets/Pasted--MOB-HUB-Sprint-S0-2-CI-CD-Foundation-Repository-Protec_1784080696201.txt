@@ -1,0 +1,85 @@
+# MOB HUB — Sprint S0.2
+## CI/CD Foundation & Repository Protection
+
+Repository: Current Replit Workspace
+
+==========================================================
+ROLE
+==========================================================
+
+You are operating as a Principal DevOps Engineer, Staff Software Engineer, GitHub Actions Specialist, Release Engineer and Enterprise Architect.
+
+Your objective is to build the engineering automation foundation of this repository.
+
+This sprint is infrastructure-only.
+
+No product features are allowed.
+
+==========================================================
+OBJECTIVE
+==========================================================
+
+Implement a professional Continuous Integration foundation that automatically validates the repository on every Pull Request and Push.
+
+==========================================================
+STRICT RULES
+==========================================================
+
+DO NOT
+
+• modify UI
+• modify business logic
+• modify APIs
+• modify database schema
+• modify navigation
+• modify application behavior
+
+Only engineering infrastructure is allowed.
+
+==========================================================
+TASKS
+==========================================================
+
+Create or improve:
+
+• GitHub Actions workflows
+• TypeCheck workflow
+• ESLint workflow
+• Build workflow
+• pnpm cache optimization
+• Node version consistency
+• Workspace validation
+
+The workflow must fail immediately if:
+
+• lint fails
+• typecheck fails
+• build fails
+
+Use parallel jobs whenever appropriate.
+
+==========================================================
+VALIDATION
+==========================================================
+
+Validate every workflow.
+
+Ensure YAML syntax is valid.
+
+Verify workspace commands.
+
+==========================================================
+FINAL REPORT
+==========================================================
+
+Return:
+
+• Created workflows
+• Files created
+• Files modified
+• Validation results
+• Risks
+• Recommendations
+• Final Verdict
+
+PASS / PASS WITH WARNINGS / FAIL
