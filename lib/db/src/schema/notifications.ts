@@ -22,6 +22,13 @@ export const NOTIFICATION_TYPES = [
   "favorite_price_change",
   "promotional_campaign",
   "system_announcement",
+  // ── Reservation events (Sprint G.2+) ───────────────────────────────────────
+  // New types are added here; no schema migration required (type column is text).
+  "reservation_created",   // Merchant receives when a buyer creates a reservation.
+  "reservation_confirmed", // Buyer receives when the merchant confirms.
+  "reservation_declined",  // Buyer receives when the merchant declines.
+  "reservation_cancelled", // The other party receives on cancellation.
+  "reservation_completed", // Buyer receives when the merchant marks the visit done.
 ] as const;
 
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];

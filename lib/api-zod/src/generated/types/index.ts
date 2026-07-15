@@ -6,13 +6,16 @@
  * OpenAPI spec version: 0.3.0
  */
 
+export * from './cancelReservationBody';
 export * from './categoryDto';
 export * from './chatMessageDto';
 export * from './conversationDto';
 export * from './createConversationBody';
 export * from './createProductBody';
+export * from './createReservationBody';
 export * from './createReviewBody';
 export * from './dashboardStatsDto';
+export * from './declineReservationBody';
 export * from './deleteReviewParams';
 export * from './getConversationMessagesParams';
 export * from './getConversationParams';
@@ -24,17 +27,24 @@ export * from './getDashboardStatsParams';
 export * from './getNotificationsParams';
 export * from './getNotificationsUnreadCountParams';
 export * from './getProductsParams';
+export * from './getReservationParams';
+export * from './getReservationsParams';
 export * from './getStoresParams';
 export * from './healthStatus';
 export * from './markAllNotificationsRead200';
 export * from './markAllNotificationsReadBody';
 export * from './markReadBody';
+export * from './merchantActionBody';
 export * from './messageDto';
 export * from './notificationDto';
 export * from './notificationDtoMetadata';
 export * from './orderDto';
 export * from './phoneSpecDto';
 export * from './productDto';
+export * from './reservationConflictError';
+export * from './reservationDto';
+export * from './reservationProductSnapshot';
+export * from './reservationStoreSnapshot';
 export * from './reviewDto';
 export * from './sendMessageBody';
 export * from './storeDto';

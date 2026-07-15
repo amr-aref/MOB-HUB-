@@ -24,6 +24,8 @@ tags:
     description: Buyer–Seller conversation and messaging
   - name: notifications
     description: Centralized notification platform (buyer + seller)
+  - name: reservations
+    description: Product reservation workflow (buyer browses → reserves → visits physical store)
 
 paths:
   /healthz:
@@ -686,6 +688,281 @@ paths:
         "404":
           description: Notification not found
 
+  # ───────────────────────────────────────────────────────────────────────────
+  # Reservations
+  # ───────────────────────────────────────────────────────────────────────────
+
+  /products/{id}/reserve:
+    post:
+      operationId: createReservation
+      tags: [reservations]
+      summary: Create a reservation for a product
+      description: >
+        A buyer submits a reservation request for a specific product.
+        The product must exist. Only one active (pending or confirmed) reservation
+        is allowed per product at any time — the DB enforces this with a unique
+        partial index. A conversation thread is automatically created or reused.
+        Sends a `reservation_created` notification to the merchant.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Product ID to reserve
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReservationBody"
+            example:
+              buyerId: "device_abc123"
+              buyerNotes: "هل يمكن تجربة الجهاز قبل الشراء؟"
+      responses:
+        "201":
+          description: Reservation created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReservationDto"
+        "400":
+          description: Validation error — buyerId is required
+        "404":
+          description: Product not found
+        "409":
+          description: Conflict — product already has an active reservation, or buyer has a duplicate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReservationConflictError"
+
+  /reservations:
+    get:
+      operationId: getReservations
+      tags: [reservations]
+      summary: List reservations for a buyer or merchant
+      description: >
+        Returns reservations filtered by buyerId (buyer's device UUID) or storeId
+        (merchant). At least one must be provided. Supports optional status filter
+        and pagination via limit/offset.
+      parameters:
+        - name: buyerId
+          in: query
+          description: Buyer device UUID — returns all reservations made by this buyer
+          schema: { type: string }
+        - name: storeId
+          in: query
+          description: Store ID — returns all reservations for this store's products
+          schema: { type: string }
+        - name: status
+          in: query
+          description: Filter by reservation status (pending, confirmed, declined, cancelled, expired, completed)
+          schema: { type: string }
+        - name: limit
+          in: query
+          description: Maximum number of results (1–50, default 20)
+          schema: { type: integer }
+        - name: offset
+          in: query
+          description: Pagination offset (default 0)
+          schema: { type: integer }
+      responses:
+        "200":
+          description: List of reservations ordered by createdAt descending
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReservationDto"
+        "400":
+          description: At least one of buyerId or storeId is required
+
+  /reservations/{id}:
+    get:
+      operationId: getReservation
+      tags: [reservations]
+      summary: Get a single reservation by ID
+      description: >
+        Fetches a reservation by its ID. Either buyerId or storeId must be provided
+        for access control — the API returns 404 (not 403) when the caller is not
+        a participant to prevent ID enumeration.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: buyerId
+          in: query
+          description: Buyer device UUID (required if caller is the buyer)
+          schema: { type: string }
+        - name: storeId
+          in: query
+          description: Store ID (required if caller is the merchant)
+          schema: { type: string }
+      responses:
+        "200":
+          description: Reservation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReservationDto"
+        "404":
+          description: Reservation not found or caller is not a participant
+
+  /reservations/{id}/confirm:
+    patch:
+      operationId: confirmReservation
+      tags: [reservations]
+      summary: Merchant confirms a pending reservation
+      description: >
+        Transitions the reservation from `pending` → `confirmed`.
+        Only the owning store may confirm. Posts a system message to the linked
+        conversation and sends a `reservation_confirmed` notification to the buyer.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MerchantActionBody"
+            example:
+              storeId: "s1"
+      responses:
+        "200":
+          description: Updated reservation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReservationDto"
+        "400":
+          description: storeId is required
+        "403":
+          description: Forbidden — caller is not the owning store
+        "404":
+          description: Reservation not found
+        "422":
+          description: Invalid state transition — reservation is not in pending status
+
+  /reservations/{id}/decline:
+    patch:
+      operationId: declineReservation
+      tags: [reservations]
+      summary: Merchant declines a pending reservation
+      description: >
+        Transitions the reservation from `pending` → `declined`.
+        Only the owning store may decline. Sends a `reservation_declined`
+        notification to the buyer.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeclineReservationBody"
+            example:
+              storeId: "s1"
+              cancellationReason: "الجهاز غير متاح حالياً"
+      responses:
+        "200":
+          description: Updated reservation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReservationDto"
+        "400":
+          description: storeId is required
+        "403":
+          description: Forbidden — caller is not the owning store
+        "404":
+          description: Reservation not found
+        "422":
+          description: Invalid state transition
+
+  /reservations/{id}/cancel:
+    patch:
+      operationId: cancelReservation
+      tags: [reservations]
+      summary: Cancel a reservation (buyer or merchant)
+      description: >
+        Transitions the reservation from `pending` or `confirmed` → `cancelled`.
+        Either the buyer (buyerId) or the merchant (storeId) may cancel.
+        Provide exactly one of buyerId or storeId. The other party receives a
+        `reservation_cancelled` notification.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CancelReservationBody"
+            example:
+              buyerId: "device_abc123"
+              cancellationReason: "غيّرت رأيي"
+      responses:
+        "200":
+          description: Updated reservation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReservationDto"
+        "400":
+          description: Either buyerId or storeId is required
+        "404":
+          description: Reservation not found or caller is not a participant
+        "422":
+          description: Invalid state transition — terminal statuses cannot be cancelled
+
+  /reservations/{id}/complete:
+    patch:
+      operationId: completeReservation
+      tags: [reservations]
+      summary: Merchant marks a confirmed reservation as completed
+      description: >
+        Transitions the reservation from `confirmed` → `completed`.
+        Only the owning store may complete. Represents the buyer visiting
+        the physical store. Sends a `reservation_completed` notification to the buyer.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MerchantActionBody"
+            example:
+              storeId: "s1"
+      responses:
+        "200":
+          description: Updated reservation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReservationDto"
+        "400":
+          description: storeId is required
+        "403":
+          description: Forbidden — caller is not the owning store
+        "404":
+          description: Reservation not found
+        "422":
+          description: Invalid state transition — reservation is not in confirmed status
+
   /conversations/{id}/read:
     patch:
       operationId: markConversationRead
@@ -1259,3 +1536,149 @@ components:
         userId: { type: string }
       required:
         - userId
+
+    # ─── Reservation schemas ──────────────────────────────────────────────────
+
+    ReservationProductSnapshot:
+      type: object
+      description: Embedded product summary within a ReservationDto — avoids a second round-trip
+      properties:
+        nameAr: { type: string }
+        nameEn: { type: string }
+        price: { type: integer }
+        imageColor: { type: string }
+        brand: { type: string }
+        model: { type: string }
+      required: [nameAr, nameEn, price, imageColor, brand, model]
+
+    ReservationStoreSnapshot:
+      type: object
+      description: Embedded store summary within a ReservationDto — avoids a second round-trip
+      properties:
+        nameAr: { type: string }
+        nameEn: { type: string }
+        logoColor: { type: string }
+        logoInitial: { type: string }
+        address: { type: string }
+        phone: { type: string }
+      required: [nameAr, nameEn, logoColor, logoInitial, address, phone]
+
+    ReservationDto:
+      type: object
+      description: >
+        Full reservation record with embedded product and store snapshots.
+        Status values: pending | confirmed | declined | cancelled | expired | completed.
+      properties:
+        id: { type: string }
+        productId: { type: string }
+        product:
+          $ref: "#/components/schemas/ReservationProductSnapshot"
+        storeId: { type: string }
+        store:
+          $ref: "#/components/schemas/ReservationStoreSnapshot"
+        buyerId: { type: string }
+        conversationId:
+          type: string
+          nullable: true
+        status: { type: string }
+        cancelledBy:
+          type: string
+          nullable: true
+          description: "Who cancelled: 'buyer' | 'merchant' | null"
+        buyerNotes:
+          type: string
+          nullable: true
+        merchantNotes:
+          type: string
+          nullable: true
+        expiresAt: { type: string }
+        confirmedAt:
+          type: string
+          nullable: true
+        declinedAt:
+          type: string
+          nullable: true
+        cancelledAt:
+          type: string
+          nullable: true
+        completedAt:
+          type: string
+          nullable: true
+        createdAt: { type: string }
+        updatedAt: { type: string }
+      required:
+        - id
+        - productId
+        - product
+        - storeId
+        - store
+        - buyerId
+        - status
+        - expiresAt
+        - createdAt
+        - updatedAt
+
+    CreateReservationBody:
+      type: object
+      description: Request body for creating a reservation on a product.
+      properties:
+        buyerId:
+          type: string
+          description: Buyer's device UUID (anonymous identity until auth is added)
+          minLength: 1
+        buyerNotes:
+          type: string
+          description: Optional message from the buyer to the merchant (max 500 chars)
+          maxLength: 500
+      required: [buyerId]
+
+    MerchantActionBody:
+      type: object
+      description: Request body for confirm and complete actions — requires the merchant's store ID.
+      properties:
+        storeId:
+          type: string
+          description: Store ID of the acting merchant
+          minLength: 1
+      required: [storeId]
+
+    DeclineReservationBody:
+      type: object
+      description: Request body for merchant decline action.
+      properties:
+        storeId:
+          type: string
+          description: Store ID of the acting merchant
+          minLength: 1
+        cancellationReason:
+          type: string
+          description: Optional reason shown to the buyer (max 500 chars)
+          maxLength: 500
+      required: [storeId]
+
+    CancelReservationBody:
+      type: object
+      description: >
+        Request body for cancellation. Provide exactly one of buyerId (buyer cancels)
+        or storeId (merchant cancels). The other party will be notified.
+      properties:
+        buyerId:
+          type: string
+          description: Buyer device UUID (when the buyer is cancelling)
+        storeId:
+          type: string
+          description: Store ID (when the merchant is cancelling)
+        cancellationReason:
+          type: string
+          description: Optional reason (max 500 chars)
+          maxLength: 500
+
+    ReservationConflictError:
+      type: object
+      description: Returned when a reservation cannot be created due to a conflict.
+      properties:
+        error: { type: string }
+        code:
+          type: string
+          description: "DUPLICATE_RESERVATION (same buyer) or PRODUCT_ALREADY_RESERVED (another buyer)"
+      required: [error, code]

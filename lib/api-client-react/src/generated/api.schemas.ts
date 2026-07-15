@@ -277,6 +277,122 @@ export interface MarkAllNotificationsReadBody {
   userId: string;
 }
 
+/**
+ * Embedded product summary within a ReservationDto — avoids a second round-trip
+ */
+export interface ReservationProductSnapshot {
+  nameAr: string;
+  nameEn: string;
+  price: number;
+  imageColor: string;
+  brand: string;
+  model: string;
+}
+
+/**
+ * Embedded store summary within a ReservationDto — avoids a second round-trip
+ */
+export interface ReservationStoreSnapshot {
+  nameAr: string;
+  nameEn: string;
+  logoColor: string;
+  logoInitial: string;
+  address: string;
+  phone: string;
+}
+
+/**
+ * Full reservation record with embedded product and store snapshots. Status values: pending | confirmed | declined | cancelled | expired | completed.
+ */
+export interface ReservationDto {
+  id: string;
+  productId: string;
+  product: ReservationProductSnapshot;
+  storeId: string;
+  store: ReservationStoreSnapshot;
+  buyerId: string;
+  conversationId?: string | null;
+  status: string;
+  /** Who cancelled: 'buyer' | 'merchant' | null */
+  cancelledBy?: string | null;
+  buyerNotes?: string | null;
+  merchantNotes?: string | null;
+  expiresAt: string;
+  confirmedAt?: string | null;
+  declinedAt?: string | null;
+  cancelledAt?: string | null;
+  completedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Request body for creating a reservation on a product.
+ */
+export interface CreateReservationBody {
+  /**
+     * Buyer's device UUID (anonymous identity until auth is added)
+     * @minLength 1
+     */
+  buyerId: string;
+  /**
+     * Optional message from the buyer to the merchant (max 500 chars)
+     * @maxLength 500
+     */
+  buyerNotes?: string;
+}
+
+/**
+ * Request body for confirm and complete actions — requires the merchant's store ID.
+ */
+export interface MerchantActionBody {
+  /**
+     * Store ID of the acting merchant
+     * @minLength 1
+     */
+  storeId: string;
+}
+
+/**
+ * Request body for merchant decline action.
+ */
+export interface DeclineReservationBody {
+  /**
+     * Store ID of the acting merchant
+     * @minLength 1
+     */
+  storeId: string;
+  /**
+     * Optional reason shown to the buyer (max 500 chars)
+     * @maxLength 500
+     */
+  cancellationReason?: string;
+}
+
+/**
+ * Request body for cancellation. Provide exactly one of buyerId (buyer cancels) or storeId (merchant cancels). The other party will be notified.
+ */
+export interface CancelReservationBody {
+  /** Buyer device UUID (when the buyer is cancelling) */
+  buyerId?: string;
+  /** Store ID (when the merchant is cancelling) */
+  storeId?: string;
+  /**
+     * Optional reason (max 500 chars)
+     * @maxLength 500
+     */
+  cancellationReason?: string;
+}
+
+/**
+ * Returned when a reservation cannot be created due to a conflict.
+ */
+export interface ReservationConflictError {
+  error: string;
+  /** DUPLICATE_RESERVATION (same buyer) or PRODUCT_ALREADY_RESERVED (another buyer) */
+  code: string;
+}
+
 export type GetStoresParams = {
 search?: string;
 governorate?: string;
@@ -349,5 +465,39 @@ userId: string;
 
 export type MarkAllNotificationsRead200 = {
   success: boolean;
+};
+
+export type GetReservationsParams = {
+/**
+ * Buyer device UUID — returns all reservations made by this buyer
+ */
+buyerId?: string;
+/**
+ * Store ID — returns all reservations for this store's products
+ */
+storeId?: string;
+/**
+ * Filter by reservation status (pending, confirmed, declined, cancelled, expired, completed)
+ */
+status?: string;
+/**
+ * Maximum number of results (1–50, default 20)
+ */
+limit?: number;
+/**
+ * Pagination offset (default 0)
+ */
+offset?: number;
+};
+
+export type GetReservationParams = {
+/**
+ * Buyer device UUID (required if caller is the buyer)
+ */
+buyerId?: string;
+/**
+ * Store ID (required if caller is the merchant)
+ */
+storeId?: string;
 };
 

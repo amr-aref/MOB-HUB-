@@ -25,7 +25,7 @@ const corsOrigin: string | string[] | boolean = rawOrigin
 app.use(
   cors({
     origin: corsOrigin,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Accept"],
     // Credentials are not used; keeping this false avoids wildcard+credentials conflicts.
     credentials: false,

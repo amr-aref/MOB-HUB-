@@ -20,13 +20,16 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  CancelReservationBody,
   CategoryDto,
   ChatMessageDto,
   ConversationDto,
   CreateConversationBody,
   CreateProductBody,
+  CreateReservationBody,
   CreateReviewBody,
   DashboardStatsDto,
+  DeclineReservationBody,
   DeleteReviewParams,
   GetConversationMessagesParams,
   GetConversationParams,
@@ -38,16 +41,21 @@ import type {
   GetNotificationsParams,
   GetNotificationsUnreadCountParams,
   GetProductsParams,
+  GetReservationParams,
+  GetReservationsParams,
   GetStoresParams,
   HealthStatus,
   MarkAllNotificationsRead200,
   MarkAllNotificationsReadBody,
   MarkReadBody,
+  MerchantActionBody,
   MessageDto,
   NotificationDto,
   OrderDto,
   PhoneSpecDto,
   ProductDto,
+  ReservationConflictError,
+  ReservationDto,
   ReviewDto,
   SendMessageBody,
   StoreDto,
@@ -2358,6 +2366,546 @@ export const useMarkNotificationRead = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getMarkNotificationReadMutationOptions(options));
+    }
+
+export const getCreateReservationUrl = (id: string,) => {
+
+
+
+
+  return `/api/products/${id}/reserve`
+}
+
+/**
+ * A buyer submits a reservation request for a specific product. The product must exist. Only one active (pending or confirmed) reservation is allowed per product at any time — the DB enforces this with a unique partial index. A conversation thread is automatically created or reused. Sends a `reservation_created` notification to the merchant.
+ * @summary Create a reservation for a product
+ */
+export const createReservation = async (id: string,
+    createReservationBody: CreateReservationBody, options?: RequestInit): Promise<ReservationDto> => {
+
+  return customFetch<ReservationDto>(getCreateReservationUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(createReservationBody)
+  }
+);}
+
+
+
+
+
+export const getCreateReservationMutationOptions = <TError = ErrorType<void | ReservationConflictError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createReservation>>, TError,{id: string;data: BodyType<CreateReservationBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createReservation>>, TError,{id: string;data: BodyType<CreateReservationBody>}, TContext> => {
+
+const mutationKey = ['createReservation'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createReservation>>, {id: string;data: BodyType<CreateReservationBody>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  createReservation(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateReservationMutationResult = NonNullable<Awaited<ReturnType<typeof createReservation>>>
+    export type CreateReservationMutationBody = BodyType<CreateReservationBody>
+    export type CreateReservationMutationError = ErrorType<void | ReservationConflictError>
+
+    /**
+ * @summary Create a reservation for a product
+ */
+export const useCreateReservation = <TError = ErrorType<void | ReservationConflictError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createReservation>>, TError,{id: string;data: BodyType<CreateReservationBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createReservation>>,
+        TError,
+        {id: string;data: BodyType<CreateReservationBody>},
+        TContext
+      > => {
+      return useMutation(getCreateReservationMutationOptions(options));
+    }
+
+export const getGetReservationsUrl = (params?: GetReservationsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/reservations?${stringifiedParams}` : `/api/reservations`
+}
+
+/**
+ * Returns reservations filtered by buyerId (buyer's device UUID) or storeId (merchant). At least one must be provided. Supports optional status filter and pagination via limit/offset.
+ * @summary List reservations for a buyer or merchant
+ */
+export const getReservations = async (params?: GetReservationsParams, options?: RequestInit): Promise<ReservationDto[]> => {
+
+  return customFetch<ReservationDto[]>(getGetReservationsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetReservationsQueryKey = (params?: GetReservationsParams,) => {
+    return [
+    `/api/reservations`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetReservationsQueryOptions = <TData = Awaited<ReturnType<typeof getReservations>>, TError = ErrorType<void>>(params?: GetReservationsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getReservations>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetReservationsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getReservations>>> = ({ signal }) => getReservations(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getReservations>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetReservationsQueryResult = NonNullable<Awaited<ReturnType<typeof getReservations>>>
+export type GetReservationsQueryError = ErrorType<void>
+
+
+/**
+ * @summary List reservations for a buyer or merchant
+ */
+
+export function useGetReservations<TData = Awaited<ReturnType<typeof getReservations>>, TError = ErrorType<void>>(
+ params?: GetReservationsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getReservations>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetReservationsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetReservationUrl = (id: string,
+    params?: GetReservationParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/reservations/${id}?${stringifiedParams}` : `/api/reservations/${id}`
+}
+
+/**
+ * Fetches a reservation by its ID. Either buyerId or storeId must be provided for access control — the API returns 404 (not 403) when the caller is not a participant to prevent ID enumeration.
+ * @summary Get a single reservation by ID
+ */
+export const getReservation = async (id: string,
+    params?: GetReservationParams, options?: RequestInit): Promise<ReservationDto> => {
+
+  return customFetch<ReservationDto>(getGetReservationUrl(id,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetReservationQueryKey = (id: string,
+    params?: GetReservationParams,) => {
+    return [
+    `/api/reservations/${id}`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetReservationQueryOptions = <TData = Awaited<ReturnType<typeof getReservation>>, TError = ErrorType<void>>(id: string,
+    params?: GetReservationParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getReservation>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetReservationQueryKey(id,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getReservation>>> = ({ signal }) => getReservation(id,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getReservation>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetReservationQueryResult = NonNullable<Awaited<ReturnType<typeof getReservation>>>
+export type GetReservationQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get a single reservation by ID
+ */
+
+export function useGetReservation<TData = Awaited<ReturnType<typeof getReservation>>, TError = ErrorType<void>>(
+ id: string,
+    params?: GetReservationParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getReservation>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetReservationQueryOptions(id,params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getConfirmReservationUrl = (id: string,) => {
+
+
+
+
+  return `/api/reservations/${id}/confirm`
+}
+
+/**
+ * Transitions the reservation from `pending` → `confirmed`. Only the owning store may confirm. Posts a system message to the linked conversation and sends a `reservation_confirmed` notification to the buyer.
+ * @summary Merchant confirms a pending reservation
+ */
+export const confirmReservation = async (id: string,
+    merchantActionBody: MerchantActionBody, options?: RequestInit): Promise<ReservationDto> => {
+
+  return customFetch<ReservationDto>(getConfirmReservationUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(merchantActionBody)
+  }
+);}
+
+
+
+
+
+export const getConfirmReservationMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmReservation>>, TError,{id: string;data: BodyType<MerchantActionBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof confirmReservation>>, TError,{id: string;data: BodyType<MerchantActionBody>}, TContext> => {
+
+const mutationKey = ['confirmReservation'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof confirmReservation>>, {id: string;data: BodyType<MerchantActionBody>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  confirmReservation(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ConfirmReservationMutationResult = NonNullable<Awaited<ReturnType<typeof confirmReservation>>>
+    export type ConfirmReservationMutationBody = BodyType<MerchantActionBody>
+    export type ConfirmReservationMutationError = ErrorType<void>
+
+    /**
+ * @summary Merchant confirms a pending reservation
+ */
+export const useConfirmReservation = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmReservation>>, TError,{id: string;data: BodyType<MerchantActionBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof confirmReservation>>,
+        TError,
+        {id: string;data: BodyType<MerchantActionBody>},
+        TContext
+      > => {
+      return useMutation(getConfirmReservationMutationOptions(options));
+    }
+
+export const getDeclineReservationUrl = (id: string,) => {
+
+
+
+
+  return `/api/reservations/${id}/decline`
+}
+
+/**
+ * Transitions the reservation from `pending` → `declined`. Only the owning store may decline. Sends a `reservation_declined` notification to the buyer.
+ * @summary Merchant declines a pending reservation
+ */
+export const declineReservation = async (id: string,
+    declineReservationBody: DeclineReservationBody, options?: RequestInit): Promise<ReservationDto> => {
+
+  return customFetch<ReservationDto>(getDeclineReservationUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(declineReservationBody)
+  }
+);}
+
+
+
+
+
+export const getDeclineReservationMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof declineReservation>>, TError,{id: string;data: BodyType<DeclineReservationBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof declineReservation>>, TError,{id: string;data: BodyType<DeclineReservationBody>}, TContext> => {
+
+const mutationKey = ['declineReservation'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof declineReservation>>, {id: string;data: BodyType<DeclineReservationBody>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  declineReservation(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeclineReservationMutationResult = NonNullable<Awaited<ReturnType<typeof declineReservation>>>
+    export type DeclineReservationMutationBody = BodyType<DeclineReservationBody>
+    export type DeclineReservationMutationError = ErrorType<void>
+
+    /**
+ * @summary Merchant declines a pending reservation
+ */
+export const useDeclineReservation = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof declineReservation>>, TError,{id: string;data: BodyType<DeclineReservationBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof declineReservation>>,
+        TError,
+        {id: string;data: BodyType<DeclineReservationBody>},
+        TContext
+      > => {
+      return useMutation(getDeclineReservationMutationOptions(options));
+    }
+
+export const getCancelReservationUrl = (id: string,) => {
+
+
+
+
+  return `/api/reservations/${id}/cancel`
+}
+
+/**
+ * Transitions the reservation from `pending` or `confirmed` → `cancelled`. Either the buyer (buyerId) or the merchant (storeId) may cancel. Provide exactly one of buyerId or storeId. The other party receives a `reservation_cancelled` notification.
+ * @summary Cancel a reservation (buyer or merchant)
+ */
+export const cancelReservation = async (id: string,
+    cancelReservationBody: CancelReservationBody, options?: RequestInit): Promise<ReservationDto> => {
+
+  return customFetch<ReservationDto>(getCancelReservationUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(cancelReservationBody)
+  }
+);}
+
+
+
+
+
+export const getCancelReservationMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelReservation>>, TError,{id: string;data: BodyType<CancelReservationBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof cancelReservation>>, TError,{id: string;data: BodyType<CancelReservationBody>}, TContext> => {
+
+const mutationKey = ['cancelReservation'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelReservation>>, {id: string;data: BodyType<CancelReservationBody>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  cancelReservation(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CancelReservationMutationResult = NonNullable<Awaited<ReturnType<typeof cancelReservation>>>
+    export type CancelReservationMutationBody = BodyType<CancelReservationBody>
+    export type CancelReservationMutationError = ErrorType<void>
+
+    /**
+ * @summary Cancel a reservation (buyer or merchant)
+ */
+export const useCancelReservation = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelReservation>>, TError,{id: string;data: BodyType<CancelReservationBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof cancelReservation>>,
+        TError,
+        {id: string;data: BodyType<CancelReservationBody>},
+        TContext
+      > => {
+      return useMutation(getCancelReservationMutationOptions(options));
+    }
+
+export const getCompleteReservationUrl = (id: string,) => {
+
+
+
+
+  return `/api/reservations/${id}/complete`
+}
+
+/**
+ * Transitions the reservation from `confirmed` → `completed`. Only the owning store may complete. Represents the buyer visiting the physical store. Sends a `reservation_completed` notification to the buyer.
+ * @summary Merchant marks a confirmed reservation as completed
+ */
+export const completeReservation = async (id: string,
+    merchantActionBody: MerchantActionBody, options?: RequestInit): Promise<ReservationDto> => {
+
+  return customFetch<ReservationDto>(getCompleteReservationUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(merchantActionBody)
+  }
+);}
+
+
+
+
+
+export const getCompleteReservationMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completeReservation>>, TError,{id: string;data: BodyType<MerchantActionBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof completeReservation>>, TError,{id: string;data: BodyType<MerchantActionBody>}, TContext> => {
+
+const mutationKey = ['completeReservation'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof completeReservation>>, {id: string;data: BodyType<MerchantActionBody>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  completeReservation(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CompleteReservationMutationResult = NonNullable<Awaited<ReturnType<typeof completeReservation>>>
+    export type CompleteReservationMutationBody = BodyType<MerchantActionBody>
+    export type CompleteReservationMutationError = ErrorType<void>
+
+    /**
+ * @summary Merchant marks a confirmed reservation as completed
+ */
+export const useCompleteReservation = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completeReservation>>, TError,{id: string;data: BodyType<MerchantActionBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof completeReservation>>,
+        TError,
+        {id: string;data: BodyType<MerchantActionBody>},
+        TContext
+      > => {
+      return useMutation(getCompleteReservationMutationOptions(options));
     }
 
 export const getMarkConversationReadUrl = (id: string,) => {

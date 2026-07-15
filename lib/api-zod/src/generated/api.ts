@@ -812,6 +812,368 @@ export const MarkNotificationReadResponse = zod.object({
 
 
 /**
+ * A buyer submits a reservation request for a specific product. The product must exist. Only one active (pending or confirmed) reservation is allowed per product at any time — the DB enforces this with a unique partial index. A conversation thread is automatically created or reused. Sends a `reservation_created` notification to the merchant.
+ * @summary Create a reservation for a product
+ */
+export const CreateReservationParams = zod.object({
+  "id": zod.coerce.string().describe('Product ID to reserve')
+})
+
+
+export const createReservationBodyBuyerNotesMax = 500;
+
+
+
+export const CreateReservationBody = zod.object({
+  "buyerId": zod.string().min(1).describe('Buyer\'s device UUID (anonymous identity until auth is added)'),
+  "buyerNotes": zod.string().max(createReservationBodyBuyerNotesMax).optional().describe('Optional message from the buyer to the merchant (max 500 chars)')
+}).describe('Request body for creating a reservation on a product.')
+
+export const CreateReservationResponse = zod.object({
+  "id": zod.string(),
+  "productId": zod.string(),
+  "product": zod.object({
+  "nameAr": zod.string(),
+  "nameEn": zod.string(),
+  "price": zod.number(),
+  "imageColor": zod.string(),
+  "brand": zod.string(),
+  "model": zod.string()
+}).describe('Embedded product summary within a ReservationDto — avoids a second round-trip'),
+  "storeId": zod.string(),
+  "store": zod.object({
+  "nameAr": zod.string(),
+  "nameEn": zod.string(),
+  "logoColor": zod.string(),
+  "logoInitial": zod.string(),
+  "address": zod.string(),
+  "phone": zod.string()
+}).describe('Embedded store summary within a ReservationDto — avoids a second round-trip'),
+  "buyerId": zod.string(),
+  "conversationId": zod.string().nullish(),
+  "status": zod.string(),
+  "cancelledBy": zod.string().nullish().describe('Who cancelled: \'buyer\' | \'merchant\' | null'),
+  "buyerNotes": zod.string().nullish(),
+  "merchantNotes": zod.string().nullish(),
+  "expiresAt": zod.string(),
+  "confirmedAt": zod.string().nullish(),
+  "declinedAt": zod.string().nullish(),
+  "cancelledAt": zod.string().nullish(),
+  "completedAt": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+}).describe('Full reservation record with embedded product and store snapshots. Status values: pending | confirmed | declined | cancelled | expired | completed.\n')
+
+
+/**
+ * Returns reservations filtered by buyerId (buyer's device UUID) or storeId (merchant). At least one must be provided. Supports optional status filter and pagination via limit/offset.
+ * @summary List reservations for a buyer or merchant
+ */
+export const GetReservationsQueryParams = zod.object({
+  "buyerId": zod.coerce.string().optional().describe('Buyer device UUID — returns all reservations made by this buyer'),
+  "storeId": zod.coerce.string().optional().describe('Store ID — returns all reservations for this store\'s products'),
+  "status": zod.coerce.string().optional().describe('Filter by reservation status (pending, confirmed, declined, cancelled, expired, completed)'),
+  "limit": zod.coerce.number().optional().describe('Maximum number of results (1–50, default 20)'),
+  "offset": zod.coerce.number().optional().describe('Pagination offset (default 0)')
+})
+
+export const GetReservationsResponseItem = zod.object({
+  "id": zod.string(),
+  "productId": zod.string(),
+  "product": zod.object({
+  "nameAr": zod.string(),
+  "nameEn": zod.string(),
+  "price": zod.number(),
+  "imageColor": zod.string(),
+  "brand": zod.string(),
+  "model": zod.string()
+}).describe('Embedded product summary within a ReservationDto — avoids a second round-trip'),
+  "storeId": zod.string(),
+  "store": zod.object({
+  "nameAr": zod.string(),
+  "nameEn": zod.string(),
+  "logoColor": zod.string(),
+  "logoInitial": zod.string(),
+  "address": zod.string(),
+  "phone": zod.string()
+}).describe('Embedded store summary within a ReservationDto — avoids a second round-trip'),
+  "buyerId": zod.string(),
+  "conversationId": zod.string().nullish(),
+  "status": zod.string(),
+  "cancelledBy": zod.string().nullish().describe('Who cancelled: \'buyer\' | \'merchant\' | null'),
+  "buyerNotes": zod.string().nullish(),
+  "merchantNotes": zod.string().nullish(),
+  "expiresAt": zod.string(),
+  "confirmedAt": zod.string().nullish(),
+  "declinedAt": zod.string().nullish(),
+  "cancelledAt": zod.string().nullish(),
+  "completedAt": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+}).describe('Full reservation record with embedded product and store snapshots. Status values: pending | confirmed | declined | cancelled | expired | completed.\n')
+export const GetReservationsResponse = zod.array(GetReservationsResponseItem)
+
+
+/**
+ * Fetches a reservation by its ID. Either buyerId or storeId must be provided for access control — the API returns 404 (not 403) when the caller is not a participant to prevent ID enumeration.
+ * @summary Get a single reservation by ID
+ */
+export const GetReservationParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const GetReservationQueryParams = zod.object({
+  "buyerId": zod.coerce.string().optional().describe('Buyer device UUID (required if caller is the buyer)'),
+  "storeId": zod.coerce.string().optional().describe('Store ID (required if caller is the merchant)')
+})
+
+export const GetReservationResponse = zod.object({
+  "id": zod.string(),
+  "productId": zod.string(),
+  "product": zod.object({
+  "nameAr": zod.string(),
+  "nameEn": zod.string(),
+  "price": zod.number(),
+  "imageColor": zod.string(),
+  "brand": zod.string(),
+  "model": zod.string()
+}).describe('Embedded product summary within a ReservationDto — avoids a second round-trip'),
+  "storeId": zod.string(),
+  "store": zod.object({
+  "nameAr": zod.string(),
+  "nameEn": zod.string(),
+  "logoColor": zod.string(),
+  "logoInitial": zod.string(),
+  "address": zod.string(),
+  "phone": zod.string()
+}).describe('Embedded store summary within a ReservationDto — avoids a second round-trip'),
+  "buyerId": zod.string(),
+  "conversationId": zod.string().nullish(),
+  "status": zod.string(),
+  "cancelledBy": zod.string().nullish().describe('Who cancelled: \'buyer\' | \'merchant\' | null'),
+  "buyerNotes": zod.string().nullish(),
+  "merchantNotes": zod.string().nullish(),
+  "expiresAt": zod.string(),
+  "confirmedAt": zod.string().nullish(),
+  "declinedAt": zod.string().nullish(),
+  "cancelledAt": zod.string().nullish(),
+  "completedAt": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+}).describe('Full reservation record with embedded product and store snapshots. Status values: pending | confirmed | declined | cancelled | expired | completed.\n')
+
+
+/**
+ * Transitions the reservation from `pending` → `confirmed`. Only the owning store may confirm. Posts a system message to the linked conversation and sends a `reservation_confirmed` notification to the buyer.
+ * @summary Merchant confirms a pending reservation
+ */
+export const ConfirmReservationParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+
+
+
+export const ConfirmReservationBody = zod.object({
+  "storeId": zod.string().min(1).describe('Store ID of the acting merchant')
+}).describe('Request body for confirm and complete actions — requires the merchant\'s store ID.')
+
+export const ConfirmReservationResponse = zod.object({
+  "id": zod.string(),
+  "productId": zod.string(),
+  "product": zod.object({
+  "nameAr": zod.string(),
+  "nameEn": zod.string(),
+  "price": zod.number(),
+  "imageColor": zod.string(),
+  "brand": zod.string(),
+  "model": zod.string()
+}).describe('Embedded product summary within a ReservationDto — avoids a second round-trip'),
+  "storeId": zod.string(),
+  "store": zod.object({
+  "nameAr": zod.string(),
+  "nameEn": zod.string(),
+  "logoColor": zod.string(),
+  "logoInitial": zod.string(),
+  "address": zod.string(),
+  "phone": zod.string()
+}).describe('Embedded store summary within a ReservationDto — avoids a second round-trip'),
+  "buyerId": zod.string(),
+  "conversationId": zod.string().nullish(),
+  "status": zod.string(),
+  "cancelledBy": zod.string().nullish().describe('Who cancelled: \'buyer\' | \'merchant\' | null'),
+  "buyerNotes": zod.string().nullish(),
+  "merchantNotes": zod.string().nullish(),
+  "expiresAt": zod.string(),
+  "confirmedAt": zod.string().nullish(),
+  "declinedAt": zod.string().nullish(),
+  "cancelledAt": zod.string().nullish(),
+  "completedAt": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+}).describe('Full reservation record with embedded product and store snapshots. Status values: pending | confirmed | declined | cancelled | expired | completed.\n')
+
+
+/**
+ * Transitions the reservation from `pending` → `declined`. Only the owning store may decline. Sends a `reservation_declined` notification to the buyer.
+ * @summary Merchant declines a pending reservation
+ */
+export const DeclineReservationParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+
+export const declineReservationBodyCancellationReasonMax = 500;
+
+
+
+export const DeclineReservationBody = zod.object({
+  "storeId": zod.string().min(1).describe('Store ID of the acting merchant'),
+  "cancellationReason": zod.string().max(declineReservationBodyCancellationReasonMax).optional().describe('Optional reason shown to the buyer (max 500 chars)')
+}).describe('Request body for merchant decline action.')
+
+export const DeclineReservationResponse = zod.object({
+  "id": zod.string(),
+  "productId": zod.string(),
+  "product": zod.object({
+  "nameAr": zod.string(),
+  "nameEn": zod.string(),
+  "price": zod.number(),
+  "imageColor": zod.string(),
+  "brand": zod.string(),
+  "model": zod.string()
+}).describe('Embedded product summary within a ReservationDto — avoids a second round-trip'),
+  "storeId": zod.string(),
+  "store": zod.object({
+  "nameAr": zod.string(),
+  "nameEn": zod.string(),
+  "logoColor": zod.string(),
+  "logoInitial": zod.string(),
+  "address": zod.string(),
+  "phone": zod.string()
+}).describe('Embedded store summary within a ReservationDto — avoids a second round-trip'),
+  "buyerId": zod.string(),
+  "conversationId": zod.string().nullish(),
+  "status": zod.string(),
+  "cancelledBy": zod.string().nullish().describe('Who cancelled: \'buyer\' | \'merchant\' | null'),
+  "buyerNotes": zod.string().nullish(),
+  "merchantNotes": zod.string().nullish(),
+  "expiresAt": zod.string(),
+  "confirmedAt": zod.string().nullish(),
+  "declinedAt": zod.string().nullish(),
+  "cancelledAt": zod.string().nullish(),
+  "completedAt": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+}).describe('Full reservation record with embedded product and store snapshots. Status values: pending | confirmed | declined | cancelled | expired | completed.\n')
+
+
+/**
+ * Transitions the reservation from `pending` or `confirmed` → `cancelled`. Either the buyer (buyerId) or the merchant (storeId) may cancel. Provide exactly one of buyerId or storeId. The other party receives a `reservation_cancelled` notification.
+ * @summary Cancel a reservation (buyer or merchant)
+ */
+export const CancelReservationParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const cancelReservationBodyCancellationReasonMax = 500;
+
+
+
+export const CancelReservationBody = zod.object({
+  "buyerId": zod.string().optional().describe('Buyer device UUID (when the buyer is cancelling)'),
+  "storeId": zod.string().optional().describe('Store ID (when the merchant is cancelling)'),
+  "cancellationReason": zod.string().max(cancelReservationBodyCancellationReasonMax).optional().describe('Optional reason (max 500 chars)')
+}).describe('Request body for cancellation. Provide exactly one of buyerId (buyer cancels) or storeId (merchant cancels). The other party will be notified.\n')
+
+export const CancelReservationResponse = zod.object({
+  "id": zod.string(),
+  "productId": zod.string(),
+  "product": zod.object({
+  "nameAr": zod.string(),
+  "nameEn": zod.string(),
+  "price": zod.number(),
+  "imageColor": zod.string(),
+  "brand": zod.string(),
+  "model": zod.string()
+}).describe('Embedded product summary within a ReservationDto — avoids a second round-trip'),
+  "storeId": zod.string(),
+  "store": zod.object({
+  "nameAr": zod.string(),
+  "nameEn": zod.string(),
+  "logoColor": zod.string(),
+  "logoInitial": zod.string(),
+  "address": zod.string(),
+  "phone": zod.string()
+}).describe('Embedded store summary within a ReservationDto — avoids a second round-trip'),
+  "buyerId": zod.string(),
+  "conversationId": zod.string().nullish(),
+  "status": zod.string(),
+  "cancelledBy": zod.string().nullish().describe('Who cancelled: \'buyer\' | \'merchant\' | null'),
+  "buyerNotes": zod.string().nullish(),
+  "merchantNotes": zod.string().nullish(),
+  "expiresAt": zod.string(),
+  "confirmedAt": zod.string().nullish(),
+  "declinedAt": zod.string().nullish(),
+  "cancelledAt": zod.string().nullish(),
+  "completedAt": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+}).describe('Full reservation record with embedded product and store snapshots. Status values: pending | confirmed | declined | cancelled | expired | completed.\n')
+
+
+/**
+ * Transitions the reservation from `confirmed` → `completed`. Only the owning store may complete. Represents the buyer visiting the physical store. Sends a `reservation_completed` notification to the buyer.
+ * @summary Merchant marks a confirmed reservation as completed
+ */
+export const CompleteReservationParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+
+
+
+export const CompleteReservationBody = zod.object({
+  "storeId": zod.string().min(1).describe('Store ID of the acting merchant')
+}).describe('Request body for confirm and complete actions — requires the merchant\'s store ID.')
+
+export const CompleteReservationResponse = zod.object({
+  "id": zod.string(),
+  "productId": zod.string(),
+  "product": zod.object({
+  "nameAr": zod.string(),
+  "nameEn": zod.string(),
+  "price": zod.number(),
+  "imageColor": zod.string(),
+  "brand": zod.string(),
+  "model": zod.string()
+}).describe('Embedded product summary within a ReservationDto — avoids a second round-trip'),
+  "storeId": zod.string(),
+  "store": zod.object({
+  "nameAr": zod.string(),
+  "nameEn": zod.string(),
+  "logoColor": zod.string(),
+  "logoInitial": zod.string(),
+  "address": zod.string(),
+  "phone": zod.string()
+}).describe('Embedded store summary within a ReservationDto — avoids a second round-trip'),
+  "buyerId": zod.string(),
+  "conversationId": zod.string().nullish(),
+  "status": zod.string(),
+  "cancelledBy": zod.string().nullish().describe('Who cancelled: \'buyer\' | \'merchant\' | null'),
+  "buyerNotes": zod.string().nullish(),
+  "merchantNotes": zod.string().nullish(),
+  "expiresAt": zod.string(),
+  "confirmedAt": zod.string().nullish(),
+  "declinedAt": zod.string().nullish(),
+  "cancelledAt": zod.string().nullish(),
+  "completedAt": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+}).describe('Full reservation record with embedded product and store snapshots. Status values: pending | confirmed | declined | cancelled | expired | completed.\n')
+
+
+/**
  * @summary Mark a conversation as read for a participant
  */
 export const MarkConversationReadParams = zod.object({
