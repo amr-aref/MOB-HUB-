@@ -29,11 +29,11 @@ export default function ProductScreen() {
 
   const { data: product, isLoading: productLoading } = useGetProduct(id!);
   const { data: store } = useGetStore(product?.storeId ?? '', {
-    query: { enabled: !!product?.storeId },
+    query: { enabled: !!product?.storeId, queryKey: ['getStore', product?.storeId ?? ''] },
   });
   const { data: relatedProductsData = [] } = useGetProducts(
     { category: product?.category ?? '', excludeId: id },
-    { query: { enabled: !!product?.category } },
+    { query: { enabled: !!product?.category, queryKey: ['getProducts', product?.category ?? ''] } },
   );
 
   if (productLoading || !product) return null;
@@ -57,9 +57,11 @@ export default function ProductScreen() {
     ? Math.round(((product.price - product.discountPrice) / product.price) * 100)
     : 0;
 
+  // product is guaranteed non-null here (guarded above). Function declarations
+  // are hoisted so TypeScript can't track the narrowing — use product! throughout.
   function handleFavorite() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    toggleFavoriteProduct(product.id);
+    toggleFavoriteProduct(product!.id);
   }
 
   function handleContact(storeOverride?: any) {
@@ -68,8 +70,8 @@ export default function ProductScreen() {
     const num = targetStore.whatsapp.replace('+', '');
     const msg = encodeURIComponent(
       language === 'ar'
-        ? `مرحباً، أنا مهتم بـ: ${product.nameAr}`
-        : `Hello, I'm interested in: ${product.nameEn}`,
+        ? `مرحباً، أنا مهتم بـ: ${product!.nameAr}`
+        : `Hello, I'm interested in: ${product!.nameEn}`,
     );
     Linking.openURL(`https://wa.me/${num}?text=${msg}`);
   }

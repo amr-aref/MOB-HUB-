@@ -136,8 +136,14 @@ export default function TabLayout() {
     isWeb && styles.tabBarWeb
   ];
 
+  // sceneContainerStyle is a valid React Navigation BottomTab prop at runtime;
+  // Expo Router's Tabs type definition does not expose it — use a typed alias.
+  const SceneTabs = Tabs as unknown as React.ComponentType<
+    React.ComponentProps<typeof Tabs> & { sceneContainerStyle?: object }
+  >;
+
   return (
-    <Tabs
+    <SceneTabs
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,
@@ -167,7 +173,7 @@ export default function TabLayout() {
         options={{
           title: t('stores'),
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} name={focused ? 'search' : 'search-outline'} label={t('search')} isRTL={isRTL} />
+            <TabIcon focused={focused} name={focused ? 'search' : 'search-outline'} label={t('stores')} isRTL={isRTL} />
           ),
         }}
       />
@@ -198,7 +204,7 @@ export default function TabLayout() {
           ),
         }}
       />
-    </Tabs>
+    </SceneTabs>
   );
 }
 

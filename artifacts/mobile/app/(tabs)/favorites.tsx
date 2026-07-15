@@ -26,11 +26,11 @@ export default function FavoritesScreen() {
   const productIdsParam = favoriteProducts.join(',');
   const { data: fetchedFavStores = [] } = useGetStores(
     { ids: storeIdsParam },
-    { query: { enabled: favoriteStores.length > 0 } },
+    { query: { enabled: favoriteStores.length > 0, queryKey: ['getStores', storeIdsParam] } },
   );
   const { data: fetchedFavProducts = [] } = useGetProducts(
     { ids: productIdsParam },
-    { query: { enabled: favoriteProducts.length > 0 } },
+    { query: { enabled: favoriteProducts.length > 0, queryKey: ['getProducts', productIdsParam] } },
   );
   const favStores = favoriteStores.length > 0 ? fetchedFavStores : [];
   const favProducts = favoriteProducts.length > 0 ? fetchedFavProducts : [];
@@ -125,7 +125,7 @@ export default function FavoritesScreen() {
                   <ProductCard
                     product={product}
                     onPress={() => router.push(`/product/${product.id}`)}
-                    width={isTablet ? '100%' : 168}
+                    width={isTablet ? undefined : 168}
                   />
                 </View>
               ))

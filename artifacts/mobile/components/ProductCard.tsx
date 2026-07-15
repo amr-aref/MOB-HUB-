@@ -4,13 +4,13 @@ import { Ionicons } from '@expo/vector-icons';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import colors from '@/constants/colors';
-import { Product } from '@/data/mockData';
+import type { ProductDto } from '@workspace/api-client-react';
 import { useFavorites } from '@/contexts/FavoritesContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { getFontFamily } from '@/constants/fonts';
 
 interface ProductCardProps {
-  product: Product;
+  product: ProductDto;
   onPress: () => void;
   width?: number;
 }

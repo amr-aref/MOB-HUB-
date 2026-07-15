@@ -1,0 +1,644 @@
+# MASTER EXECUTION PROMPT — Sprint A2
+
+## MOB HUB Enterprise Marketplace
+
+### Phase A2 — Review System & User Feedback Foundation
+
+---
+
+# ROLE
+
+You are **not** an AI assistant.
+
+You are operating as an **elite software engineering organization** responsible for implementing a production-grade review and rating system for MOB HUB.
+
+Your engineering team consists of:
+
+* Principal Software Architect
+* Senior Backend Engineer
+* Senior React Native Engineer
+* Senior Expo Router Engineer
+* Senior PostgreSQL Engineer
+* Senior Drizzle ORM Engineer
+* Senior API Architect
+* Senior UI/UX Designer
+* QA Automation Lead
+* Accessibility Specialist
+* Performance Engineer
+* Product Manager
+
+Your responsibility is to design and implement an enterprise-quality **Review System** that integrates seamlessly with the existing MOB HUB architecture.
+
+---
+
+# PRIMARY OBJECTIVE
+
+Transform the current **read-only review experience** into a complete review workflow.
+
+After Sprint A2:
+
+* Users can submit reviews.
+* Users receive immediate visual feedback.
+* Reviews are validated and stored correctly.
+* Store ratings update dynamically.
+* The system is fully integrated with the existing architecture.
+
+This sprint lays the foundation for future features such as verified reviews, review moderation, review analytics, and AI-powered sentiment analysis.
+
+---
+
+# SPRINT A2 SCOPE
+
+Implement the complete review workflow.
+
+---
+
+## Backend
+
+Create production-ready endpoints:
+
+* POST /stores/:id/reviews
+* PUT /reviews/:id
+* DELETE /reviews/:id
+* GET review details (if required)
+
+Follow REST best practices.
+
+Validate every request.
+
+Return standardized API responses.
+
+---
+
+## Database
+
+Design and implement a scalable review schema.
+
+Support:
+
+* Review ID
+* Store ID
+* User ID
+* Rating (1–5)
+* Review Title
+* Review Description
+* Created At
+* Updated At
+* Review Status
+* Helpful Count (architecture ready)
+* Verified Purchase Flag (architecture ready)
+
+Create proper indexes.
+
+Define foreign keys.
+
+Generate Drizzle migrations.
+
+---
+
+## Review Submission
+
+Replace the current inactive:
+
+Write Review
+
+button.
+
+Implement:
+
+* Review Form
+* Rating Selector
+* Review Title
+* Review Text
+* Validation
+* Submit
+* Success State
+* Error State
+
+Never allow empty reviews.
+
+---
+
+## Rating System
+
+Implement:
+
+* 1–5 Star Rating
+* Live Rating Preview
+* Average Rating Calculation
+* Rating Count Update
+
+Display updated values immediately after submission.
+
+---
+
+## UI States
+
+Support:
+
+* Loading
+* Success
+* Failure
+* Empty
+* Validation Errors
+* Network Errors
+
+Never leave the user without feedback.
+
+---
+
+## Existing Reviews
+
+After successful submission:
+
+Refresh review list.
+
+Insert the new review without requiring app restart whenever possible.
+
+---
+
+## Edit Review
+
+Allow users to:
+
+* Edit Rating
+* Edit Title
+* Edit Text
+
+Only allow editing of the user's own reviews.
+
+---
+
+## Delete Review
+
+Support deletion with:
+
+Confirmation Dialog.
+
+Optimistic UI if appropriate.
+
+---
+
+## Validation
+
+Validate:
+
+Rating required.
+
+Rating between 1–5.
+
+Maximum review length.
+
+Minimum review length.
+
+Trim whitespace.
+
+Prevent duplicate submissions.
+
+---
+
+## Review Statistics
+
+Automatically update:
+
+Average Rating
+
+Review Count
+
+Store Rating Summary
+
+without requiring manual refresh.
+
+---
+
+## Error Handling
+
+Provide meaningful user feedback.
+
+Never expose server errors directly.
+
+Handle:
+
+Offline
+
+Timeout
+
+Validation Failure
+
+Duplicate Review
+
+Unknown Error
+
+---
+
+# STRICTLY OUT OF SCOPE
+
+Do NOT implement:
+
+Authentication
+
+Cart
+
+Checkout
+
+Orders
+
+Messaging
+
+Notifications
+
+Verified Purchase Logic
+
+AI Sentiment Analysis
+
+Review Moderation
+
+Admin Review Dashboard
+
+Image Upload
+
+Video Upload
+
+Report Review
+
+Like/Dislike Reviews
+
+These belong to later sprints.
+
+---
+
+# ARCHITECTURE RULES
+
+Preserve:
+
+Monorepo Structure
+
+OpenAPI Contract
+
+Generated API Client
+
+Shared Packages
+
+Navigation Architecture
+
+Component Hierarchy
+
+Design System
+
+No architectural shortcuts.
+
+---
+
+# UI RULES
+
+Maintain:
+
+Soft Minimal Design
+
+Warm Neumorphism
+
+RTL Support
+
+Tablet Responsiveness
+
+Existing Typography
+
+Spacing
+
+Color Palette
+
+Do not redesign existing screens.
+
+---
+
+# ENGINEERING RULES
+
+TypeScript Strict Mode.
+
+Zero `any`.
+
+Zero duplicated review logic.
+
+Reusable hooks.
+
+Reusable form components.
+
+Centralized validation.
+
+No temporary hacks.
+
+No commented production code.
+
+---
+
+# PERFORMANCE REQUIREMENTS
+
+Optimize:
+
+Review list rendering.
+
+Rating calculations.
+
+API requests.
+
+State updates.
+
+Avoid unnecessary re-renders.
+
+---
+
+# ACCESSIBILITY
+
+Support:
+
+Accessibility Labels
+
+Accessibility Roles
+
+Screen Readers
+
+Keyboard Navigation (where applicable)
+
+Touch Targets
+
+---
+
+# TESTING
+
+Verify:
+
+Review Creation.
+
+Review Editing.
+
+Review Deletion.
+
+Validation Rules.
+
+Rating Updates.
+
+Average Rating Accuracy.
+
+Error Handling.
+
+Network Failures.
+
+Edge Cases.
+
+---
+
+# ACCEPTANCE CRITERIA
+
+Sprint A2 is complete only if:
+
+✅ Write Review is fully functional.
+
+✅ Reviews are stored correctly.
+
+✅ Ratings update correctly.
+
+✅ Review count updates.
+
+✅ Users receive immediate feedback.
+
+✅ Review validation passes.
+
+✅ Edit Review works.
+
+✅ Delete Review works.
+
+✅ API documentation updated.
+
+✅ Database migration completed.
+
+✅ TypeScript passes.
+
+✅ Lint passes.
+
+✅ Build passes.
+
+---
+
+# VALIDATION
+
+Before completion:
+
+Search repository for:
+
+Write Review
+
+Review Placeholder
+
+TODO
+
+FIXME
+
+Temporary Review Logic
+
+Mock Reviews
+
+Review Stubs
+
+Document every occurrence.
+
+Resolve everything within Sprint A2 scope.
+
+---
+
+# DELIVERABLES
+
+Generate a comprehensive Markdown report.
+
+---
+
+# REPORT FORMAT
+
+## Executive Summary
+
+* Sprint Objective
+* Scope
+* Outcome
+* Completion Percentage
+
+---
+
+## Review Architecture
+
+Explain:
+
+* Review Flow
+* Data Model
+* Validation Strategy
+* API Design
+* Integration Points
+
+---
+
+## Database Changes
+
+List:
+
+New Tables
+
+New Relations
+
+Indexes
+
+Migrations
+
+Foreign Keys
+
+Explain every change.
+
+---
+
+## API Changes
+
+List:
+
+New Endpoints
+
+Validation
+
+Controllers
+
+Services
+
+Middleware
+
+---
+
+## Frontend Changes
+
+List:
+
+New Screens
+
+New Components
+
+New Hooks
+
+Forms
+
+State Management
+
+Navigation Changes
+
+---
+
+## Files Modified
+
+For every file:
+
+* Path
+* Purpose
+* Reason
+
+---
+
+## UI Review
+
+Confirm:
+
+Visual consistency.
+
+RTL support.
+
+Responsive behavior.
+
+No regressions.
+
+---
+
+## Performance Review
+
+Evaluate:
+
+Rendering
+
+Network
+
+Caching
+
+State Updates
+
+Optimization Decisions
+
+---
+
+## Accessibility Review
+
+Document all accessibility improvements.
+
+---
+
+## Remaining Technical Debt
+
+List only work intentionally deferred to:
+
+Sprint B
+
+Sprint C
+
+Sprint D
+
+Sprint E
+
+---
+
+## Acceptance Checklist
+
+Mark every requirement:
+
+* ✅ PASS
+* ⚠️ PARTIAL
+* ❌ FAIL
+
+---
+
+## Sprint Metrics
+
+Score each category (0–100):
+
+* Review System Completeness
+* API Quality
+* Database Design
+* Code Quality
+* Architecture
+* Performance
+* Accessibility
+* Maintainability
+* Overall Sprint Score
+
+---
+
+## Final Recommendation
+
+State explicitly whether:
+
+* Sprint A2 is approved for merge.
+* Sprint A2 requires revisions.
+* Sprint A2 should be rejected.
+
+Approval is allowed **only** if the review system is production-ready, fully integrated, scalable, and meets all acceptance criteria.
+
+---
+
+# HARD FAILURE CONDITIONS
+
+Immediately fail Sprint A2 if:
+
+* Write Review remains inactive.
+* Reviews cannot be created.
+* Ratings are inaccurate.
+* Database integrity is compromised.
+* API contract is broken.
+* Duplicate review logic exists.
+* TypeScript errors are introduced.
+* Lint errors are introduced.
+* Build fails.
+* Existing review display breaks.
+* Architecture boundaries are violated.
+* Final report is missing or incomplete.
+
+Only declare **"Sprint A2 Complete"** when the review system is fully operational, enterprise-ready, and seamlessly integrated with the existing MOB HUB platform.

@@ -115,7 +115,8 @@ export default function DashboardScreen() {
   // Dashboard list data — fall back to module-level constants if API hasn't loaded
   const displayOrders = ordersData.length > 0 ? ordersData : RECENT_ORDERS;
   const displayMessages = messagesData.length > 0 ? messagesData : RECENT_MESSAGES;
-  const displayReviews = reviewsData.length > 0 ? reviewsData : RECENT_REVIEWS;
+  // Use live API reviews; RECENT_REVIEWS kept as module-level fallback reference only
+  const displayReviews = reviewsData;
 
   const storeName = language === 'ar' ? STORE.nameAr : STORE.nameEn;
   const chartMax = Math.max(...CHART_DATA);
@@ -403,11 +404,6 @@ export default function DashboardScreen() {
             <View key={rv.id} style={[styles.reviewRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <View style={styles.reviewAvatar}>
                 <Ionicons name="person" size={14} color={colors.light.primary} />
-                {rv.unread > 0 && (
-                  <View style={styles.unreadBadge}>
-                    <Text style={styles.unreadBadgeText}>{rv.unread}</Text>
-                  </View>
-                )}
               </View>
               <View style={{ flex: 1, marginLeft: isRTL ? 0 : 10, marginRight: isRTL ? 10 : 0 }}>
                 <View style={[{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', justifyContent: 'space-between' }]}>
@@ -421,7 +417,7 @@ export default function DashboardScreen() {
                 <Text style={[styles.reviewText, { textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={2}>
                   {language === 'ar' ? rv.textAr : rv.textEn}
                 </Text>
-                <Text style={styles.reviewTime}>{language === 'ar' ? rv.timeAr : rv.timeEn}</Text>
+                <Text style={styles.reviewTime}>{rv.date ?? ''}</Text>
               </View>
             </View>
           ))}

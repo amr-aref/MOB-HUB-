@@ -22,7 +22,7 @@ export function AnimatedPressable({
   style,
   onPress,
   ...props
-}: PressableProps & { style?: StyleProp<ViewStyle> }) {
+}: Omit<PressableProps, 'children'> & { children?: React.ReactNode; style?: StyleProp<ViewStyle> }) {
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({

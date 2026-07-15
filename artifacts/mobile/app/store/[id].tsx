@@ -306,31 +306,33 @@ export default function StoreScreen() {
   );
   const followersCount = store.reviewsCount * 3 + 450;
 
+  // store is guaranteed non-null here (guarded above). Function declarations
+  // are hoisted so TypeScript can't track the narrowing — use store! throughout.
   function handleFavorite() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    toggleFavoriteStore(store.id);
+    toggleFavoriteStore(store!.id);
   }
 
   function handleShare() {
-    const storeName = language === "ar" ? store.nameAr : store.nameEn;
+    const storeName = language === "ar" ? store!.nameAr : store!.nameEn;
     Share.share({
       title: storeName,
-      message: `${storeName}\n${address}\n${store.phone}`,
+      message: `${storeName}\n${address}\n${store!.phone}`,
     });
   }
   function handleCall() {
-    Linking.openURL(`tel:${store.phone}`);
+    Linking.openURL(`tel:${store!.phone}`);
   }
   function handleWhatsApp() {
-    Linking.openURL(`https://wa.me/${store.whatsapp.replace(/\+/g, "")}`);
+    Linking.openURL(`https://wa.me/${store!.whatsapp.replace(/\+/g, "")}`);
   }
   function handleMaps() {
     const url =
       Platform.OS === "ios"
-        ? `maps://?q=${store.nameEn}&ll=${store.lat},${store.lng}`
-        : `geo:${store.lat},${store.lng}?q=${encodeURIComponent(store.nameEn)}`;
+        ? `maps://?q=${store!.nameEn}&ll=${store!.lat},${store!.lng}`
+        : `geo:${store!.lat},${store!.lng}?q=${encodeURIComponent(store!.nameEn)}`;
     Linking.openURL(url).catch(() =>
-      Linking.openURL(`https://maps.google.com/?q=${store.lat},${store.lng}`),
+      Linking.openURL(`https://maps.google.com/?q=${store!.lat},${store!.lng}`),
     );
   }
   function handleCopyAddress() {
@@ -339,13 +341,13 @@ export default function StoreScreen() {
   }
   function handleSocial(type: "facebook" | "instagram" | "website") {
     const urls: Record<string, string | undefined> = {
-      facebook: store.facebook
-        ? `https://facebook.com/${store.facebook}`
+      facebook: store!.facebook
+        ? `https://facebook.com/${store!.facebook}`
         : undefined,
-      instagram: store.instagram
-        ? `https://instagram.com/${store.instagram}`
+      instagram: store!.instagram
+        ? `https://instagram.com/${store!.instagram}`
         : undefined,
-      website: store.website,
+      website: store!.website ?? undefined,
     };
     const url = urls[type];
     if (url) Linking.openURL(url);
@@ -366,7 +368,7 @@ export default function StoreScreen() {
           entering={FadeInUp.delay(50).springify().stiffness(300).damping(28)}
         >
           <LinearGradient
-            colors={store.coverGradient}
+            colors={store.coverGradient as [string, string, ...string[]]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={[
@@ -845,7 +847,6 @@ export default function StoreScreen() {
                     <ProductCard
                       product={product}
                       onPress={() => router.push(`/product/${product.id}`)}
-                      width="100%"
                     />
                   </View>
                 ))}

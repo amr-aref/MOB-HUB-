@@ -5,14 +5,14 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import colors from '@/constants/colors';
-import { Store } from '@/data/mockData';
+import type { StoreDto } from '@workspace/api-client-react';
 import RatingStars from './RatingStars';
 import { useFavorites } from '@/contexts/FavoritesContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { getFontFamily } from '@/constants/fonts';
 
 interface StoreCardProps {
-  store: Store;
+  store: StoreDto;
   onPress: () => void;
   variant?: 'full' | 'compact';
   listMode?: boolean;
@@ -121,7 +121,7 @@ export default function StoreCard({
       style={[...cardStyle, animatedStyle]}
     >
       <LinearGradient
-        colors={store.coverGradient}
+        colors={store.coverGradient as [string, string, ...string[]]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={listMode ? styles.listCover : styles.cover}

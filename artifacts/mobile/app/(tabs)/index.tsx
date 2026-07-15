@@ -247,7 +247,7 @@ export default function HomeScreen() {
             <View style={[styles.tabletGrid, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               {newArrivals.map((product) => (
                 <View key={product.id} style={styles.tabletGridItem}>
-                  <ProductCard product={product} onPress={() => router.push(`/product/${product.id}`)} width="100%" />
+                  <ProductCard product={product} onPress={() => router.push(`/product/${product.id}`)} />
                 </View>
               ))}
             </View>
@@ -280,7 +280,7 @@ export default function HomeScreen() {
             <View style={[styles.tabletGrid, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               {bestSellers.map((product) => (
                 <View key={product.id} style={styles.tabletGridItem}>
-                  <ProductCard product={product} onPress={() => router.push(`/product/${product.id}`)} width="100%" />
+                  <ProductCard product={product} onPress={() => router.push(`/product/${product.id}`)} />
                 </View>
               ))}
             </View>
