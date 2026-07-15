@@ -19,6 +19,7 @@ import { products, stores } from '@/data/mockData';
 import { AnimatedPressable, ChartBar } from '@/components/admin/AdminComponents';
 import { AnimatedCounter } from '@/components/admin/AnimatedCounter';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming, Easing, withDelay } from 'react-native-reanimated';
+import { useNotifications } from '@/hooks/useNotifications';
 
 const STORE = stores[0];
 
@@ -65,6 +66,7 @@ export default function ProductsScreen() {
   };
 
   const storeProducts = products.filter(p => p.storeId === STORE.id);
+  const { unreadCount } = useNotifications(STORE.id);
 
   return (
     <View style={styles.container}>
@@ -88,8 +90,12 @@ export default function ProductsScreen() {
               </Text>
             </View>
           </View>
-          <AnimatedPressable style={styles.iconBtn}>
+          <AnimatedPressable
+            style={styles.iconBtn}
+            onPress={() => router.push({ pathname: '/notifications', params: { userId: STORE.id } })}
+          >
             <Ionicons name="notifications-outline" size={22} color={colors.light.foreground} />
+            {unreadCount > 0 && <View style={styles.notifDot} />}
           </AnimatedPressable>
         </View>
 
@@ -335,6 +341,18 @@ const styles = StyleSheet.create({
     shadowOpacity: 1,
     shadowRadius: 12,
     elevation: 2,
+    position: 'relative',
+  },
+  notifDot: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.light.destructive,
+    borderWidth: 1.5,
+    borderColor: '#fff',
   },
 
   searchContainer: {

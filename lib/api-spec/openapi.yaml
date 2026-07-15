@@ -22,6 +22,8 @@ tags:
     description: Seller dashboard operations
   - name: messaging
     description: Buyer–Seller conversation and messaging
+  - name: notifications
+    description: Centralized notification platform (buyer + seller)
 
 paths:
   /healthz:
@@ -560,6 +562,130 @@ paths:
         "404":
           description: Conversation not found
 
+  # ───────────────────────────────────────────────────────────────────────────
+  # Notifications
+  # ───────────────────────────────────────────────────────────────────────────
+
+  /notifications:
+    get:
+      operationId: getNotifications
+      tags: [notifications]
+      summary: List notifications for a recipient (buyer device UUID or seller storeId)
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Notifications, newest first
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/NotificationDto"
+        "400":
+          description: userId is required
+
+  /notifications/unread-count:
+    get:
+      operationId: getNotificationsUnreadCount
+      tags: [notifications]
+      summary: Get the unread notification count for a recipient
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Unread count
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnreadCountDto"
+        "400":
+          description: userId is required
+
+  /notifications/read-all:
+    patch:
+      operationId: markAllNotificationsRead
+      tags: [notifications]
+      summary: Mark every notification read for a recipient
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MarkAllNotificationsReadBody"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                required: [success]
+        "400":
+          description: userId is required
+
+  /notifications/{id}:
+    get:
+      operationId: getNotification
+      tags: [notifications]
+      summary: Get a single notification by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Notification
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationDto"
+        "404":
+          description: Notification not found
+    delete:
+      operationId: deleteNotification
+      tags: [notifications]
+      summary: Delete a notification
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Notification not found
+
+  /notifications/{id}/read:
+    patch:
+      operationId: markNotificationRead
+      tags: [notifications]
+      summary: Mark a single notification read
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Updated notification
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationDto"
+        "404":
+          description: Notification not found
+
   /conversations/{id}/read:
     patch:
       operationId: markConversationRead
@@ -1087,3 +1213,49 @@ components:
         readerType: { type: string }
       required:
         - readerType
+
+    # ─── Notification schemas ─────────────────────────────────────────────────
+
+    NotificationDto:
+      type: object
+      properties:
+        id: { type: string }
+        userId: { type: string }
+        type: { type: string }
+        titleAr: { type: string }
+        titleEn: { type: string }
+        bodyAr: { type: string }
+        bodyEn: { type: string }
+        metadata:
+          type: object
+          nullable: true
+          additionalProperties: true
+        readStatus: { type: boolean }
+        createdAt: { type: string }
+        expiresAt:
+          type: string
+          nullable: true
+      required:
+        - id
+        - userId
+        - type
+        - titleAr
+        - titleEn
+        - bodyAr
+        - bodyEn
+        - readStatus
+        - createdAt
+
+    UnreadCountDto:
+      type: object
+      properties:
+        unreadCount: { type: integer }
+      required:
+        - unreadCount
+
+    MarkAllNotificationsReadBody:
+      type: object
+      properties:
+        userId: { type: string }
+      required:
+        - userId

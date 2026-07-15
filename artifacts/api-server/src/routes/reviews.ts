@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { db } from "@workspace/db";
 import { reviewsTable, storesTable } from "@workspace/db/schema";
 import { and, eq } from "drizzle-orm";
+import { createNotification } from "../services/notificationService";
 
 const router: IRouter = Router();
 
@@ -225,6 +226,17 @@ router.post("/stores/:id/reviews", async (req, res) => {
     .returning();
 
   await recalculateStoreRating(storeId);
+
+  // Notify the store owner (Notification Types: Review Received).
+  await createNotification({
+    userId: storeId,
+    type: "review_received",
+    titleAr: "تقييم جديد",
+    titleEn: "New Review",
+    bodyAr: `${authorAr} قيّم متجرك بـ ${rating} نجوم`,
+    bodyEn: `${author} rated your store ${rating} stars`,
+    metadata: { reviewId: newReview.id, storeId, rating },
+  });
 
   res.status(201).json(toReviewDto(newReview));
 });

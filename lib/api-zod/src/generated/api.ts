@@ -711,6 +711,107 @@ export const SendMessageResponse = zod.object({
 
 
 /**
+ * @summary List notifications for a recipient (buyer device UUID or seller storeId)
+ */
+export const GetNotificationsQueryParams = zod.object({
+  "userId": zod.coerce.string()
+})
+
+export const GetNotificationsResponseItem = zod.object({
+  "id": zod.string(),
+  "userId": zod.string(),
+  "type": zod.string(),
+  "titleAr": zod.string(),
+  "titleEn": zod.string(),
+  "bodyAr": zod.string(),
+  "bodyEn": zod.string(),
+  "metadata": zod.record(zod.string(), zod.unknown()).nullish(),
+  "readStatus": zod.boolean(),
+  "createdAt": zod.string(),
+  "expiresAt": zod.string().nullish()
+})
+export const GetNotificationsResponse = zod.array(GetNotificationsResponseItem)
+
+
+/**
+ * @summary Get the unread notification count for a recipient
+ */
+export const GetNotificationsUnreadCountQueryParams = zod.object({
+  "userId": zod.coerce.string()
+})
+
+export const GetNotificationsUnreadCountResponse = zod.object({
+  "unreadCount": zod.number()
+})
+
+
+/**
+ * @summary Mark every notification read for a recipient
+ */
+export const MarkAllNotificationsReadBody = zod.object({
+  "userId": zod.string()
+})
+
+export const MarkAllNotificationsReadResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
+ * @summary Get a single notification by ID
+ */
+export const GetNotificationParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const GetNotificationResponse = zod.object({
+  "id": zod.string(),
+  "userId": zod.string(),
+  "type": zod.string(),
+  "titleAr": zod.string(),
+  "titleEn": zod.string(),
+  "bodyAr": zod.string(),
+  "bodyEn": zod.string(),
+  "metadata": zod.record(zod.string(), zod.unknown()).nullish(),
+  "readStatus": zod.boolean(),
+  "createdAt": zod.string(),
+  "expiresAt": zod.string().nullish()
+})
+
+
+/**
+ * @summary Delete a notification
+ */
+export const DeleteNotificationParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const DeleteNotificationResponse = zod.void()
+
+
+/**
+ * @summary Mark a single notification read
+ */
+export const MarkNotificationReadParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const MarkNotificationReadResponse = zod.object({
+  "id": zod.string(),
+  "userId": zod.string(),
+  "type": zod.string(),
+  "titleAr": zod.string(),
+  "titleEn": zod.string(),
+  "bodyAr": zod.string(),
+  "bodyEn": zod.string(),
+  "metadata": zod.record(zod.string(), zod.unknown()).nullish(),
+  "readStatus": zod.boolean(),
+  "createdAt": zod.string(),
+  "expiresAt": zod.string().nullish()
+})
+
+
+/**
  * @summary Mark a conversation as read for a participant
  */
 export const MarkConversationReadParams = zod.object({

@@ -7,6 +7,7 @@ import phoneSpecsRouter from "./phoneSpecs";
 import categoriesRouter from "./categories";
 import dashboardRouter from "./dashboard";
 import conversationsRouter from "./conversations";
+import notificationsRouter from "./notifications";
 
 const router: IRouter = Router();
 
@@ -18,5 +19,6 @@ router.use(phoneSpecsRouter);
 router.use(categoriesRouter);
 router.use(dashboardRouter);
 router.use(conversationsRouter);
+router.use(notificationsRouter);
 
 export default router;

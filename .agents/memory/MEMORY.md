@@ -3,3 +3,4 @@
 - [Metro API proxy](metro-api-proxy.md) — `metro.config.js` proxies `/api/*` to port 8080 via `enhanceMiddleware`; needed because Replit path routing is inactive for manually configured workflows.
 - [Review system device-identity pattern](review-device-identity.md) — Reviews use AsyncStorage deviceId as pseudo-userId until auth lands; edit/delete gated on review.userId === deviceId client-side.
 - [api-zod index export collision](api-zod-export-collision.md) — Orval split mode generates same symbol names in both generated/api.ts (zod schemas) and generated/types/ (TS interfaces); api-zod/src/index.ts must export only from generated/api.
+- [Notification system architecture](notification-system.md) — centralized notifications table/service/hook pattern, buyer/seller shared recipient id, known trigger gaps, pre-existing queryKey typecheck issue.

@@ -24,6 +24,8 @@ import CategoryChip from '@/components/CategoryChip';
 import StoreCard from '@/components/StoreCard';
 import ProductCard from '@/components/ProductCard';
 import { useLayout } from '@/hooks/useLayout';
+import { useDeviceId } from '@/hooks/useDeviceId';
+import { useNotifications } from '@/hooks/useNotifications';
 
 function SectionHeader({
   title,
@@ -68,6 +70,9 @@ export default function HomeScreen() {
   const { data: topRatedStores = [] } = useGetStores({ sort: 'rating' });
   const { data: categories = [] } = useGetCategories();
 
+  const deviceId = useDeviceId();
+  const { unreadCount } = useNotifications(deviceId ?? undefined);
+
   return (
     <View style={styles.container}>
       {/* Premium White Header */}
@@ -94,13 +99,13 @@ export default function HomeScreen() {
               <Pressable
                 style={styles.iconBtn}
                 hitSlop={8}
-                onPress={() => router.push('/notifications')}
+                onPress={() => router.push({ pathname: '/notifications', params: deviceId ? { userId: deviceId } : {} })}
                 accessibilityRole="button"
                 accessibilityLabel={language === 'ar' ? 'الإشعارات' : 'Notifications'}
                 accessibilityHint={language === 'ar' ? 'فتح صفحة الإشعارات' : 'Open notifications'}
               >
                 <Ionicons name="notifications-outline" size={20} color={colors.light.foreground} />
-                <View style={styles.notifDot} />
+                {unreadCount > 0 && <View style={styles.notifDot} />}
               </Pressable>
               <Pressable
                 style={styles.avatarBtn}

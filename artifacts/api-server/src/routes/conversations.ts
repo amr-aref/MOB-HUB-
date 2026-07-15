@@ -6,6 +6,7 @@ import {
   storesTable,
 } from "@workspace/db/schema";
 import { and, desc, eq } from "drizzle-orm";
+import { createNotification } from "../services/notificationService";
 
 const router: IRouter = Router();
 
@@ -309,6 +310,22 @@ router.post("/conversations/:id/messages", async (req, res) => {
       ...unreadUpdate,
     })
     .where(eq(conversationsTable.id, id));
+
+  // Notify the other participant (Notification Types: New Message).
+  if (senderType === "buyer" || senderType === "seller") {
+    const recipientId = senderType === "buyer" ? conv.storeId : conv.buyerId;
+    const preview = content.trim().length > 80 ? `${content.trim().slice(0, 80)}…` : content.trim();
+
+    await createNotification({
+      userId: recipientId,
+      type: "new_message",
+      titleAr: "رسالة جديدة",
+      titleEn: "New Message",
+      bodyAr: preview,
+      bodyEn: preview,
+      metadata: { conversationId: id, senderType, senderId },
+    });
+  }
 
   res.status(201).json(toChatMessageDto(created));
 });

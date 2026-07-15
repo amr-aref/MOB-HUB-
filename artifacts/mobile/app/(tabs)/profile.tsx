@@ -16,6 +16,7 @@ import colors from '@/constants/colors';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Language } from '@/data/translations';
 import { useLayout } from '@/hooks/useLayout';
+import { useDeviceId } from '@/hooks/useDeviceId';
 
 function SettingsRow({
   icon,
@@ -69,6 +70,7 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { isTablet } = useLayout();
+  const deviceId = useDeviceId();
 
   const topInset = isTablet ? 24 : (Platform.OS === 'web' ? 67 : insets.top);
   const bottomInset = isTablet ? 0 : (Platform.OS === 'web' ? 34 : 0);
@@ -212,7 +214,7 @@ export default function ProfileScreen() {
                 <SettingsRow
                   icon="notifications-outline"
                   label={t('notifications')}
-                  onPress={() => handlePress(t('notifications'))}
+                  onPress={() => router.push({ pathname: '/notifications', params: deviceId ? { userId: deviceId } : {} })}
                   isRTL={isRTL}
                 />
                 <SettingsRow

@@ -19,6 +19,7 @@ async function main() {
   console.log("🌱 Seeding database…");
 
   // ── Categories ─────────────────────────────────────────────────────────
+  await db.delete(schema.notificationsTable);
   await db.delete(schema.dashboardStatsTable);
   await db.delete(schema.messagesTable);
   await db.delete(schema.ordersTable);
@@ -826,6 +827,112 @@ async function main() {
     },
   ]);
   console.log("  ✓ dashboard data");
+
+  // ── Notifications ──────────────────────────────────────────────────────
+  // "s1" doubles as the seller/store recipient id; "device_demo" stands in
+  // for a buyer's persisted device UUID (see useDeviceId on mobile).
+  const now = new Date();
+  const hoursAgo = (h: number) => new Date(now.getTime() - h * 60 * 60 * 1000);
+
+  await db.insert(schema.notificationsTable).values([
+    {
+      id: "notif_seed_1",
+      userId: "s1",
+      type: "new_order",
+      titleAr: "طلب جديد",
+      titleEn: "New Order",
+      bodyAr: "لديك طلب جديد من سارة م. بقيمة 1099 د.أ",
+      bodyEn: "You have a new order from Sarah M. worth $1099",
+      metadata: { orderId: "o1" },
+      readStatus: false,
+      createdAt: hoursAgo(2),
+    },
+    {
+      id: "notif_seed_2",
+      userId: "s1",
+      type: "review_received",
+      titleAr: "تقييم جديد",
+      titleEn: "New Review",
+      bodyAr: "سارة حسن قيّمت متجرك بـ 5 نجوم",
+      bodyEn: "Sara Hassan rated your store 5 stars",
+      metadata: { reviewId: "r2", rating: 5 },
+      readStatus: false,
+      createdAt: hoursAgo(6),
+    },
+    {
+      id: "notif_seed_3",
+      userId: "s1",
+      type: "new_message",
+      titleAr: "رسالة جديدة",
+      titleEn: "New Message",
+      bodyAr: "سارة م: هل الجهاز لسه متاح؟",
+      bodyEn: "Sarah M.: Is the device still available?",
+      metadata: { customer: "Sarah M." },
+      readStatus: true,
+      createdAt: hoursAgo(26),
+    },
+    {
+      id: "notif_seed_4",
+      userId: "s1",
+      type: "store_follow",
+      titleAr: "متابع جديد",
+      titleEn: "New Follower",
+      bodyAr: "أحمد كريم بدأ متابعة متجرك",
+      bodyEn: "Ahmed Kareem started following your store",
+      metadata: null,
+      readStatus: true,
+      createdAt: hoursAgo(48),
+    },
+    {
+      id: "notif_seed_5",
+      userId: "device_demo",
+      type: "order_status_updated",
+      titleAr: "تحديث حالة الطلب",
+      titleEn: "Order Status Updated",
+      bodyAr: "تم تأكيد حجزك لجهاز برو تك 14 الترا",
+      bodyEn: "Your reservation for Pro Tech 14 Ultra was confirmed",
+      metadata: { orderId: "o1", status: "RESERVED" },
+      readStatus: false,
+      createdAt: hoursAgo(1),
+    },
+    {
+      id: "notif_seed_6",
+      userId: "device_demo",
+      type: "favorite_price_change",
+      titleAr: "انخفاض السعر",
+      titleEn: "Price Drop",
+      bodyAr: "انخفض سعر آيفون 16 برو في قائمة المفضلة لديك",
+      bodyEn: "The price of iPhone 16 Pro in your favorites dropped",
+      metadata: { productId: "p1" },
+      readStatus: false,
+      createdAt: hoursAgo(10),
+    },
+    {
+      id: "notif_seed_7",
+      userId: "device_demo",
+      type: "promotional_campaign",
+      titleAr: "عروض نهاية الأسبوع",
+      titleEn: "Weekend Deals",
+      bodyAr: "خصومات تصل إلى 20% على أفضل المتاجر هذا الأسبوع",
+      bodyEn: "Up to 20% off top stores this weekend",
+      metadata: null,
+      readStatus: true,
+      createdAt: hoursAgo(30),
+    },
+    {
+      id: "notif_seed_8",
+      userId: "device_demo",
+      type: "system_announcement",
+      titleAr: "تحديث جديد للتطبيق",
+      titleEn: "App Update Available",
+      bodyAr: "أضفنا مركز إشعارات جديد لمتابعة كل تحديثاتك في مكان واحد",
+      bodyEn: "We added a new Notification Center to keep all your updates in one place",
+      metadata: null,
+      readStatus: true,
+      createdAt: hoursAgo(72),
+    },
+  ]);
+  console.log("  ✓ notifications");
 
   console.log("✅ Seed complete!");
   await pool.end();

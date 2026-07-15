@@ -253,6 +253,30 @@ export interface MarkReadBody {
   readerType: string;
 }
 
+export type NotificationDtoMetadata = { [key: string]: unknown } | null;
+
+export interface NotificationDto {
+  id: string;
+  userId: string;
+  type: string;
+  titleAr: string;
+  titleEn: string;
+  bodyAr: string;
+  bodyEn: string;
+  metadata?: NotificationDtoMetadata;
+  readStatus: boolean;
+  createdAt: string;
+  expiresAt?: string | null;
+}
+
+export interface UnreadCountDto {
+  unreadCount: number;
+}
+
+export interface MarkAllNotificationsReadBody {
+  userId: string;
+}
+
 export type GetStoresParams = {
 search?: string;
 governorate?: string;
@@ -313,5 +337,17 @@ storeId?: string;
 export type GetConversationMessagesParams = {
 buyerId?: string;
 storeId?: string;
+};
+
+export type GetNotificationsParams = {
+userId: string;
+};
+
+export type GetNotificationsUnreadCountParams = {
+userId: string;
+};
+
+export type MarkAllNotificationsRead200 = {
+  success: boolean;
 };
 

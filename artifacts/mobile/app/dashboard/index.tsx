@@ -24,6 +24,7 @@ import {
   useGetDashboardReviews,
   useGetConversations,
 } from '@workspace/api-client-react';
+import { useNotifications } from '@/hooks/useNotifications';
 
 const STORE_ID = 's1';
 
@@ -87,6 +88,7 @@ export default function DashboardScreen() {
     { query: { staleTime: 30_000 } },
   );
   const { data: reviewsData = [] } = useGetDashboardReviews({ storeId: STORE_ID });
+  const { unreadCount } = useNotifications(STORE_ID);
 
   // Keep the STORE variable name so all existing JSX references work unchanged
   const STORE = storeData ?? {
@@ -167,9 +169,14 @@ export default function DashboardScreen() {
             </View>
           </View>
           <View style={[{ flexDirection: isRTL ? 'row-reverse' : 'row', gap: 8, alignItems: 'center' }]}>
-            <Pressable style={styles.headerIconBtn}>
+            <Pressable
+              style={styles.headerIconBtn}
+              onPress={() => router.push({ pathname: '/notifications', params: { userId: STORE_ID } })}
+              accessibilityRole="button"
+              accessibilityLabel={language === 'ar' ? 'الإشعارات' : 'Notifications'}
+            >
               <Ionicons name="notifications-outline" size={20} color={colors.light.foreground} />
-              <View style={styles.notifDot} />
+              {unreadCount > 0 && <View style={styles.notifDot} />}
             </Pressable>
             <Pressable style={styles.headerAvatar}>
               <Ionicons name="person" size={16} color="#fff" />
