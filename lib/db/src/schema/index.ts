@@ -8,3 +8,4 @@ export * from "./messages";
 export * from "./dashboardStats";
 export * from "./conversations";
 export * from "./notifications";
+export * from "./reservations";

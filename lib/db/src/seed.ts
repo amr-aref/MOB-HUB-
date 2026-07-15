@@ -23,6 +23,8 @@ async function main() {
   await db.delete(schema.dashboardStatsTable);
   await db.delete(schema.messagesTable);
   await db.delete(schema.ordersTable);
+  // reservations must be deleted before products and stores (restrict FK).
+  await db.delete(schema.reservationsTable);
   await db.delete(schema.reviewsTable);
   await db.delete(schema.productsTable);
   await db.delete(schema.phoneSpecsTable);
@@ -933,6 +935,74 @@ async function main() {
     },
   ]);
   console.log("  ✓ notifications");
+
+  // ── Reservations ───────────────────────────────────────────────────────
+  // Sample data covering the three most common lifecycle states so the
+  // merchant dashboard and buyer screens have realistic content from day one.
+  // "device_demo" mirrors the device UUID used by the notification seed above.
+  const daysFromNow = (d: number) =>
+    new Date(now.getTime() + d * 24 * 60 * 60 * 1000);
+
+  await db.insert(schema.reservationsTable).values([
+    {
+      // PENDING — buyer is waiting for the merchant to respond.
+      id: "res_seed_1",
+      productId: "p1",
+      storeId: "s1",
+      buyerId: "device_demo",
+      conversationId: null,
+      status: "pending",
+      buyerNotes: "هل يمكن تجربة الجهاز قبل الشراء؟", // "Can I try the device before buying?"
+      merchantNotes: null,
+      cancelledBy: null,
+      expiresAt: daysFromNow(1),   // expires in ~24 h from seed time
+      confirmedAt: null,
+      declinedAt: null,
+      cancelledAt: null,
+      completedAt: null,
+      createdAt: hoursAgo(24),
+      updatedAt: hoursAgo(24),
+    },
+    {
+      // CONFIRMED — merchant accepted; buyer expected to visit the store.
+      id: "res_seed_2",
+      productId: "p2",
+      storeId: "s2",
+      buyerId: "device_demo_2",
+      conversationId: null,
+      status: "confirmed",
+      buyerNotes: null,
+      merchantNotes: "الجهاز جاهز للاستلام من الساعة 10 صباحاً", // "Device ready for pickup from 10am"
+      cancelledBy: null,
+      expiresAt: daysFromNow(2),
+      confirmedAt: hoursAgo(2),
+      declinedAt: null,
+      cancelledAt: null,
+      completedAt: null,
+      createdAt: hoursAgo(30),
+      updatedAt: hoursAgo(2),
+    },
+    {
+      // COMPLETED — buyer visited the store; full lifecycle demonstrated.
+      id: "res_seed_3",
+      productId: "p3",
+      storeId: "s3",
+      buyerId: "device_demo_3",
+      conversationId: null,
+      status: "completed",
+      buyerNotes: null,
+      merchantNotes: null,
+      cancelledBy: null,
+      expiresAt: hoursAgo(24),    // was in the past; reservation completed before expiry
+      confirmedAt: hoursAgo(72),
+      declinedAt: null,
+      cancelledAt: null,
+      completedAt: hoursAgo(48),
+      createdAt: hoursAgo(96),
+      updatedAt: hoursAgo(48),
+    },
+  ]);
+  console.log("  ✓ reservations");
 
   console.log("✅ Seed complete!");
   await pool.end();
