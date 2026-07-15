@@ -1,12 +1,13 @@
 # MOB HUB — Egypt Mobile Phone Marketplace
 
-An Expo mobile marketplace app (Arabic RTL) for buying/comparing phones in Egypt, backed by a shared Express API server. Imported from GitHub as a published-app snapshot on 2026-07-13.
+An Expo mobile marketplace app (Arabic RTL) for buying/comparing phones in Egypt, backed by a shared Express API server. Re-imported from GitHub on 2026-07-15; artifacts and workflows were re-registered cleanly by the platform this time (API Server, Mobile Marketplace, Canvas/mockup-sandbox).
 
 ## Run & Operate
 
 - Workflow `artifacts/mobile: expo` — Expo mobile app, reachable at `https://$REPLIT_EXPO_DEV_DOMAIN/`
-- Workflow `artifacts/api-server: API Server` — Express API on port 8080
+- Workflow `artifacts/api-server: API Server` — Express API on port 8080, health check at `/api/healthz`
 - Workflow `artifacts/mockup-sandbox: Component Preview Server` — Vite design sandbox on port 8081 at `/__mockup`
+- DB schema pushed and seeded (`pnpm --filter @workspace/db run push` then `run seed`) as part of initial setup
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
@@ -46,7 +47,7 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-- This repo was imported as a single "Published your App" git snapshot, so the platform's artifact registry (`listArtifacts()`/managed workflows) started out **empty** even though `artifacts/*/.replit-artifact/artifact.toml` files exist on disk. The `Mobile` and `API Server` workflows here were configured manually (`configureWorkflow`) with `PORT`/`BASE_PATH` set inline to match the artifact.toml values, since `createArtifact` refuses to recreate an existing directory. Path-based multi-artifact proxy routing (e.g. serving `api-server` under `/api` or `mockup-sandbox` under `/__mockup` on the same domain) is NOT active — only the Expo domain (mobile) and directly-curled ports work. If proper artifact registration/routing is ever needed, it likely requires a fresh `createArtifact` after removing the existing directories, or platform-side support.
+- On an earlier import, the artifact registry started out empty despite `artifact.toml` files existing on disk, requiring manual workflow setup. On this re-import (2026-07-15), `listArtifacts()`/workflow registration worked cleanly out of the box — no manual workaround was needed.
 
 ## Pointers
 

@@ -1,0 +1,759 @@
+🔥 MOB HUB — Sprint F
+Enterprise Production Hardening
+Production-Grade Stabilization Sprint
+
+Target: amr-aref/MOB-HUB-
+
+ROLE
+
+أنت لست AI مساعد.
+
+أنت تعمل كفريق هندسي عالمي كامل مسؤول عن تحويل MOB HUB من مشروع يعمل إلى منصة Enterprise Production Ready.
+
+يتكون الفريق من:
+
+Principal Software Architect
+Staff React Native Engineer
+Staff Backend Engineer
+Principal TypeScript Engineer
+Senior PostgreSQL Engineer
+Senior Drizzle ORM Engineer
+Senior OpenAPI Architect
+Senior Express Engineer
+Senior DevOps Engineer
+Senior Security Engineer
+Senior Performance Engineer
+Senior Reliability Engineer (SRE)
+QA Automation Lead
+Mobile UX Engineer
+Production Release Manager
+
+أنت مسؤول مسؤولية كاملة عن جودة المشروع قبل دخوله مرحلة الإنتاج.
+
+PROJECT CONTEXT
+
+المشروع تم مراجعته بالكامل.
+
+Architecture تم اعتماده.
+
+OpenAPI Contract مستقر.
+
+Database مستقرة.
+
+Monorepo مستقر.
+
+لا تقم بإعادة تصميم المشروع.
+
+هذه المرحلة ليست Feature Sprint.
+
+هذه مرحلة Hardening فقط.
+
+PRIMARY OBJECTIVE
+
+حوّل المشروع إلى مستوى Production Enterprise دون تغيير الـ Architecture.
+
+اجعل النظام:
+
+Stable
+Reliable
+Secure
+Scalable
+Maintainable
+Observable
+Production Ready
+NON-NEGOTIABLE RULES
+ممنوع تماماً
+
+❌ إعادة كتابة المشروع
+
+❌ تغيير الـ Architecture
+
+❌ تغيير OpenAPI Contract
+
+❌ تغيير Database Schema
+
+❌ تغيير أسماء الـ APIs
+
+❌ تغيير Routing
+
+❌ حذف Features تعمل
+
+❌ إضافة Features جديدة
+
+❌ تغيير UI بدون سبب هندسي
+
+❌ تغيير Business Logic
+
+❌ إضافة Packages بدون مبرر
+
+❌ كسر Backward Compatibility
+
+❌ إدخال Technical Debt جديد
+
+PHASE 1
+Repository Validation
+
+ابدأ بمراجعة كاملة.
+
+تحقق من:
+
+Folder Structure
+Packages
+Workspace
+Dependencies
+Configurations
+TypeScript
+Metro
+Expo
+ESLint
+Prettier
+tsconfig
+package.json
+scripts
+
+لا تفترض أي شيء.
+
+اعتمد فقط على الكود.
+
+PHASE 2
+Error Handling Hardening
+
+راجع جميع الشاشات.
+
+كل Screen يجب أن تحتوي على:
+
+Loading State
+
+Refreshing State
+
+Retry State
+
+Offline State
+
+Server Error State
+
+Empty State
+
+Success State
+
+Unauthorized State
+
+Forbidden State
+
+Timeout State
+
+No Silent Failures.
+
+إذا وجدت:
+
+return null
+
+بدون سبب صحيح
+
+قم باستبداله بحالة UI احترافية.
+
+PHASE 3
+React Query Hardening
+
+راجع جميع Queries.
+
+تحقق من:
+
+Retry Policy
+
+Retry Delay
+
+Query Keys
+
+Invalidation
+
+Refetch
+
+Background Sync
+
+Window Focus
+
+Reconnect
+
+Cancellation
+
+Optimistic Updates
+
+Mutation Recovery
+
+Error Recovery
+
+Cache Strategy
+
+Memory Usage
+
+Duplicate Requests
+
+PHASE 4
+Global Error Handling
+
+راجع:
+
+Error Boundary
+
+Unhandled Promise Rejections
+
+Async Errors
+
+Network Errors
+
+React Errors
+
+Runtime Errors
+
+Unknown Errors
+
+إذا احتاج النظام:
+
+قم بتحسين Error Boundary.
+
+يجب أن:
+
+Capture
+
+Log
+
+Recover
+
+Retry
+
+Never Crash Silently.
+
+PHASE 5
+Network Layer Hardening
+
+راجع جميع Requests.
+
+أضف عند الحاجة:
+
+Timeout
+
+AbortController
+
+Retry
+
+Offline Detection
+
+Reconnect
+
+Request Cancellation
+
+Duplicate Request Protection
+
+Graceful Failures
+
+Error Mapping
+
+تعامل مع:
+
+400
+
+401
+
+403
+
+404
+
+409
+
+422
+
+429
+
+500
+
+502
+
+503
+
+504
+
+لكل Status يجب وجود معالجة مناسبة.
+
+PHASE 6
+Performance Optimization
+
+راجع:
+
+FlatList
+
+SectionList
+
+ScrollView
+
+Memo
+
+useMemo
+
+useCallback
+
+React.memo
+
+Expensive Rendering
+
+Images
+
+Icons
+
+Navigation
+
+Animations
+
+Large Components
+
+Large Objects
+
+Large Arrays
+
+Re-renders
+
+Virtualization
+
+Bundle Size
+
+Avoid unnecessary rendering.
+
+PHASE 7
+Memory Optimization
+
+افحص:
+
+Leaks
+
+Timers
+
+Listeners
+
+Subscriptions
+
+Focus Effects
+
+Cleanup
+
+Navigation Listeners
+
+AbortController
+
+Image Cache
+
+React Query Cache
+
+Memory Consumption
+
+PHASE 8
+Security Hardening
+
+راجع المشروع بالكامل.
+
+تحقق من:
+
+Input Validation
+
+Sanitization
+
+Headers
+
+Secrets
+
+Environment Variables
+
+Authentication Readiness
+
+Authorization Readiness
+
+Rate Limiting Readiness
+
+Helmet Readiness
+
+CORS
+
+Sensitive Data
+
+PII
+
+Logging Safety
+
+Error Leakage
+
+Stack Trace Leakage
+
+PHASE 9
+Logging Layer
+
+أنشئ Logging احترافية.
+
+Production Logging
+
+Development Logging
+
+API Logging
+
+Performance Logging
+
+Crash Logging
+
+Network Logging
+
+Warning Logging
+
+Error Logging
+
+Logs يجب أن تكون Structured.
+
+امنع Console Spam.
+
+PHASE 10
+TypeScript Hardening
+
+راجع المشروع بالكامل.
+
+امنع:
+
+any
+
+unsafe cast
+
+non-null assertion
+
+dead interfaces
+
+duplicated interfaces
+
+weak typing
+
+implicit any
+
+unsafe optional chaining
+
+استخدم Types قوية.
+
+PHASE 11
+Code Quality
+
+راجع:
+
+Components
+
+Hooks
+
+Utilities
+
+Providers
+
+Contexts
+
+API Layer
+
+Naming
+
+Folder Structure
+
+Code Style
+
+Dead Code
+
+Unused Imports
+
+Unused Files
+
+Duplicate Logic
+
+Duplicate Components
+
+Circular Dependencies
+
+Large Components
+
+God Components
+
+Long Functions
+
+Magic Numbers
+
+Magic Strings
+
+PHASE 12
+Dependency Audit
+
+راجع جميع Packages.
+
+حدد:
+
+Unused
+
+Deprecated
+
+Duplicate
+
+Heavy
+
+Unsafe
+
+Outdated
+
+Broken
+
+قدم توصية قبل حذف أي Package.
+
+PHASE 13
+Production Configuration
+
+راجع:
+
+Expo
+
+Metro
+
+TypeScript
+
+ESLint
+
+Prettier
+
+Environment
+
+Release Build
+
+Production Build
+
+Source Maps
+
+Minification
+
+Tree Shaking
+
+Bundle Optimization
+
+PHASE 14
+CI/CD Readiness
+
+إذا لم يوجد GitHub Actions:
+
+قم بإنشاء Pipeline احترافي.
+
+يشمل:
+
+Typecheck
+
+Lint
+
+Build
+
+Dependency Audit
+
+Security Audit
+
+Future Test Stage
+
+Pipeline يجب أن يفشل عند وجود أخطاء.
+
+PHASE 15
+Architecture Validation
+
+تأكد أن المشروع مازال يحافظ على:
+
+Contract First
+
+OpenAPI
+
+Orval
+
+Drizzle
+
+Workspace Isolation
+
+Modular Design
+
+SOLID
+
+Clean Architecture
+
+No Tight Coupling
+
+No Circular Dependencies
+
+PHASE 16
+Regression Protection
+
+تأكد أن أي تعديل:
+
+لا يكسر:
+
+Navigation
+
+API
+
+Database
+
+UI
+
+Hooks
+
+Context
+
+Providers
+
+Dashboard
+
+Product Flow
+
+Store Flow
+
+Messaging
+
+Compare
+
+Favorites
+
+ACCEPTANCE CRITERIA
+
+لا يعتبر Sprint ناجحاً إلا إذا:
+
+✅ لا يوجد Crash معروف
+
+✅ لا يوجد Silent Failure
+
+✅ لا يوجد Runtime Error معروف
+
+✅ لا يوجد Hook Violation
+
+✅ لا يوجد TypeScript Error
+
+✅ لا يوجد ESLint Error
+
+✅ لا يوجد Broken Navigation
+
+✅ لا يوجد Dead Import
+
+✅ لا يوجد Circular Dependency معروف
+
+✅ لا يوجد Unhandled Promise معروف
+
+✅ لا يوجد شاشة بدون Loading/Error/Empty State
+
+✅ جميع التعديلات Backward Compatible
+
+REQUIRED DELIVERABLES
+
+بعد الانتهاء أنشئ تقريراً احترافياً باسم:
+
+SPRINT_F_ENTERPRISE_PRODUCTION_HARDENING_REPORT.md
+
+ويحتوي على:
+
+1. Executive Summary
+ملخص تنفيذي
+الهدف
+النتيجة
+2. Repository Health
+
+تقييم شامل للحالة الحالية.
+
+3. Files Modified
+
+اذكر:
+
+الملف
+سبب التعديل
+التأثير
+4. Stability Improvements
+
+كل ما تم تحسينه.
+
+5. Reliability Improvements
+
+كل ما يمنع الأعطال مستقبلاً.
+
+6. Performance Improvements
+
+بالأرقام إن أمكن.
+
+7. Security Improvements
+
+مع توضيح المخاطر التي تمت معالجتها.
+
+8. Type Safety Improvements
+
+عدد الأنواع التي تم تحسينها.
+
+9. Code Quality Improvements
+Refactoring
+Cleanup
+Dead Code
+Imports
+Components
+Hooks
+10. Dependency Audit
+Added
+Updated
+Removed
+Recommended
+11. CI/CD Status
+
+قبل وبعد.
+
+12. Remaining Technical Debt
+
+قسمه إلى:
+
+Critical
+
+High
+
+Medium
+
+Low
+
+مع سبب واضح لكل بند.
+
+13. Validation Results
+
+اذكر نتائج:
+
+Typecheck
+Lint
+Build
+Dependency Validation
+Import Validation
+Route Validation
+Hook Validation
+Production Validation
+
+إذا تعذر تنفيذ أي خطوة (مثل غياب node_modules أو بيئة التشغيل)، اذكر ذلك صراحةً ولا تدّعِ نجاحها.
+
+14. Production Readiness Score
+
+قيّم من 100:
+
+Architecture
+Frontend
+Backend
+Database
+Security
+Reliability
+Performance
+Maintainability
+Scalability
+Developer Experience
+Production Readiness
+
+ويجب أن تكون كل درجة مبنية على أدلة من الكود، وليس على التخمين.
+
+15. Final Decision
+
+اختر واحدة فقط:
+
+✅ Production Ready
+⚠ Production Ready with Minor Issues
+❌ Needs More Stabilization
+
+ويجب أن يكون القرار النهائي مدعوماً بالأدلة، مع قائمة واضحة بما يمنع الوصول إلى الإنتاج إذا لم يكن المشروع جاهزًا بالكامل.
+
+SUCCESS DEFINITION
+
+يُعتبر Sprint F ناجحًا فقط إذا أصبح المشروع أكثر استقرارًا وأمانًا وقابلية للصيانة دون تغيير بنيته الأساسية أو إضافة ميزات جديدة، مع توثيق جميع التعديلات والتحقق منها بأدلة قابلة للمراجعة.
