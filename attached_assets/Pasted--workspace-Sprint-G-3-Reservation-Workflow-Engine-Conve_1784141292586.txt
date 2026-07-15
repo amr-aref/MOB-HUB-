@@ -1,0 +1,653 @@
+@workspace
+
+# 🚀 Sprint G.3 — Reservation Workflow Engine
+## Conversation & Notification Integration
+
+## ROLE
+
+You are a Principal Software Architect, Senior Backend Engineer, Domain Driven Design (DDD) Expert, Enterprise Workflow Architect, Event-Driven Systems Engineer, Express.js Expert, PostgreSQL Architect, Drizzle ORM Specialist and Technical Lead.
+
+You are implementing Sprint G.3 of MOB HUB.
+
+Sprint G.0
+Reservation Architecture
+
+Sprint G.1
+Reservation Database
+
+Sprint G.2
+Reservation API
+
+have already been completed.
+
+Your responsibility is to implement ONLY the Reservation Workflow Engine.
+
+---
+
+# BUSINESS MODEL
+
+MOB HUB is NOT an e-commerce application.
+
+There is NO:
+
+❌ Cart
+
+❌ Checkout
+
+❌ Payment
+
+❌ Online Payment
+
+The customer journey is:
+
+Browse Products
+
+↓
+
+Reserve Product
+
+↓
+
+Automatic Conversation Creation
+
+↓
+
+Merchant & Customer Chat
+
+↓
+
+Merchant Decision
+
+↓
+
+Reservation Confirmation
+
+↓
+
+Customer Visits Store
+
+The reservation itself is the final business action inside the application.
+
+---
+
+# OBJECTIVE
+
+Implement the orchestration layer connecting:
+
+Reservation
+
+Conversation
+
+Messages
+
+Notifications
+
+Dashboard Events
+
+without modifying the existing architecture.
+
+This Sprint focuses on workflow integration only.
+
+---
+
+# READ FIRST
+
+Before implementing anything inspect:
+
+Reservation Module
+
+Conversation Module
+
+Messages Module
+
+Notification Service
+
+Dashboard
+
+Products
+
+Stores
+
+Authentication Layer
+
+Database Schema
+
+OpenAPI
+
+Current Services
+
+Current Event Flow
+
+Existing Conventions
+
+Never duplicate logic.
+
+Reuse existing services whenever possible.
+
+---
+
+# IMPLEMENTATION SCOPE
+
+Implement ONLY:
+
+Reservation Workflow Engine
+
+Conversation Integration
+
+Notification Integration
+
+Workflow Events
+
+State Synchronization
+
+Reservation Timeline
+
+Merchant Actions
+
+Customer Actions
+
+Background Synchronization
+
+Everything else is out of scope.
+
+---
+
+# WORKFLOW
+
+Implement the complete reservation workflow.
+
+Reservation Created
+
+↓
+
+Conversation Linked
+
+↓
+
+Merchant Receives Notification
+
+↓
+
+Customer Receives Confirmation
+
+↓
+
+Chat Begins
+
+↓
+
+Merchant Decision
+
+↓
+
+Reservation Status Updated
+
+↓
+
+Notifications Sent
+
+↓
+
+Dashboard Updated
+
+↓
+
+Product Availability Updated
+
+Every transition must happen automatically.
+
+No manual synchronization.
+
+---
+
+# CONVERSATION INTEGRATION
+
+Reuse the existing conversation system.
+
+Never replace it.
+
+Requirements:
+
+Automatically create conversation if one does not exist.
+
+Reuse existing conversation when appropriate.
+
+Link reservation to conversation.
+
+Maintain conversation history.
+
+Store reservation metadata.
+
+Allow merchant actions inside conversation.
+
+Allow customer actions inside conversation.
+
+Support future timeline events.
+
+Do not duplicate messages.
+
+Do not create orphan conversations.
+
+---
+
+# NOTIFICATION INTEGRATION
+
+Reuse the existing Notification Service.
+
+Never rewrite it.
+
+Only trigger events.
+
+Implement events for:
+
+Reservation Created
+
+Merchant Replied
+
+Reservation Confirmed
+
+Reservation Declined
+
+Reservation Cancelled
+
+Reservation Expired
+
+Reservation Completed
+
+Merchant Reminder
+
+Customer Reminder
+
+Reservation Badge Updated
+
+Conversation Started
+
+Conversation Reopened
+
+Notifications must remain centralized.
+
+No duplicated notification logic.
+
+---
+
+# PRODUCT SYNCHRONIZATION
+
+Synchronize reservation status with product status.
+
+Examples:
+
+Available
+
+↓
+
+Pending Reservation
+
+↓
+
+Confirmed Reservation
+
+↓
+
+Reserved Badge
+
+↓
+
+Available Again (if cancelled)
+
+Ensure synchronization is transactional.
+
+Never allow inconsistent states.
+
+---
+
+# DASHBOARD SYNCHRONIZATION
+
+Update merchant dashboard automatically.
+
+Examples:
+
+Pending Reservations
+
+Confirmed Reservations
+
+Cancelled Reservations
+
+Unread Reservation Messages
+
+Reservation Statistics
+
+Recent Activity
+
+No manual refresh required.
+
+---
+
+# EVENT ORCHESTRATION
+
+Implement domain events.
+
+Examples:
+
+ReservationCreated
+
+ReservationConfirmed
+
+ReservationCancelled
+
+ReservationExpired
+
+ReservationCompleted
+
+ConversationCreated
+
+ConversationLinked
+
+NotificationCreated
+
+ProductReserved
+
+ProductReleased
+
+Keep events isolated.
+
+Prepare architecture for future Event Bus if needed.
+
+---
+
+# STATE MACHINE
+
+Enforce valid transitions.
+
+Examples:
+
+Pending
+
+↓
+
+Confirmed
+
+↓
+
+Completed
+
+Pending
+
+↓
+
+Cancelled
+
+Pending
+
+↓
+
+Expired
+
+Pending
+
+↓
+
+Declined
+
+Prevent invalid transitions.
+
+Prevent duplicate transitions.
+
+Prevent race conditions.
+
+---
+
+# CONCURRENCY
+
+Protect against:
+
+Double confirmation
+
+Simultaneous merchant actions
+
+Duplicate reservation creation
+
+Duplicate notifications
+
+Duplicate conversations
+
+Race conditions
+
+Use transactions where necessary.
+
+Maintain consistency.
+
+---
+
+# TIMELINE
+
+Generate reservation history.
+
+Examples:
+
+Reservation Created
+
+Merchant Viewed
+
+Conversation Started
+
+Merchant Responded
+
+Reservation Confirmed
+
+Reservation Cancelled
+
+Reservation Completed
+
+Timeline must be extensible.
+
+---
+
+# LOGGING
+
+Reuse existing logging.
+
+Log:
+
+Workflow Started
+
+Conversation Created
+
+Conversation Linked
+
+Notification Triggered
+
+Reservation Updated
+
+Workflow Errors
+
+Never log secrets.
+
+---
+
+# ERROR HANDLING
+
+Respect existing middleware.
+
+Return standardized errors.
+
+Rollback transactions on failures.
+
+Prevent partial updates.
+
+---
+
+# PERFORMANCE
+
+Avoid unnecessary queries.
+
+Reuse existing indexes.
+
+Minimize database writes.
+
+Batch operations when possible.
+
+Avoid N+1 problems.
+
+---
+
+# SECURITY
+
+Respect authentication.
+
+Respect ownership.
+
+Prevent unauthorized workflow execution.
+
+Validate permissions before every action.
+
+Never trust client input.
+
+---
+
+# CODE QUALITY
+
+Enterprise Architecture
+
+SOLID
+
+DDD
+
+Clean Code
+
+Strong Typing
+
+No Dead Code
+
+No TODO
+
+No Temporary Fixes
+
+Production Ready
+
+Backward Compatible
+
+---
+
+# STRICTLY OUT OF SCOPE
+
+DO NOT:
+
+Modify UI
+
+Modify Screens
+
+Modify Components
+
+Modify Navigation
+
+Modify Mobile Layout
+
+Modify Styling
+
+Modify Product UI
+
+Modify Store UI
+
+Modify Dashboard UI
+
+Modify Authentication
+
+Modify Existing APIs unrelated to Reservation
+
+Introduce Payment
+
+Introduce Checkout
+
+Introduce Shopping Cart
+
+Redesign Conversations
+
+Redesign Notifications
+
+---
+
+# VALIDATION
+
+Before finishing verify:
+
+Workflow works end-to-end.
+
+Reservation automatically links conversations.
+
+Notifications fire correctly.
+
+Dashboard receives updates.
+
+State transitions are valid.
+
+No duplicated notifications.
+
+No duplicated conversations.
+
+No broken imports.
+
+No TypeScript errors.
+
+No architectural violations.
+
+---
+
+# DELIVERABLE
+
+Provide a professional implementation report including:
+
+1. Executive Summary
+
+2. Workflow Architecture
+
+3. Reservation Lifecycle
+
+4. Conversation Integration
+
+5. Notification Integration
+
+6. Product Synchronization
+
+7. Dashboard Synchronization
+
+8. Event Flow
+
+9. State Machine Validation
+
+10. Concurrency Protection
+
+11. Logging Strategy
+
+12. Error Handling
+
+13. Security Review
+
+14. Performance Review
+
+15. Files Created
+
+16. Files Modified
+
+17. Compatibility Notes
+
+18. Risks
+
+19. Validation Results
+
+20. Ready for Sprint G.4
+
+---
+
+# FINAL RESTRICTIONS
+
+Sprint G.3 must ONLY implement the Reservation Workflow Engine.
+
+No frontend changes.
+
+No UI modifications.
+
+No design changes.
+
+No scope creep.
+
+Everything must remain production-ready, scalable, modular, and fully compatible with the existing MOB HUB architecture.

@@ -1,0 +1,493 @@
+@workspace
+
+# Sprint G.0 — Reservation Architecture & Domain Design
+
+## ROLE
+
+Act as a Senior Software Architect, Enterprise Backend Engineer, Domain Driven Design (DDD) Specialist, Database Architect, API Architect, Mobile Architect and Technical Lead.
+
+You are working on MOB HUB.
+
+This is an enterprise-grade mobile marketplace.
+
+IMPORTANT:
+
+The application is NOT an e-commerce platform.
+
+There will NEVER be:
+
+❌ Checkout
+❌ Payment Gateway
+❌ Cart
+❌ Online Payment
+
+The business model is:
+
+Customer
+↓
+
+Browse Products
+
+↓
+
+Reserve Device
+
+↓
+
+Internal Chat
+
+↓
+
+Merchant Confirms Reservation
+
+↓
+
+Customer visits the physical store.
+
+Reservation is the final action inside the application.
+
+Everything must be designed around this workflow.
+
+---
+
+## OBJECTIVE
+
+Design the complete Reservation Domain.
+
+DO NOT implement production code.
+
+DO NOT modify any existing feature.
+
+DO NOT change any UI.
+
+DO NOT change business logic.
+
+ONLY design the Reservation Architecture that will become the foundation of Sprint G.
+
+---
+
+## STRICT RULES
+
+READ ONLY first.
+
+Understand the existing architecture.
+
+Analyze:
+
+- Database schema
+- Conversations
+- Messages
+- Notifications
+- Products
+- Stores
+- Dashboard
+- OpenAPI
+- Existing hooks
+- Mobile navigation
+
+Never break compatibility.
+
+Never duplicate logic.
+
+Never redesign existing modules.
+
+Never introduce Checkout concepts.
+
+Never introduce Payment concepts.
+
+Everything must integrate with the existing architecture.
+
+---
+
+## DOMAIN ANALYSIS
+
+Design Reservation as a first-class domain.
+
+Analyze:
+
+Reservation lifecycle
+
+Reservation ownership
+
+Reservation state transitions
+
+Merchant actions
+
+Customer actions
+
+Notification events
+
+Conversation creation
+
+Dashboard integration
+
+Product visibility
+
+Store management
+
+Analytics implications
+
+Edge cases
+
+Concurrency
+
+Cancellation
+
+Expiration
+
+Conflict resolution
+
+---
+
+## RESERVATION STATE MACHINE
+
+Design a complete lifecycle.
+
+Example states:
+
+PENDING
+
+CONFIRMED
+
+CANCELLED
+
+DECLINED
+
+EXPIRED
+
+COMPLETED
+
+Determine:
+
+Allowed transitions
+
+Invalid transitions
+
+Who can perform each transition
+
+Automatic transitions
+
+Manual transitions
+
+---
+
+## PRODUCT STATE
+
+Determine how reservation affects products.
+
+Should product become:
+
+Available
+
+Reserved
+
+Reserved by someone
+
+Unavailable
+
+Sold (future)
+
+Design a scalable solution.
+
+---
+
+## DATABASE DESIGN
+
+Propose the Reservation aggregate.
+
+Determine:
+
+Entities
+
+Relationships
+
+Indexes
+
+Constraints
+
+Foreign Keys
+
+Unique constraints
+
+Cascade behavior
+
+Soft delete policy
+
+Audit fields
+
+Timestamps
+
+Future extensibility
+
+Do NOT write migrations.
+
+Only architecture.
+
+---
+
+## API DESIGN
+
+Design the future REST API.
+
+Determine endpoints only.
+
+Examples:
+
+Reserve Product
+
+Cancel Reservation
+
+Confirm Reservation
+
+Reject Reservation
+
+Reservation Details
+
+Merchant Reservations
+
+Customer Reservations
+
+Reservation Timeline
+
+Reservation Status
+
+No implementation.
+
+No controllers.
+
+No handlers.
+
+Architecture only.
+
+---
+
+## MOBILE FLOW
+
+Design:
+
+Customer Flow
+
+Merchant Flow
+
+Notification Flow
+
+Conversation Flow
+
+Dashboard Flow
+
+Deep Linking
+
+Navigation Flow
+
+Loading States
+
+Empty States
+
+Error States
+
+Offline Behaviour
+
+---
+
+## DASHBOARD DESIGN
+
+Determine:
+
+Reservation widgets
+
+Reservation statistics
+
+Pending reservations
+
+Confirmed reservations
+
+Cancelled reservations
+
+Reservation filters
+
+Reservation search
+
+Reservation badges
+
+Reservation actions
+
+Merchant insights
+
+---
+
+## NOTIFICATION DESIGN
+
+Reuse the existing Notification Service.
+
+Determine every notification event.
+
+Examples:
+
+Reservation created
+
+Merchant replied
+
+Reservation confirmed
+
+Reservation cancelled
+
+Reservation expired
+
+Customer reminder
+
+Merchant reminder
+
+Badge updates
+
+Push notification strategy
+
+In-app notification strategy
+
+---
+
+## CONVERSATION DESIGN
+
+Reservation must integrate with Conversations.
+
+Determine:
+
+Conversation creation
+
+Conversation ownership
+
+Conversation reuse
+
+Conversation lifecycle
+
+Reservation timeline inside chat
+
+Merchant actions inside chat
+
+Customer actions inside chat
+
+---
+
+## EDGE CASES
+
+Analyze all scenarios.
+
+Examples:
+
+Two customers reserve simultaneously
+
+Merchant confirms another reservation
+
+Reservation timeout
+
+Merchant deletes product
+
+Merchant blocks customer
+
+Customer cancels
+
+Merchant cancels
+
+Product becomes unavailable
+
+Duplicate reservation attempts
+
+Race conditions
+
+Offline synchronization
+
+Everything must be addressed.
+
+---
+
+## FUTURE COMPATIBILITY
+
+Architecture must support future features without redesign.
+
+Examples:
+
+Reservation expiration
+
+Deposit payments (future optional)
+
+Store pickup scheduling
+
+Appointment booking
+
+Reservation history
+
+Merchant CRM
+
+Analytics
+
+Admin moderation
+
+Without breaking today's architecture.
+
+---
+
+## DELIVERABLE
+
+Return ONLY an Architecture Report.
+
+Include:
+
+1. Executive Summary
+
+2. Reservation Domain Overview
+
+3. State Machine
+
+4. Database Architecture
+
+5. Entity Relationships
+
+6. API Architecture
+
+7. Mobile Flow
+
+8. Merchant Flow
+
+9. Customer Flow
+
+10. Dashboard Integration
+
+11. Conversation Integration
+
+12. Notification Integration
+
+13. Product Lifecycle
+
+14. Edge Cases
+
+15. Security Considerations
+
+16. Scalability Considerations
+
+17. Future Compatibility
+
+18. Risks
+
+19. Recommendations
+
+20. Sprint G.1 implementation roadmap
+
+---
+
+## OUTPUT RESTRICTIONS
+
+DO NOT:
+
+- modify source code
+- generate migrations
+- create tables
+- create endpoints
+- edit files
+- rename anything
+- refactor existing modules
+- change UI
+- create commits
+- push changes
+
+This Sprint is Architecture Design ONLY.
+
+The final report should be written like an Enterprise Software Architecture Document suitable for a production engineering team.

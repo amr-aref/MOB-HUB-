@@ -1,0 +1,463 @@
+@workspace
+
+# 🚀 Sprint G.1 — Reservation Database Implementation
+
+## ROLE
+
+You are an Enterprise Staff Software Engineer, Database Architect, PostgreSQL Expert, Drizzle ORM Expert, API Architect, and Senior Backend Engineer.
+
+You are working on the production codebase of MOB HUB.
+
+This sprint is the FIRST implementation sprint after the Reservation Architecture (Sprint G.0).
+
+Your responsibility is to implement ONLY the Reservation persistence layer while preserving the existing architecture.
+
+Everything must follow enterprise software engineering standards.
+
+---
+
+# PRIMARY OBJECTIVE
+
+Implement the Reservation Database Layer.
+
+This sprint is ONLY responsible for the persistence layer.
+
+DO NOT implement business logic.
+
+DO NOT implement API routes.
+
+DO NOT implement frontend.
+
+DO NOT modify UI.
+
+DO NOT modify conversations.
+
+DO NOT modify notifications.
+
+DO NOT modify dashboard.
+
+Only implement the database foundation.
+
+---
+
+# IMPORTANT BUSINESS MODEL
+
+MOB HUB is NOT an e-commerce application.
+
+There is NO:
+
+❌ Cart
+
+❌ Checkout
+
+❌ Payment
+
+❌ Online Purchase
+
+The final customer action is:
+
+Browse Product
+
+↓
+
+Reserve Product
+
+↓
+
+Chat with Merchant
+
+↓
+
+Merchant confirms reservation
+
+↓
+
+Customer visits the physical store.
+
+The Reservation system is the core business process.
+
+Design accordingly.
+
+---
+
+# READ FIRST
+
+Before making any change, inspect and understand:
+
+lib/db
+
+Current schema
+
+Products
+
+Stores
+
+Conversations
+
+Messages
+
+Notifications
+
+Orders
+
+Current migrations
+
+Drizzle configuration
+
+Existing naming conventions
+
+Foreign key conventions
+
+Index conventions
+
+Timestamp conventions
+
+Soft delete conventions
+
+Never guess.
+
+Follow the existing architecture exactly.
+
+---
+
+# IMPLEMENTATION SCOPE
+
+Implement ONLY:
+
+Reservation Entity
+
+Reservation Status
+
+Relations
+
+Indexes
+
+Migration
+
+Seed support (if required by project conventions)
+
+Schema exports
+
+Everything else is OUT OF SCOPE.
+
+---
+
+# RESERVATION TABLE
+
+Create a new Reservation entity.
+
+It must support:
+
+Unique ID
+
+Product Reference
+
+Store Reference
+
+Buyer Reference
+
+Conversation Reference
+
+Reservation Status
+
+Creation Timestamp
+
+Update Timestamp
+
+Confirmation Timestamp
+
+Cancellation Timestamp
+
+Expiration Timestamp
+
+Optional Merchant Notes
+
+Optional Customer Notes
+
+Future extensibility.
+
+Do NOT add unnecessary columns.
+
+Keep schema normalized.
+
+---
+
+# RESERVATION STATUS
+
+Implement an enum.
+
+Enterprise-ready.
+
+States:
+
+PENDING
+
+CONFIRMED
+
+DECLINED
+
+CANCELLED
+
+EXPIRED
+
+COMPLETED
+
+The enum must be reusable across the project.
+
+---
+
+# RELATIONSHIPS
+
+Design proper relationships with:
+
+Products
+
+Stores
+
+Users (or current identity abstraction if authentication is not yet available)
+
+Conversations
+
+Messages (indirect)
+
+Notifications (indirect)
+
+Do not duplicate data.
+
+Use foreign keys.
+
+Respect cascade rules already used in the project.
+
+---
+
+# INDEXES
+
+Design efficient indexes.
+
+Analyze likely queries.
+
+Examples:
+
+Reservations by Product
+
+Reservations by Store
+
+Reservations by Buyer
+
+Reservations by Status
+
+Recent Reservations
+
+Pending Reservations
+
+Merchant Dashboard
+
+Avoid unnecessary indexes.
+
+---
+
+# CONSTRAINTS
+
+Implement integrity constraints.
+
+Examples:
+
+Required relationships
+
+Status consistency
+
+Unique reservation identifiers
+
+Timestamp consistency
+
+Prevent invalid records
+
+Use CHECK constraints where appropriate if project conventions allow.
+
+---
+
+# MIGRATION
+
+Generate a proper Drizzle migration.
+
+Migration must:
+
+Be deterministic
+
+Be reversible
+
+Follow existing migration naming
+
+Never modify existing tables unless absolutely required
+
+Never destroy data
+
+Never drop columns
+
+Never rename existing entities
+
+Never affect production data
+
+---
+
+# PROJECT INTEGRATION
+
+Update schema exports.
+
+Update database barrel files.
+
+Update type exports if required.
+
+Do not break existing imports.
+
+Maintain backward compatibility.
+
+---
+
+# FUTURE COMPATIBILITY
+
+Design for future features:
+
+Reservation expiry
+
+Reservation reminders
+
+Merchant CRM
+
+Analytics
+
+Reservation history
+
+Admin moderation
+
+Store pickup scheduling
+
+Without future database redesign.
+
+---
+
+# STRICT RULES
+
+DO NOT:
+
+Implement APIs
+
+Implement Controllers
+
+Implement Services
+
+Implement Hooks
+
+Implement Screens
+
+Implement Components
+
+Implement Navigation
+
+Implement Notifications
+
+Implement Business Logic
+
+Modify Product Logic
+
+Modify Dashboard Logic
+
+Modify Chat Logic
+
+Modify Existing Orders
+
+Modify Existing Reviews
+
+Modify Existing Authentication
+
+This sprint is DATABASE ONLY.
+
+---
+
+# CODE QUALITY
+
+Follow existing project architecture.
+
+Use existing naming conventions.
+
+Use existing Drizzle patterns.
+
+Strong typing.
+
+Clean code.
+
+Enterprise quality.
+
+No duplicated logic.
+
+No dead code.
+
+No temporary fixes.
+
+No TODO comments.
+
+---
+
+# VALIDATION
+
+Before finishing:
+
+Verify schema consistency.
+
+Verify foreign keys.
+
+Verify indexes.
+
+Verify migration.
+
+Verify exports.
+
+Verify type generation.
+
+Verify nothing else was modified.
+
+---
+
+# DELIVERABLE
+
+At the end, provide a complete implementation report including:
+
+1. Files Created
+
+2. Files Modified
+
+3. Database Schema Summary
+
+4. Relationships
+
+5. Indexes
+
+6. Constraints
+
+7. Migration Summary
+
+8. Export Changes
+
+9. Compatibility Notes
+
+10. Risks
+
+11. Validation Results
+
+12. Ready for Sprint G.2
+
+---
+
+# FINAL RESTRICTIONS
+
+This sprint must ONLY prepare the database foundation for the Reservation system.
+
+No feature implementation outside the persistence layer is allowed.
+
+No scope creep.
+
+No assumptions.
+
+No architectural redesign.
+
+Production-quality implementation only.

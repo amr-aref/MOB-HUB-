@@ -1,0 +1,605 @@
+@workspace
+
+# 🚀 Sprint G.2 — Enterprise Reservation API Layer
+
+## ROLE
+
+You are a Principal Backend Engineer, Enterprise API Architect, OpenAPI Specialist, Express.js Expert, TypeScript Expert, PostgreSQL Architect, Drizzle ORM Specialist, and Domain Driven Design (DDD) Engineer.
+
+You are implementing Sprint G.2 of MOB HUB.
+
+Sprint G.1 (Reservation Database Layer) has already been completed.
+
+Your responsibility is ONLY the Reservation API Layer.
+
+Everything must follow enterprise software engineering standards.
+
+---
+
+# BUSINESS MODEL
+
+MOB HUB is NOT an e-commerce application.
+
+There is NO:
+
+❌ Checkout
+
+❌ Payment
+
+❌ Shopping Cart
+
+❌ Online Purchase
+
+The business flow is:
+
+Customer
+
+↓
+
+Browse Products
+
+↓
+
+Reserve Product
+
+↓
+
+Internal Conversation
+
+↓
+
+Merchant Decision
+
+↓
+
+Reservation Confirmed
+
+↓
+
+Customer Visits Store
+
+The Reservation API is the core workflow.
+
+Design accordingly.
+
+---
+
+# IMPORTANT
+
+Read and understand the existing architecture before making any modification.
+
+Inspect:
+
+OpenAPI Specification
+
+API Routes
+
+Controllers
+
+Services
+
+Database Schema
+
+Notification Service
+
+Conversation Module
+
+Dashboard Module
+
+Generated API Client
+
+Generated Zod Schemas
+
+Project Conventions
+
+Never redesign existing architecture.
+
+Never duplicate logic.
+
+Never introduce breaking changes.
+
+---
+
+# OBJECTIVE
+
+Implement the Reservation API.
+
+Only backend API.
+
+Nothing else.
+
+---
+
+# IMPLEMENTATION SCOPE
+
+Implement:
+
+Reservation OpenAPI
+
+Reservation DTOs
+
+Reservation Validation
+
+Reservation Routes
+
+Reservation Controllers
+
+Reservation Service
+
+Repository Layer (if project convention exists)
+
+Business Rules
+
+Error Handling
+
+Authorization Integration (current project approach)
+
+Logging
+
+Response Types
+
+Everything else is out of scope.
+
+---
+
+# OPENAPI
+
+Extend the existing OpenAPI specification.
+
+Create complete Reservation endpoints.
+
+Design enterprise-level documentation.
+
+Examples include:
+
+POST /products/{id}/reserve
+
+GET /reservations/{id}
+
+GET /reservations/me
+
+GET /stores/{id}/reservations
+
+PATCH /reservations/{id}/confirm
+
+PATCH /reservations/{id}/decline
+
+PATCH /reservations/{id}/cancel
+
+PATCH /reservations/{id}/complete
+
+Every endpoint must include:
+
+Description
+
+Request Schema
+
+Response Schema
+
+Error Responses
+
+Status Codes
+
+Validation Rules
+
+Examples
+
+OpenAPI must remain consistent with the existing project style.
+
+---
+
+# BUSINESS RULES
+
+Implement proper reservation rules.
+
+Examples:
+
+A product cannot have multiple confirmed reservations.
+
+Merchant confirms only one reservation.
+
+Pending reservations remain pending until decision.
+
+Confirmation automatically updates remaining reservations according to the approved business rules.
+
+Cancelled reservations cannot return to pending.
+
+Completed reservations are immutable.
+
+Prevent invalid transitions.
+
+Prevent duplicate reservations.
+
+Prevent inconsistent data.
+
+Implement the rules inside the Service Layer.
+
+Never inside controllers.
+
+---
+
+# CONTROLLERS
+
+Controllers must remain thin.
+
+Responsibilities:
+
+Receive request
+
+Validate
+
+Call Service
+
+Return response
+
+Nothing else.
+
+No business logic.
+
+No SQL.
+
+No complex decisions.
+
+---
+
+# SERVICE LAYER
+
+Implement all Reservation logic.
+
+Examples:
+
+Create Reservation
+
+Confirm Reservation
+
+Decline Reservation
+
+Cancel Reservation
+
+Complete Reservation
+
+Reservation Timeline
+
+Reservation History
+
+Merchant Reservation List
+
+Customer Reservation List
+
+Status Validation
+
+Conflict Detection
+
+Concurrency Protection
+
+Transaction Management
+
+Use database transactions whenever necessary.
+
+---
+
+# VALIDATION
+
+Reuse project validation conventions.
+
+Use Zod if already adopted.
+
+Validate:
+
+IDs
+
+Status
+
+Ownership
+
+Permissions
+
+Payload
+
+Query Parameters
+
+Path Parameters
+
+Body
+
+Reject malformed requests.
+
+Return standardized errors.
+
+---
+
+# AUTHORIZATION
+
+Integrate with the current project authentication approach.
+
+Do NOT redesign authentication.
+
+Do NOT implement authentication itself.
+
+Only consume the authenticated identity.
+
+Enforce ownership rules.
+
+Merchant permissions.
+
+Customer permissions.
+
+Forbidden operations.
+
+---
+
+# NOTIFICATIONS
+
+Integrate with the existing Notification Service.
+
+Do not rewrite it.
+
+Trigger events only.
+
+Examples:
+
+Reservation Created
+
+Reservation Confirmed
+
+Reservation Declined
+
+Reservation Cancelled
+
+Reservation Completed
+
+Notification logic must remain centralized.
+
+---
+
+# CONVERSATIONS
+
+Integrate with the existing Conversation domain.
+
+Reservation creation must support conversation linkage.
+
+Do not redesign messaging.
+
+Reuse existing architecture.
+
+---
+
+# ERROR HANDLING
+
+Implement standardized API responses.
+
+Consistent HTTP codes.
+
+Meaningful error messages.
+
+No internal stack traces.
+
+Respect existing error middleware.
+
+---
+
+# LOGGING
+
+Reuse the existing logging strategy.
+
+Log:
+
+Reservation Created
+
+Reservation Updated
+
+Reservation Confirmed
+
+Reservation Cancelled
+
+Reservation Errors
+
+Never log secrets.
+
+---
+
+# PERFORMANCE
+
+Avoid unnecessary queries.
+
+Use indexes created in Sprint G.1.
+
+Minimize joins.
+
+Avoid N+1 problems.
+
+Support pagination.
+
+Support filtering.
+
+Support sorting.
+
+Enterprise performance only.
+
+---
+
+# SECURITY
+
+Prevent:
+
+Duplicate reservations
+
+Unauthorized access
+
+Invalid state transitions
+
+Race conditions
+
+Concurrent confirmations
+
+Manipulated IDs
+
+Replay requests where applicable
+
+Never trust client input.
+
+---
+
+# TESTABILITY
+
+Structure the code for future unit testing.
+
+Business logic must remain isolated.
+
+No hidden dependencies.
+
+Dependency Injection if already used.
+
+---
+
+# STRICTLY OUT OF SCOPE
+
+DO NOT:
+
+Modify UI
+
+Modify Mobile Screens
+
+Modify Dashboard UI
+
+Modify Components
+
+Modify Navigation
+
+Modify Styling
+
+Modify Product Screens
+
+Modify Store Screens
+
+Modify Frontend Hooks
+
+Modify React Query
+
+Modify Mobile Logic
+
+Modify Authentication System
+
+Modify Existing Orders
+
+Modify Existing Reviews
+
+Modify Existing Notifications Architecture
+
+---
+
+# QUALITY REQUIREMENTS
+
+Enterprise Architecture
+
+Clean Code
+
+SOLID Principles
+
+DDD Friendly
+
+Strong Typing
+
+OpenAPI First
+
+No Dead Code
+
+No TODO Comments
+
+No Temporary Fixes
+
+Production Ready
+
+Backward Compatible
+
+---
+
+# VALIDATION
+
+Before finishing verify:
+
+OpenAPI builds successfully.
+
+Generated client remains compatible.
+
+Database queries compile.
+
+Routes registered correctly.
+
+Controllers compile.
+
+Services compile.
+
+No TypeScript errors.
+
+No broken imports.
+
+No duplicated logic.
+
+No architectural violations.
+
+---
+
+# DELIVERABLE
+
+Provide a professional implementation report including:
+
+1. Executive Summary
+
+2. OpenAPI Changes
+
+3. New Endpoints
+
+4. DTOs
+
+5. Validation
+
+6. Controllers
+
+7. Services
+
+8. Business Rules
+
+9. Notification Integration
+
+10. Conversation Integration
+
+11. Authorization Integration
+
+12. Error Handling
+
+13. Logging
+
+14. Performance Considerations
+
+15. Security Review
+
+16. Risks
+
+17. Files Created
+
+18. Files Modified
+
+19. Compatibility Notes
+
+20. Sprint G.3 Readiness
+
+---
+
+# FINAL RESTRICTIONS
+
+Sprint G.2 must ONLY implement the Reservation API Layer.
+
+No frontend.
+
+No dashboard UI.
+
+No mobile integration.
+
+No feature outside Reservation.
+
+Maintain production quality.
+
+No architectural redesign.
+
+No scope creep.
