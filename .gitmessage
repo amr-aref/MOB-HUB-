@@ -1,0 +1,28 @@
+# Conventional Commit message template
+# Replace <scope> and <description> as appropriate
+# Examples:
+# feat(ui): add product carousel to home screen
+# fix(api): ensure product rating recalculation is atomic
+# docs: update README with local dev steps
+# chore: update workspace dev config
+
+<type>(<scope>): <short summary>
+
+[optional body]
+
+BREAKING CHANGE: <description of breaking change>
+
+References: #<issue-number>
+
+---
+# Supported types:
+# feat: A new feature
+# fix: A bug fix
+# docs: Documentation only changes
+# style: Changes that do not affect meaning of the code (white-space, formatting)
+# refactor: A code change that neither fixes a bug nor adds a feature
+# perf: A code change that improves performance
+# test: Adding missing tests or correcting existing tests
+# build: Changes that affect the build system or external dependencies
+# ci: Changes to CI configuration files and scripts
+# chore: Other changes that don't modify src or test files

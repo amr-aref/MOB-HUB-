@@ -1,0 +1,25 @@
+# Auto normalize text files and enforce LF line endings
+* text=auto eol=lf
+
+# Force LF for common text files
+*.js eol=lf
+*.ts eol=lf
+*.tsx eol=lf
+*.json eol=lf
+*.md eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.zip binary
+*.tar.gz binary
+
+# Lock files should be treated as binary to avoid CRLF changes
+pnpm-lock.yaml binary
+
+# Ensure scripts are executable on checkout (POSIX systems use normal executable bits)
+# (No action required here for Windows, but keep explicit settings)
+*.sh text eol=lf
