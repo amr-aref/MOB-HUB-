@@ -2,6 +2,14 @@
 
 An Expo mobile marketplace app (Arabic RTL) for buying/comparing phones in Egypt, backed by a shared Express API server. Re-imported from GitHub on 2026-07-15; artifacts and workflows were re-registered cleanly by the platform this time (API Server, Mobile Marketplace, Canvas/mockup-sandbox).
 
+## Setup status (2026-07-16)
+
+- ✅ `pnpm install` — 1145 packages installed from lockfile
+- ✅ `pnpm --filter @workspace/db run push` — DB schema applied (no migrations pending)
+- ✅ `pnpm --filter @workspace/db run seed` — seeded: categories, stores, products, phone specs, reviews, dashboard data, notifications, reservations
+- ✅ Workflow `artifacts/api-server: API Server` — running on port 8080
+- ✅ Workflow `artifacts/mobile: expo` — running, Metro bundler active
+
 ## Run & Operate
 
 - Workflow `artifacts/mobile: expo` — Expo mobile app, reachable at `https://$REPLIT_EXPO_DEV_DOMAIN/`

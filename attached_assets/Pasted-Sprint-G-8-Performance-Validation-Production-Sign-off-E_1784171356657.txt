@@ -1,0 +1,551 @@
+Sprint G.8 — Performance Validation & Production Sign-off
+
+Enterprise Prompt — Final Release Certification
+
+Role: Chief Software Architect • Principal Backend Engineer • Principal Mobile Engineer • Performance Engineer • QA Director • DevOps Lead • Security Lead
+
+هذا هو آخر Sprint قبل اعتبار المشروع Production Ready.
+
+G.8 ليس Sprint تطوير.
+
+الغرض الوحيد منه هو التحقق النهائي (Validation) وإصدار قرار الإطلاق (Production Sign-off) بناءً على اختبارات فعلية، وليس الافتراضات.
+
+الدور (Role)
+
+أنت تعمل كفريق مراجعة مستقل (Independent Release Board) وليس كفريق تطوير.
+
+مهمتك ليست إضافة كود أو تحسينات جديدة، وإنما:
+
+مراجعة المشروع بالكامل.
+التحقق من أن جميع مراحل G.0 → G.7 اكتملت فعليًا.
+تنفيذ اختبارات تحقق نهائية.
+إصدار قرار إطلاق رسمي.
+
+أنت مسؤول عن إصدار إحدى نتيجتين فقط:
+
+PASS (Production Approved)
+FAIL (Release Blocked)
+
+ولا توجد نتيجة ثالثة.
+
+ممنوع تمامًا
+
+لا تقم إطلاقًا بـ:
+
+❌ إضافة Features
+
+❌ تعديل UI
+
+❌ تعديل UX
+
+❌ تعديل APIs
+
+❌ تعديل Database Schema
+
+❌ تعديل OpenAPI
+
+❌ Refactor
+
+❌ تغيير Business Logic
+
+❌ تحسينات جديدة
+
+❌ تغيير Architecture
+
+❌ تغيير Routing
+
+❌ إضافة Packages
+
+❌ حذف أجزاء مستقرة
+
+❌ تعديل أي شيء لمجرد التحسين
+
+إذا وجدت مشكلة:
+
+قم بتوثيقها فقط.
+
+لا تقم بإصلاحها داخل هذا Sprint.
+
+المرحلة الأولى
+Sprint Verification
+
+تحقق أن جميع المراحل السابقة مكتملة بالكامل:
+
+G.0
+G.1
+G.2
+G.3
+G.4
+G.5
+G.6
+G.7
+
+راجع جميع مخرجاتها.
+
+تأكد أن كل Acceptance Criteria قد تحقق.
+
+المرحلة الثانية
+Functional Validation
+
+اختبر عمليًا جميع التدفقات الأساسية:
+
+Authentication
+Register
+Login
+Token Refresh
+Logout
+Session Restore
+Unauthorized Access
+Reservation Flow
+
+اختبر:
+
+Product
+
+↓
+
+Reserve
+
+↓
+
+Conversation
+
+↓
+
+Merchant Notification
+
+↓
+
+Merchant Confirmation
+
+↓
+
+Buyer Notification
+
+↓
+
+Badge Update
+
+↓
+
+Reservation Details
+
+↓
+
+Completion
+
+↓
+
+Cancellation
+
+↓
+
+Decline
+
+↓
+
+Expiration
+
+يجب اختبار جميع الحالات.
+
+المرحلة الثالثة
+State Transition Validation
+
+تحقق من:
+
+Pending
+
+↓
+
+Confirmed
+
+↓
+
+Completed
+
+Pending
+
+↓
+
+Cancelled
+
+Pending
+
+↓
+
+Declined
+
+Pending
+
+↓
+
+Expired
+
+لا يسمح بأي انتقال غير معرف.
+
+المرحلة الرابعة
+Database Validation
+
+راجع:
+
+Integrity
+
+Foreign Keys
+
+Indexes
+
+Unique Constraints
+
+Transactions
+
+Cascade Rules
+
+Reservation Consistency
+
+Conversation Consistency
+
+Notification Consistency
+
+لا يجب وجود:
+
+Duplicate Reservation
+
+Orphan Records
+
+Broken FK
+
+Race Condition
+
+Deadlock
+
+المرحلة الخامسة
+API Validation
+
+راجع كل Endpoint.
+
+تحقق من:
+
+HTTP Codes
+
+Validation
+
+Authorization
+
+Authentication
+
+Ownership
+
+Response Shape
+
+Error Shape
+
+Pagination
+
+Sorting
+
+Filtering
+
+OpenAPI Compatibility
+
+Generated Client Compatibility
+
+لا يسمح بأي API غير متوافق.
+
+المرحلة السادسة
+Mobile Validation
+
+اختبر:
+
+Navigation
+
+Deep Links
+
+Back Navigation
+
+Refresh
+
+Offline Handling
+
+Loading
+
+Empty States
+
+Error States
+
+Search
+
+Filters
+
+Reservation Screens
+
+Merchant Dashboard
+
+Notifications
+
+Conversations
+
+Authentication
+
+لا يسمح بأي Crash.
+
+المرحلة السابعة
+Performance Validation
+
+تحقق من:
+
+API Response Time
+
+Database Queries
+
+Memory
+
+CPU
+
+Network
+
+Bundle Size
+
+Rendering
+
+React Query
+
+Caching
+
+Cold Start
+
+Hot Reload Stability
+
+Large Lists
+
+Pagination
+
+سجل النتائج.
+
+المرحلة الثامنة
+Security Validation
+
+راجع:
+
+Authentication
+
+Authorization
+
+JWT
+
+Refresh Token
+
+Rate Limiting
+
+Input Validation
+
+Ownership Checks
+
+Sensitive Data
+
+Secrets
+
+Logging
+
+SQL Injection
+
+XSS
+
+CSRF (إذا كان ينطبق)
+
+Replay Protection
+
+أي ثغرة High أو Critical تمنع الإطلاق.
+
+المرحلة التاسعة
+Reliability Validation
+
+راجع:
+
+Recovery
+
+Retries
+
+Timeouts
+
+Cancellation
+
+Reconnect
+
+Transaction Rollback
+
+Notification Delivery
+
+Conversation Integrity
+
+Reservation Consistency
+
+يجب أن تكون جميع السيناريوهات مستقرة.
+
+المرحلة العاشرة
+Codebase Validation
+
+تحقق أن:
+
+Typecheck
+
+Lint
+
+Tests
+
+OpenAPI Generation
+
+Drizzle Migration
+
+Backend Build
+
+Mobile Build
+
+Production Build
+
+كلها ناجحة.
+
+المرحلة الحادية عشرة
+Documentation Validation
+
+تحقق أن:
+
+README
+
+Environment Variables
+
+Migration Guide
+
+Deployment Guide
+
+API Documentation
+
+Architecture Notes
+
+Release Notes
+
+كلها محدثة.
+
+المرحلة الثانية عشرة
+Production Readiness Review
+
+راجع المشروع بالكامل باعتباره منتجًا سيخرج للمستخدمين الحقيقيين.
+
+أجب عن الأسئلة التالية:
+
+هل يوجد أي Blocker؟
+هل يوجد أي High Risk؟
+هل يوجد أي Data Risk؟
+هل يوجد أي Security Risk؟
+هل يوجد أي Regression؟
+هل يوجد أي Performance Concern؟
+هل يوجد أي Production Concern؟
+التقرير النهائي
+
+يجب أن يتضمن التقرير فقط:
+
+Executive Summary
+
+ملخص احترافي لحالة المشروع.
+
+Verification Matrix
+
+جدول يوضح حالة:
+
+Architecture
+Backend
+Mobile
+Database
+Authentication
+Reservations
+Conversations
+Notifications
+Performance
+Security
+Testing
+Documentation
+Deployment
+
+مع الحالة:
+
+PASS
+FAIL
+CONDITIONAL PASS
+Blockers
+
+أي مشاكل تمنع الإطلاق.
+
+إذا لم توجد:
+
+No Release Blockers Found.
+
+Risks
+
+أي مخاطر متبقية مع تصنيفها:
+
+Critical
+High
+Medium
+Low
+Performance Summary
+
+يشمل:
+
+متوسط زمن استجابة الـ API
+عدد الاستعلامات الحرجة
+نتائج الأداء
+أي اختناقات متبقية
+Security Summary
+
+يشمل:
+
+نتائج مراجعة الأمان
+حالة المصادقة
+حماية البيانات
+حماية نقاط النهاية
+Test Summary
+
+يتضمن:
+
+عدد الاختبارات المنفذة
+عدد الناجحة
+عدد الفاشلة
+نسبة النجاح
+Release Decision
+
+يجب أن ينتهي التقرير بأحد الخيارين فقط:
+
+إذا نجح المشروع
+
+PRODUCTION APPROVED
+
+ويجب توضيح أن المشروع اجتاز جميع معايير الإطلاق ولا توجد عوائق تمنع النشر.
+
+إذا فشل
+
+RELEASE BLOCKED
+
+مع ذكر الأسباب الدقيقة فقط.
+
+قواعد صارمة
+لا تعدل أي ملف.
+لا تضف أي كود.
+لا تصلح أي مشكلة.
+لا تقترح Features جديدة.
+لا تغير Architecture.
+لا تغير Database.
+لا تغير OpenAPI.
+لا تغير Business Logic.
+لا تغير UI أو UX.
+لا تنفذ Refactor.
+اعمل كمجلس اعتماد (Release Board) مستقل يصدر قرارًا نهائيًا مبنيًا على الأدلة فقط.
+معايير القبول (Acceptance Criteria)
+
+لا يعتبر Sprint G.8 مكتملًا إلا إذا تحققت جميع الشروط التالية:
+
+✅ تمت مراجعة جميع مخرجات G.0 → G.7.
+✅ تم اختبار جميع التدفقات الوظيفية الحرجة بالكامل.
+✅ لا توجد Blockers أو مخاطر Critical تمنع الإطلاق.
+✅ جميع اختبارات البناء (Build)، والتحقق (Typecheck/Lint)، والاختبارات الآلية ناجحة.
+✅ تم التحقق من الأداء والأمان والاعتمادية بوثائق ونتائج قابلة للمراجعة.
+✅ صدر تقرير اعتماد نهائي يتضمن PASS/FAIL لكل مجال رئيسي.
+✅ انتهى الـ Sprint بقرار واحد فقط: PRODUCTION APPROVED أو RELEASE BLOCKED، دون أي نتائج وسطية أو غامضة.
