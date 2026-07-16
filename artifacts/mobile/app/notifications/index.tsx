@@ -86,6 +86,13 @@ export default function NotificationsScreen() {
 
   const handlePress = (item: NotificationDto) => {
     if (!item.readStatus) markRead(item.id);
+    // Deep-link into reservation or conversation based on notification metadata
+    const meta = (item.metadata ?? {}) as Record<string, string>;
+    if (meta.reservationId) {
+      router.push({ pathname: '/reservations/[id]' as any, params: { id: meta.reservationId } });
+    } else if (meta.conversationId) {
+      router.push(`/messages/${meta.conversationId}` as any);
+    }
   };
 
   return (

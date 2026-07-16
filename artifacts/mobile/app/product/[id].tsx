@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import {
+  ActivityIndicator,
+  Alert,
   Linking,
   Platform,
   Pressable,
@@ -8,6 +10,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { useQueryClient } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -15,10 +18,30 @@ import * as Haptics from 'expo-haptics';
 import colors from '@/constants/colors';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useFavorites } from '@/contexts/FavoritesContext';
-import { useGetProduct, useGetStore, useGetProducts, useCreateConversation } from '@workspace/api-client-react';
+import {
+  useGetProduct,
+  useGetStore,
+  useGetProducts,
+  useCreateConversation,
+  useCreateReservation,
+  useGetReservations,
+} from '@workspace/api-client-react';
 import { useDeviceId } from '@/hooks/useDeviceId';
 import RatingStars from '@/components/RatingStars';
 import { useLayout } from '@/hooks/useLayout';
+
+// ─── Reservation status badge config (outside component to avoid recreation) ──
+
+const RESERVATION_STATUS_BADGE: Record<string, {
+  bg: string; fg: string; icon: any; ar: string; en: string;
+}> = {
+  pending:   { bg: '#FEF3C7', fg: '#D97706', icon: 'time-outline',                  ar: 'قيد الانتظار', en: 'Pending' },
+  confirmed: { bg: '#D1FAE5', fg: '#059669', icon: 'checkmark-circle-outline',      ar: 'محجوز',         en: 'Reserved' },
+  completed: { bg: '#EFF6FF', fg: '#2563EB', icon: 'checkmark-done-circle-outline', ar: 'تم الاستلام',   en: 'Completed' },
+  cancelled: { bg: '#F3F4F6', fg: '#6B7280', icon: 'ban-outline',                   ar: 'ملغى',          en: 'Cancelled' },
+  declined:  { bg: '#FEE2E2', fg: '#DC2626', icon: 'close-circle-outline',          ar: 'مرفوض',         en: 'Declined' },
+  expired:   { bg: '#F3F4F6', fg: '#6B7280', icon: 'alert-circle-outline',          ar: 'منتهي',         en: 'Expired' },
+};
 
 export default function ProductScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -39,6 +62,34 @@ export default function ProductScreen() {
 
   // Hooks must be called unconditionally — before any early return
   const deviceId = useDeviceId();
+  const queryClient = useQueryClient();
+
+  // Fetch buyer's reservations to detect whether this product is already reserved
+  const { data: myReservationsRaw = [] } = useGetReservations(
+    deviceId ? { buyerId: deviceId } : undefined,
+    { query: { enabled: !!deviceId, staleTime: 30_000 } },
+  );
+  const myReservations = myReservationsRaw as Array<{ id: string; productId: string; status: string; conversationId?: string | null }>;
+
+  const { mutate: createReservation, isPending: reserving } = useCreateReservation({
+    mutation: {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      onSuccess: (reservation: any) => {
+        queryClient.invalidateQueries({ queryKey: ['/api/reservations'] });
+        // Navigate directly to the conversation auto-created with the reservation
+        if (reservation?.conversationId) {
+          router.push(`/messages/${reservation.conversationId}` as any);
+        } else {
+          router.push('/reservations' as any);
+        }
+      },
+      onError: () => {
+        // Refetch so the UI reflects the current state (e.g. already reserved)
+        queryClient.invalidateQueries({ queryKey: ['/api/reservations'] });
+      },
+    },
+  });
+
   const { mutate: createConversation, isPending: creatingConv } = useCreateConversation({
     mutation: {
       onSuccess: (conv) => router.push(`/messages/${conv.id}` as any),
@@ -50,6 +101,26 @@ export default function ProductScreen() {
   const [selectedRam, setSelectedRam] = useState(0);
 
   if (productLoading || !product) return null;
+
+  // ── Reservation state machine ─────────────────────────────────────────────
+  const myReservation = myReservations.find((r) => r.productId === id);
+  const reserveBtn = (() => {
+    if (!myReservation) {
+      return { labelAr: 'احجز الجهاز', labelEn: 'Reserve Device', icon: 'bookmark-outline' as any, bg: '#2B2B2E', fg: '#fff', action: handleReserve, disabled: reserving || !deviceId || !store, loading: reserving };
+    }
+    switch (myReservation.status) {
+      case 'pending':
+        return { labelAr: 'الحجز قيد الانتظار', labelEn: 'Reservation Pending',   icon: 'time-outline' as any,                  bg: '#FEF3C7', fg: '#D97706', action: () => router.push({ pathname: '/reservations/[id]' as any, params: { id: myReservation.id } }), disabled: false, loading: false };
+      case 'confirmed':
+        return { labelAr: 'محجوز',               labelEn: 'Reserved',              icon: 'checkmark-circle-outline' as any,      bg: '#D1FAE5', fg: '#059669', action: () => router.push({ pathname: '/reservations/[id]' as any, params: { id: myReservation.id } }), disabled: false, loading: false };
+      case 'completed':
+        return { labelAr: 'تم الاستلام',         labelEn: 'Reservation Completed', icon: 'checkmark-done-circle-outline' as any, bg: '#EFF6FF', fg: '#2563EB', action: () => router.push({ pathname: '/reservations/[id]' as any, params: { id: myReservation.id } }), disabled: false, loading: false };
+      case 'expired':
+        return { labelAr: 'انتهى الحجز',         labelEn: 'Reservation Expired',   icon: 'alert-circle-outline' as any,          bg: '#F3F4F6', fg: '#6B7280', action: handleReserve, disabled: reserving || !deviceId, loading: reserving };
+      default: // cancelled | declined
+        return { labelAr: 'احجز مجدداً',         labelEn: 'Reserve Again',         icon: 'refresh-outline' as any,               bg: '#2B2B2E', fg: '#fff',    action: handleReserve, disabled: reserving || !deviceId, loading: reserving };
+    }
+  })();
 
   const relatedProducts = relatedProductsData.slice(0, 4);
 
@@ -96,6 +167,11 @@ export default function ProductScreen() {
         productNameEn: product!.nameEn,
       },
     });
+  }
+
+  function handleReserve() {
+    if (!deviceId || !product) return;
+    createReservation({ data: { productId: product!.id, buyerId: deviceId } });
   }
 
   function handleCall(storeOverride?: any) {
@@ -223,6 +299,14 @@ export default function ProductScreen() {
                     {product.inStock ? t('inStock') : t('outOfStock')}
                   </Text>
                 </View>
+                {myReservation && RESERVATION_STATUS_BADGE[myReservation.status] && (
+                  <View style={[styles.pillBadge, { backgroundColor: RESERVATION_STATUS_BADGE[myReservation.status].bg, flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                    <Ionicons name={RESERVATION_STATUS_BADGE[myReservation.status].icon} size={10} color={RESERVATION_STATUS_BADGE[myReservation.status].fg} />
+                    <Text style={[styles.pillBadgeText, { color: RESERVATION_STATUS_BADGE[myReservation.status].fg }]}>
+                      {language === 'ar' ? RESERVATION_STATUS_BADGE[myReservation.status].ar : RESERVATION_STATUS_BADGE[myReservation.status].en}
+                    </Text>
+                  </View>
+                )}
               </View>
 
               {/* Name + store */}
@@ -459,11 +543,23 @@ export default function ProductScreen() {
             color={isFav ? colors.light.destructive : colors.light.mutedForeground}
           />
         </Pressable>
-        <Pressable style={styles.reserveBtnBottom} onPress={() => handleContact()}>
-          <Ionicons name="bookmark-outline" size={18} color="#fff" />
-          <Text style={styles.reserveBtnTextBottom}>
-            {language === 'ar' ? 'احجز الآن' : 'RESERVE NOW'}
-          </Text>
+        <Pressable
+          style={[styles.reserveBtnBottom, { backgroundColor: reserveBtn.bg }, reserveBtn.disabled && { opacity: 0.6 }]}
+          onPress={reserveBtn.action}
+          disabled={reserveBtn.disabled}
+          accessibilityRole="button"
+          accessibilityLabel={language === 'ar' ? reserveBtn.labelAr : reserveBtn.labelEn}
+        >
+          {reserveBtn.loading ? (
+            <ActivityIndicator size="small" color={reserveBtn.fg} />
+          ) : (
+            <>
+              <Ionicons name={reserveBtn.icon} size={18} color={reserveBtn.fg} />
+              <Text style={[styles.reserveBtnTextBottom, { color: reserveBtn.fg }]}>
+                {language === 'ar' ? reserveBtn.labelAr : reserveBtn.labelEn}
+              </Text>
+            </>
+          )}
         </Pressable>
         <Pressable
           style={[styles.cartBtn, creatingConv && { opacity: 0.6 }]}

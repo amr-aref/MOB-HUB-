@@ -13,11 +13,19 @@ interface ProductCardProps {
   product: ProductDto;
   onPress: () => void;
   width?: number;
+  reservationStatus?: string;
 }
+
+// Only show a badge for active/positive states — not cancelled/declined/expired
+const RESERVATION_CARD_BADGE: Record<string, { bg: string; fg: string; ar: string; en: string }> = {
+  pending:   { bg: '#FEF3C7', fg: '#D97706', ar: 'قيد الانتظار', en: 'Pending' },
+  confirmed: { bg: '#D1FAE5', fg: '#059669', ar: 'محجوز',         en: 'Reserved' },
+  completed: { bg: '#EFF6FF', fg: '#2563EB', ar: 'مكتمل',         en: 'Completed' },
+};
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-export default function ProductCard({ product, onPress, width = 170 }: ProductCardProps) {
+export default function ProductCard({ product, onPress, width = 170, reservationStatus }: ProductCardProps) {
   const { toggleFavoriteProduct, isProductFavorite } = useFavorites();
   const { language, isRTL, t } = useLanguage();
   const isFav = isProductFavorite(product.id);
@@ -92,6 +100,15 @@ export default function ProductCard({ product, onPress, width = 170 }: ProductCa
               color={isFav ? colors.light.destructive : colors.light.mutedForeground}
             />
           </Pressable>
+          {reservationStatus && RESERVATION_CARD_BADGE[reservationStatus] && (
+            <View style={styles.reservedBadgeWrap}>
+              <View style={[styles.reservedBadge, { backgroundColor: RESERVATION_CARD_BADGE[reservationStatus].bg }]}>
+                <Text style={[styles.reservedBadgeText, { color: RESERVATION_CARD_BADGE[reservationStatus].fg }]}>
+                  {language === 'ar' ? RESERVATION_CARD_BADGE[reservationStatus].ar : RESERVATION_CARD_BADGE[reservationStatus].en}
+                </Text>
+              </View>
+            </View>
+          )}
         </View>
 
         <View style={styles.info}>
@@ -223,4 +240,20 @@ const styles = StyleSheet.create({
   stockRow: { alignItems: 'center', gap: 6, marginTop: 4 },
   stockDot: { width: 6, height: 6, borderRadius: 3 },
   stockText: { fontSize: 11 },
+  reservedBadgeWrap: {
+    position: 'absolute',
+    bottom: 8,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
+  reservedBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  reservedBadgeText: {
+    fontSize: 10,
+    fontFamily: 'Inter_600SemiBold',
+  },
 });

@@ -74,6 +74,7 @@ function MerchantReservationCard({
   onConfirm,
   onDecline,
   onComplete,
+  onOpenChat,
   actionLoading,
 }: {
   item: ReservationDto;
@@ -82,6 +83,7 @@ function MerchantReservationCard({
   onConfirm: () => void;
   onDecline: () => void;
   onComplete: () => void;
+  onOpenChat: (() => void) | null;
   actionLoading: boolean;
 }) {
   const st = STATUS_STYLE[item.status] ?? STATUS_STYLE.pending;
@@ -182,6 +184,22 @@ function MerchantReservationCard({
                 <Text style={styles.confirmBtnText}>{language === 'ar' ? 'تم الاستلام' : 'Mark Completed'}</Text>
               </>
             )}
+          </Pressable>
+        </View>
+      )}
+
+      {/* Open conversation with buyer */}
+      {onOpenChat && (
+        <View style={[styles.actionsRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+          <Pressable
+            style={[styles.actionBtn, styles.chatBtn, actionLoading && { opacity: 0.5 }]}
+            onPress={onOpenChat}
+            disabled={actionLoading}
+            accessibilityRole="button"
+            accessibilityLabel={language === 'ar' ? 'فتح المحادثة مع المشتري' : 'Open conversation with buyer'}
+          >
+            <Ionicons name="chatbubble-outline" size={15} color={colors.light.primary} />
+            <Text style={styles.chatBtnText}>{language === 'ar' ? 'فتح المحادثة' : 'Open Chat'}</Text>
           </Pressable>
         </View>
       )}
@@ -333,6 +351,7 @@ export default function MerchantReservationsScreen() {
                 onConfirm={() => confirm({ id: item.id, data: { storeId: STORE_ID } })}
                 onDecline={() => { setDeclineModal({ id: item.id }); setDeclineReason(''); }}
                 onComplete={() => complete({ id: item.id, data: { storeId: STORE_ID } })}
+                onOpenChat={item.conversationId ? () => router.push(`/messages/${item.conversationId}` as any) : null}
               />
             </View>
           )}
@@ -502,6 +521,8 @@ const styles = StyleSheet.create({
   completeBtn: { backgroundColor: colors.light.verifiedBlue },
   confirmBtnText: { fontSize: 14, fontFamily: 'Inter_700Bold', color: '#fff' },
   declineBtnText: { fontSize: 14, fontFamily: 'Inter_700Bold', color: colors.light.destructive },
+  chatBtn: { backgroundColor: colors.light.primaryLight, borderWidth: 1, borderColor: colors.light.primary + '30' },
+  chatBtnText: { fontSize: 14, fontFamily: 'Inter_700Bold', color: colors.light.primary },
 
   // Modal
   modalOverlay: {

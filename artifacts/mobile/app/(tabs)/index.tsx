@@ -17,6 +17,7 @@ import {
   useGetStores,
   useGetProducts,
   useGetCategories,
+  useGetReservations,
 } from '@workspace/api-client-react';
 import { BlurView } from 'expo-blur';
 import SearchBar from '@/components/SearchBar';
@@ -72,6 +73,14 @@ export default function HomeScreen() {
 
   const deviceId = useDeviceId();
   const { unreadCount } = useNotifications(deviceId ?? undefined);
+
+  const { data: myReservations = [] } = useGetReservations(
+    deviceId ? { buyerId: deviceId } : undefined,
+    { query: { enabled: !!deviceId, staleTime: 60_000 } },
+  );
+  const reservationStatusMap = new Map<string, string>(
+    (myReservations as Array<{ productId: string; status: string }>).map((r) => [r.productId, r.status]),
+  );
 
   return (
     <View style={styles.container}>
@@ -252,7 +261,11 @@ export default function HomeScreen() {
             <View style={[styles.tabletGrid, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               {newArrivals.map((product) => (
                 <View key={product.id} style={styles.tabletGridItem}>
-                  <ProductCard product={product} onPress={() => router.push(`/product/${product.id}`)} />
+                  <ProductCard
+                    product={product}
+                    onPress={() => router.push(`/product/${product.id}`)}
+                    reservationStatus={reservationStatusMap.get(product.id)}
+                  />
                 </View>
               ))}
             </View>
@@ -271,6 +284,7 @@ export default function HomeScreen() {
                     product={product}
                     onPress={() => router.push(`/product/${product.id}`)}
                     width={172}
+                    reservationStatus={reservationStatusMap.get(product.id)}
                   />
                 </View>
               ))}
@@ -285,7 +299,11 @@ export default function HomeScreen() {
             <View style={[styles.tabletGrid, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               {bestSellers.map((product) => (
                 <View key={product.id} style={styles.tabletGridItem}>
-                  <ProductCard product={product} onPress={() => router.push(`/product/${product.id}`)} />
+                  <ProductCard
+                    product={product}
+                    onPress={() => router.push(`/product/${product.id}`)}
+                    reservationStatus={reservationStatusMap.get(product.id)}
+                  />
                 </View>
               ))}
             </View>
@@ -304,6 +322,7 @@ export default function HomeScreen() {
                     product={product}
                     onPress={() => router.push(`/product/${product.id}`)}
                     width={172}
+                    reservationStatus={reservationStatusMap.get(product.id)}
                   />
                 </View>
               ))}
