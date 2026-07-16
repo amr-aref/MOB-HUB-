@@ -65,28 +65,28 @@ router.get("/notifications/:id", async (req, res) => {
 });
 
 // PATCH /notifications/:id/read — mark a single notification read.
+// Single query: update + returning; 404 if no row matched.
 router.patch("/notifications/:id/read", async (req, res) => {
-  const existing = await getNotification(req.params.id);
+  const updated = await markNotificationRead(req.params.id);
 
-  if (!existing) {
+  if (!updated) {
     res.status(404).json({ error: "Notification not found" });
     return;
   }
 
-  const updated = await markNotificationRead(req.params.id);
   res.json(toNotificationDto(updated));
 });
 
 // DELETE /notifications/:id
+// Single query: delete + returning; 404 if no row matched.
 router.delete("/notifications/:id", async (req, res) => {
-  const existing = await getNotification(req.params.id);
+  const deleted = await deleteNotification(req.params.id);
 
-  if (!existing) {
+  if (!deleted) {
     res.status(404).json({ error: "Notification not found" });
     return;
   }
 
-  await deleteNotification(req.params.id);
   res.status(204).send();
 });
 

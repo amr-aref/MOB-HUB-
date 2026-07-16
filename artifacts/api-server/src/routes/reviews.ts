@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { db } from "@workspace/db";
 import { reviewsTable, storesTable } from "@workspace/db/schema";
-import { and, eq } from "drizzle-orm";
+import { and, avg, count as sqlCount, eq } from "drizzle-orm";
 import { createNotification } from "../services/notificationService";
 
 const router: IRouter = Router();
@@ -131,22 +131,19 @@ function validateUpdateBody(
 // ---------------------------------------------------------------------------
 
 async function recalculateStoreRating(storeId: string): Promise<void> {
-  const activeReviews = await db
-    .select({ rating: reviewsTable.rating })
+  // Single aggregation query instead of fetching all review rows.
+  const [result] = await db
+    .select({ avg: avg(reviewsTable.rating), count: sqlCount() })
     .from(reviewsTable)
     .where(and(eq(reviewsTable.storeId, storeId), eq(reviewsTable.status, "active")));
 
-  const count = activeReviews.length;
+  const reviewCount = Number(result?.count ?? 0);
   const average =
-    count > 0
-      ? Math.round(
-          (activeReviews.reduce((sum, r) => sum + r.rating, 0) / count) * 10,
-        ) / 10
-      : 0;
+    reviewCount > 0 ? Math.round(Number(result?.avg ?? 0) * 10) / 10 : 0;
 
   await db
     .update(storesTable)
-    .set({ rating: average, reviewsCount: count })
+    .set({ rating: average, reviewsCount: reviewCount })
     .where(eq(storesTable.id, storeId));
 }
 

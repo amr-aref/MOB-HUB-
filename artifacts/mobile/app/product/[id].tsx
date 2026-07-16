@@ -171,7 +171,7 @@ export default function ProductScreen() {
 
   function handleReserve() {
     if (!deviceId || !product) return;
-    createReservation({ data: { productId: product!.id, buyerId: deviceId } });
+    createReservation({ id: product!.id, data: { buyerId: deviceId } });
   }
 
   function handleCall(storeOverride?: any) {

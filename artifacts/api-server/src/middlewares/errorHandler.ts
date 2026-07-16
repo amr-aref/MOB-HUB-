@@ -8,6 +8,8 @@ import { logger } from "../lib/logger";
  * (Express 5 automatically wraps async handlers). Logs the full error
  * server-side via Pino and returns a sanitised JSON response to the client
  * — stack traces and internal details are never leaked to the caller.
+ * Query parameters are stripped from the logged URL to avoid recording
+ * sensitive identifiers (buyerId, storeId) in error logs.
  */
 export function errorHandler(
   err: unknown,
@@ -33,7 +35,9 @@ export function errorHandler(
       ? ((err as Record<string, unknown>).message as string)
       : "Internal Server Error";
 
-  logger.error({ err, req: { method: req.method, url: req.url } }, "Unhandled error");
+  // Strip query string from URL to avoid logging buyerId / storeId etc.
+  const path = req.url.split("?")[0];
+  logger.error({ err, req: { method: req.method, url: path } }, "Unhandled error");
 
   res.status(status).json({ error: message });
 }

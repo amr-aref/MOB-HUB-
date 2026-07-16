@@ -1,17 +1,21 @@
 import { db } from "@workspace/db";
-import { notificationsTable, type NotificationType } from "@workspace/db/schema";
+import { notificationsTable } from "@workspace/db/schema";
 import { and, count, desc, eq } from "drizzle-orm";
 
-// ---------------------------------------------------------------------------
-// Notification service (repository pattern)
-// ---------------------------------------------------------------------------
-// This is the single reusable entry point every module (reviews, messaging,
-// orders, products, favorites, promos...) uses to emit notifications. Route
-// handlers and future business logic must call `createNotification()`
-// instead of writing to `notificationsTable` directly — this keeps the
-// notification schema/DB details out of unrelated feature code and gives us
-// one place to add fan-out (push notifications, websockets, etc.) later.
-// ---------------------------------------------------------------------------
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+export const NOTIFICATION_TYPES = [
+  "reservation_created",
+  "reservation_confirmed",
+  "reservation_declined",
+  "reservation_cancelled",
+  "reservation_completed",
+  "reservation_expired",
+  "new_message",
+  "review_received",
+] as const;
+
+export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 
 export interface CreateNotificationInput {
   userId: string;
@@ -20,13 +24,11 @@ export interface CreateNotificationInput {
   titleEn: string;
   bodyAr: string;
   bodyEn: string;
-  metadata?: Record<string, unknown>;
-  expiresAt?: Date;
+  metadata?: Record<string, unknown> | null;
+  expiresAt?: Date | null;
 }
 
-function generateId(): string {
-  return `notif_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
-}
+// ─── DTO ─────────────────────────────────────────────────────────────────────
 
 export function toNotificationDto(row: typeof notificationsTable.$inferSelect) {
   return {
@@ -44,7 +46,14 @@ export function toNotificationDto(row: typeof notificationsTable.$inferSelect) {
   };
 }
 
-/** Create a notification for a recipient (buyer device UUID or seller storeId). */
+// ─── ID helper ────────────────────────────────────────────────────────────────
+
+function generateId(): string {
+  return `notif_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+// ─── Service functions ────────────────────────────────────────────────────────
+
 export async function createNotification(input: CreateNotificationInput) {
   const [created] = await db
     .insert(notificationsTable)
@@ -81,6 +90,7 @@ export async function getNotification(id: string) {
   return row;
 }
 
+/** Marks a notification read and returns the updated row, or undefined if not found. */
 export async function markNotificationRead(id: string) {
   const [updated] = await db
     .update(notificationsTable)
@@ -97,8 +107,13 @@ export async function markAllNotificationsRead(userId: string) {
     .where(and(eq(notificationsTable.userId, userId), eq(notificationsTable.readStatus, false)));
 }
 
-export async function deleteNotification(id: string) {
-  await db.delete(notificationsTable).where(eq(notificationsTable.id, id));
+/** Deletes a notification and returns true if it existed, false otherwise. */
+export async function deleteNotification(id: string): Promise<boolean> {
+  const result = await db
+    .delete(notificationsTable)
+    .where(eq(notificationsTable.id, id))
+    .returning({ id: notificationsTable.id });
+  return result.length > 0;
 }
 
 export async function getUnreadCount(userId: string) {

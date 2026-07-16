@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Platform,
   Pressable,
@@ -78,8 +78,15 @@ export default function HomeScreen() {
     deviceId ? { buyerId: deviceId } : undefined,
     { query: { enabled: !!deviceId, staleTime: 60_000 } },
   );
-  const reservationStatusMap = new Map<string, string>(
-    (myReservations as Array<{ productId: string; status: string }>).map((r) => [r.productId, r.status]),
+  const reservationStatusMap = useMemo(
+    () =>
+      new Map<string, string>(
+        (myReservations as Array<{ productId: string; status: string }>).map((r) => [
+          r.productId,
+          r.status,
+        ]),
+      ),
+    [myReservations],
   );
 
   return (

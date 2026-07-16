@@ -221,7 +221,8 @@ router.get("/conversations/:id/messages", async (req, res) => {
     .select()
     .from(chatMessagesTable)
     .where(eq(chatMessagesTable.conversationId, id))
-    .orderBy(chatMessagesTable.createdAt);
+    .orderBy(chatMessagesTable.createdAt)
+    .limit(200);
 
   res.json(messages.map(toChatMessageDto));
 });

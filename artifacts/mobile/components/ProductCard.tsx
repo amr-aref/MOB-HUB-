@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
@@ -25,7 +25,12 @@ const RESERVATION_CARD_BADGE: Record<string, { bg: string; fg: string; ar: strin
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-export default function ProductCard({ product, onPress, width = 170, reservationStatus }: ProductCardProps) {
+const ProductCard = React.memo(function ProductCard({
+  product,
+  onPress,
+  width = 170,
+  reservationStatus,
+}: ProductCardProps) {
   const { toggleFavoriteProduct, isProductFavorite } = useFavorites();
   const { language, isRTL, t } = useLanguage();
   const isFav = isProductFavorite(product.id);
@@ -46,23 +51,23 @@ export default function ProductCard({ product, onPress, width = 170, reservation
     transform: [{ scale: scale.value }],
   }));
 
-  function handlePressIn() {
+  const handlePressIn = useCallback(() => {
     scale.value = withSpring(0.97, { stiffness: 300, damping: 28 });
-  }
+  }, [scale]);
 
-  function handlePressOut() {
+  const handlePressOut = useCallback(() => {
     scale.value = withSpring(1, { stiffness: 300, damping: 28 });
-  }
+  }, [scale]);
 
-  function handlePress() {
+  const handlePress = useCallback(() => {
     Haptics.selectionAsync();
     onPress();
-  }
+  }, [onPress]);
 
-  function handleFavorite() {
+  const handleFavorite = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     toggleFavoriteProduct(product.id);
-  }
+  }, [product.id, toggleFavoriteProduct]);
 
   const displayPrice = product.discountPrice ?? product.price;
 
@@ -141,7 +146,9 @@ export default function ProductCard({ product, onPress, width = 170, reservation
       </View>
     </AnimatedPressable>
   );
-}
+});
+
+export default ProductCard;
 
 const styles = StyleSheet.create({
   card: {

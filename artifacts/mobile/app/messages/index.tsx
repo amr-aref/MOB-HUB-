@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
   ActivityIndicator,
   Platform,
@@ -65,7 +65,10 @@ export default function MessagesScreen() {
   );
 
   // Batch-load all unique stores referenced by conversations in a single request
-  const uniqueStoreIds = Array.from(new Set(conversations.map((c) => c.storeId)));
+  const uniqueStoreIds = useMemo(
+    () => Array.from(new Set(conversations.map((c) => c.storeId))),
+    [conversations],
+  );
   const { data: storesData = [] } = useGetStores(
     { ids: uniqueStoreIds.join(',') },
     { query: { enabled: uniqueStoreIds.length > 0, staleTime: 5 * 60 * 1000 } },
@@ -79,9 +82,9 @@ export default function MessagesScreen() {
     return map;
   }, [storesData]);
 
-  function handleOpen(conv: ConversationDto) {
+  const handleOpen = useCallback((conv: ConversationDto) => {
     router.push(`/messages/${conv.id}` as any);
-  }
+  }, [router]);
 
   return (
     <View style={styles.container}>

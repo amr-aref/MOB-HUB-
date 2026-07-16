@@ -1,11 +1,12 @@
 import { Router, type IRouter } from "express";
 import { db } from "@workspace/db";
 import { productsTable } from "@workspace/db/schema";
-import { eq, and } from "drizzle-orm";
+import { and, eq, ilike, inArray, ne, or } from "drizzle-orm";
 
 const router: IRouter = Router();
 
 // GET /products
+// All filters pushed to SQL — no in-memory post-filtering.
 router.get("/products", async (req, res) => {
   const {
     storeId,
@@ -20,30 +21,36 @@ router.get("/products", async (req, res) => {
     brand,
   } = req.query as Record<string, string>;
 
-  let rows = await db.select().from(productsTable);
+  const conditions = [];
 
   if (ids) {
-    const idList = ids.split(",").map((s) => s.trim());
-    rows = rows.filter((r) => idList.includes(r.id));
+    const idList = ids.split(",").map((s) => s.trim()).filter(Boolean);
+    if (idList.length === 0) { res.json([]); return; }
+    conditions.push(inArray(productsTable.id, idList));
   }
-  if (storeId) rows = rows.filter((r) => r.storeId === storeId);
-  if (category) rows = rows.filter((r) => r.category === category);
-  if (isNew === "true") rows = rows.filter((r) => r.isNew);
-  if (isBestSeller === "true") rows = rows.filter((r) => r.isBestSeller);
-  if (isFeatured === "true") rows = rows.filter((r) => r.isFeatured);
-  if (condition) rows = rows.filter((r) => r.condition === condition);
-  if (excludeId) rows = rows.filter((r) => r.id !== excludeId);
-  if (brand) rows = rows.filter((r) => r.brand.toLowerCase() === brand.toLowerCase());
+  if (storeId) conditions.push(eq(productsTable.storeId, storeId));
+  if (category) conditions.push(eq(productsTable.category, category));
+  if (isNew === "true") conditions.push(eq(productsTable.isNew, true));
+  if (isBestSeller === "true") conditions.push(eq(productsTable.isBestSeller, true));
+  if (isFeatured === "true") conditions.push(eq(productsTable.isFeatured, true));
+  if (condition) conditions.push(eq(productsTable.condition, condition));
+  if (excludeId) conditions.push(ne(productsTable.id, excludeId));
+  if (brand) conditions.push(ilike(productsTable.brand, brand));
   if (search) {
-    const q = search.toLowerCase();
-    rows = rows.filter(
-      (r) =>
-        r.nameEn.toLowerCase().includes(q) ||
-        r.nameAr.includes(search) ||
-        r.brand.toLowerCase().includes(q) ||
-        r.model.toLowerCase().includes(q)
+    conditions.push(
+      or(
+        ilike(productsTable.nameEn, `%${search}%`),
+        ilike(productsTable.nameAr, `%${search}%`),
+        ilike(productsTable.brand, `%${search}%`),
+        ilike(productsTable.model, `%${search}%`),
+      )!,
     );
   }
+
+  const rows = await db
+    .select()
+    .from(productsTable)
+    .where(conditions.length > 0 ? and(...conditions) : undefined);
 
   res.json(rows);
 });

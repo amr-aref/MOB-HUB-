@@ -5,7 +5,7 @@ import {
   productsTable,
   reviewsTable,
 } from "@workspace/db/schema";
-import { and, eq, ilike, or, sql, inArray } from "drizzle-orm";
+import { and, desc, eq, ilike, inArray, or } from "drizzle-orm";
 import { toReviewDto } from "./reviews";
 
 const router: IRouter = Router();
@@ -44,34 +44,34 @@ function toStoreDto(row: typeof storesTable.$inferSelect) {
 }
 
 // GET /stores
+// All filters pushed to SQL — no in-memory post-filtering.
 router.get("/stores", async (req, res) => {
   const { search, governorate, isVerified, ids, sort } = req.query as Record<string, string>;
 
-  let rows = await db.select().from(storesTable);
+  const conditions = [];
 
   if (ids) {
-    const idList = ids.split(",").map((s) => s.trim());
-    rows = rows.filter((r) => idList.includes(r.id));
+    const idList = ids.split(",").map((s) => s.trim()).filter(Boolean);
+    if (idList.length === 0) { res.json([]); return; }
+    conditions.push(inArray(storesTable.id, idList));
   }
-  if (isVerified === "true") {
-    rows = rows.filter((r) => r.isVerified);
-  }
-  if (governorate) {
-    rows = rows.filter((r) => r.governorate === governorate);
-  }
+  if (isVerified === "true") conditions.push(eq(storesTable.isVerified, true));
+  if (governorate) conditions.push(eq(storesTable.governorate, governorate));
   if (search) {
-    const q = search.toLowerCase();
-    rows = rows.filter(
-      (r) =>
-        r.nameEn.toLowerCase().includes(q) ||
-        r.nameAr.includes(search) ||
-        r.governorate.includes(search) ||
-        r.city.includes(search)
+    conditions.push(
+      or(
+        ilike(storesTable.nameEn, `%${search}%`),
+        ilike(storesTable.nameAr, `%${search}%`),
+        ilike(storesTable.governorate, `%${search}%`),
+        ilike(storesTable.city, `%${search}%`),
+      )!,
     );
   }
-  if (sort === "rating") {
-    rows = rows.sort((a, b) => b.rating - a.rating);
-  }
+
+  const where = conditions.length > 0 ? and(...conditions) : undefined;
+  const rows = sort === "rating"
+    ? await db.select().from(storesTable).where(where).orderBy(desc(storesTable.rating))
+    : await db.select().from(storesTable).where(where);
 
   res.json(rows.map(toStoreDto));
 });
@@ -98,7 +98,7 @@ router.get("/stores/:id/products", async (req, res) => {
   res.json(rows);
 });
 
-// GET /stores/:id/reviews  (active reviews only, mapped to ReviewDto)
+// GET /stores/:id/reviews  (active reviews only, newest first, capped at 100)
 router.get("/stores/:id/reviews", async (req, res) => {
   const rows = await db
     .select()
@@ -108,7 +108,9 @@ router.get("/stores/:id/reviews", async (req, res) => {
         eq(reviewsTable.storeId, req.params.id),
         eq(reviewsTable.status, "active"),
       ),
-    );
+    )
+    .orderBy(desc(reviewsTable.createdAt))
+    .limit(100);
   res.json(rows.map(toReviewDto));
 });
 
