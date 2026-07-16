@@ -1,0 +1,308 @@
+@workspace
+
+# Sprint G.3.1 — Critical Production Hotfix (Reservation System Certification)
+
+## ROLE
+
+You are a Principal Software Architect, Principal Backend Engineer, Senior React Native Engineer, Senior Database Engineer, Senior QA Engineer, and Enterprise Code Reviewer.
+
+This sprint is NOT a feature sprint.
+
+Sprint G.3 has already been implemented and verified.
+
+The verification report identified a very small number of confirmed defects.
+
+Your ONLY mission is to fix those confirmed defects.
+
+Nothing else.
+
+--------------------------------------------------
+
+# PRIMARY OBJECTIVE
+
+Bring Sprint G.3 to Production Certification.
+
+Do NOT improve architecture.
+
+Do NOT redesign anything.
+
+Do NOT optimize code unless required by one of the confirmed defects.
+
+Do NOT add features.
+
+Do NOT perform refactoring.
+
+Do NOT regenerate any generated files.
+
+--------------------------------------------------
+
+# ABSOLUTE RULES
+
+DO NOT
+
+• modify database architecture
+• create new tables
+• modify reservation workflow
+• regenerate OpenAPI
+• regenerate API Client
+• regenerate Zod schemas
+• regenerate migrations
+• modify Notification architecture
+• modify Conversation architecture
+• change business logic
+• rename files
+• move files
+• create placeholder code
+• introduce TODOs
+• introduce FIXME comments
+• add dependencies
+• change UI design
+• change animations
+• change styling
+• change routing
+• modify unrelated files
+• touch working code
+
+Only perform the minimum safe changes required.
+
+--------------------------------------------------
+
+# CONFIRMED ISSUE 1 (BLOCKER)
+
+Merchant dashboard uses:
+
+STORE_ID = "s1"
+
+This is a production blocker.
+
+Replace ONLY this implementation.
+
+Use the existing merchant identity/session mechanism already implemented inside the project.
+
+Do NOT invent a new authentication system.
+
+Do NOT create a new context.
+
+Do NOT create fake store IDs.
+
+Reuse the existing source of merchant identity.
+
+If no reusable mechanism exists, stop and report instead of inventing one.
+
+--------------------------------------------------
+
+# CONFIRMED ISSUE 2
+
+Buyer cancellation reason is incorrectly stored inside
+
+merchantNotes.
+
+Correct this logic.
+
+Rules:
+
+If cancelledBy == buyer
+
+store inside buyerNotes.
+
+If cancelledBy == merchant
+
+store inside merchantNotes.
+
+Do not modify any other cancellation logic.
+
+--------------------------------------------------
+
+# CONFIRMED ISSUE 3
+
+System reservation messages do not increment
+
+buyerUnreadCount.
+
+Update ONLY the unread counter logic.
+
+Do NOT modify conversation creation.
+
+Do NOT modify notification logic.
+
+Do NOT modify message storage.
+
+Only increment the proper unread counter when a system reservation message is added.
+
+--------------------------------------------------
+
+# CONFIRMED ISSUE 4
+
+Reservation decline incorrectly stores
+
+cancelledBy = merchant
+
+Remove this assignment.
+
+Declined reservations must remain independent from cancelled reservations.
+
+Do not modify status transitions.
+
+--------------------------------------------------
+
+# CONFIRMED ISSUE 5
+
+reservation_created notification metadata
+
+must include
+
+conversationId.
+
+Only extend metadata.
+
+Do not modify notification payload structure.
+
+Do not rename fields.
+
+--------------------------------------------------
+
+# CONFIRMED ISSUE 6
+
+Validate reservation status query parameter.
+
+Accept ONLY supported ReservationStatus values.
+
+Return proper HTTP 400 for invalid values.
+
+Do not modify existing endpoint behavior.
+
+--------------------------------------------------
+
+# DO NOT IMPLEMENT
+
+The following are intentionally OUT OF SCOPE.
+
+❌ Expiration Worker
+
+❌ Cron Jobs
+
+❌ Background Workers
+
+❌ Queue Systems
+
+❌ WebSockets
+
+❌ Realtime
+
+❌ Performance Optimizations
+
+❌ Analytics
+
+❌ Logging Improvements
+
+❌ UI Improvements
+
+❌ Badge Improvements
+
+❌ Dashboard Improvements
+
+❌ Authentication Changes
+
+❌ Authorization Changes
+
+❌ Refactoring
+
+❌ Cleanup
+
+❌ Code Style Changes
+
+❌ New APIs
+
+❌ New Components
+
+❌ New Screens
+
+❌ New Hooks
+
+❌ New Services
+
+--------------------------------------------------
+
+# TESTING
+
+After fixes:
+
+Verify:
+
+✓ Reservation Creation
+
+✓ Reservation Confirmation
+
+✓ Reservation Decline
+
+✓ Reservation Cancellation
+
+✓ Notification Metadata
+
+✓ Conversation Integration
+
+✓ Merchant Dashboard
+
+✓ Buyer Dashboard
+
+✓ HTTP Status Codes
+
+✓ Validation Errors
+
+✓ TypeScript Build
+
+✓ ESLint
+
+No regressions are allowed.
+
+--------------------------------------------------
+
+# ACCEPTANCE CRITERIA
+
+Sprint G.3.1 is complete ONLY IF:
+
+✓ No Critical Bugs remain
+
+✓ No Medium Severity Bugs remain
+
+✓ Reservation workflow remains unchanged
+
+✓ Database schema unchanged
+
+✓ OpenAPI unchanged
+
+✓ Generated code unchanged
+
+✓ TypeScript passes
+
+✓ ESLint passes
+
+✓ Existing tests pass
+
+✓ No new warnings
+
+✓ No duplicate logic
+
+✓ No architecture changes
+
+✓ No feature additions
+
+--------------------------------------------------
+
+# FINAL OUTPUT
+
+Return ONLY:
+
+1. Files Modified
+
+2. Exact Changes Made
+
+3. Verification Results
+
+4. Remaining Low-Priority Issues (if any)
+
+5. Production Certification Status
+
+If any requested change requires architecture modifications or new features, STOP and report it instead of implementing it.
+
+The objective is to certify Sprint G.3 for transition to Sprint G.4 with the smallest possible safe patch.

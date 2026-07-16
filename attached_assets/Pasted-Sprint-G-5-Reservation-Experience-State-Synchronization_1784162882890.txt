@@ -1,0 +1,413 @@
+Sprint G.5 — Reservation Experience, State Synchronization & Production UX
+الدور (ROLE)
+
+أنت Principal Mobile Architect، Principal React Native Engineer، Senior Product Engineer، Senior UX Architect، وخبير عالمي في بناء تطبيقات Marketplace Enterprise.
+
+أنت تعمل داخل مشروع MOB HUB فقط.
+
+يوجد بالفعل:
+
+Reservation Engine
+Reservation API
+Conversations
+Notifications
+Merchant Dashboard
+State Machine
+
+ممنوع إعادة تنفيذ أي من ذلك.
+
+مهمتك الوحيدة هي تحويل تجربة المستخدم الخاصة بالحجز إلى تجربة إنتاجية كاملة (Production UX).
+
+الهدف
+
+تحويل نظام الحجز من مجرد Backend Workflow إلى تجربة استخدام متكاملة تجعل المستخدم يشعر أن النظام "حي".
+
+أي تغيير في حالة الحجز يجب أن ينعكس فوراً في جميع أجزاء التطبيق.
+
+نطاق العمل
+
+يشمل فقط:
+
+Mobile
+React Query
+State Synchronization
+UI States
+UX Flow
+
+ولا يشمل:
+
+Database
+API Contracts
+Business Logic
+المطلوب
+1. Global Reservation State Synchronization
+
+اجعل جميع الشاشات تعتمد على نفس مصدر الحقيقة.
+
+أي تغيير يحدث في Reservation يجب أن ينعكس مباشرة على:
+
+Product Details
+Product Cards
+Store Page
+Buyer Reservations
+Merchant Dashboard
+Conversations
+Notifications
+
+بدون Refresh يدوي.
+
+2. React Query Architecture
+
+إعادة تنظيم Cache بطريقة احترافية.
+
+يشمل:
+
+Query Keys موحدة
+Smart Invalidation
+Optimistic Updates
+Rollback
+Background Refetch
+Stale Time مناسب
+Refetch On Focus
+Refetch On Reconnect
+
+بدون Duplicate Requests.
+
+3. Reservation Status UI
+
+لكل حالة تصميم مستقل.
+
+الحالات:
+
+Pending
+
+Confirmed
+
+Declined
+
+Cancelled
+
+Expired
+
+Completed
+
+لكل حالة:
+
+Badge
+
+Color
+
+Icon
+
+Description
+
+Timeline
+
+Action Buttons
+
+Empty State
+
+Loading State
+
+Error State
+
+Success State
+
+بدون أي Hardcoded UI.
+
+4. Product Synchronization
+
+عند فتح أي Product يجب أن يظهر فوراً:
+
+Available
+
+Reserved
+
+Sold
+
+Reservation Pending
+
+حسب البيانات الحقيقية.
+
+ولا يعتمد إطلاقاً على State محلي.
+
+5. Store Inventory Synchronization
+
+داخل صفحة المتجر:
+
+المنتجات المحجوزة:
+
+Badge
+
+Opacity
+
+Disabled Actions
+
+Reservation Indicator
+
+Reservation Counter
+
+بدون إعادة تحميل الصفحة.
+
+6. Merchant Dashboard UX
+
+تحسين تجربة البائع بالكامل.
+
+يشمل:
+
+Reservation Queue
+
+Pending Counter
+
+Confirmation Status
+
+Loading Indicators
+
+Inline Status Updates
+
+Optimistic Confirmation
+
+Action Feedback
+
+Conflict Handling
+
+بدون Full Refresh.
+
+7. Buyer Reservation Center
+
+تحسين شاشة حجوزات العميل.
+
+يشمل:
+
+Sorting
+
+Filtering
+
+Grouping
+
+Reservation Timeline
+
+Status Chips
+
+Retry
+
+Pull To Refresh
+
+Infinite Loading
+
+Empty States
+
+Skeleton Loading
+
+8. Conversation Integration UX
+
+عند وجود Reservation:
+
+إظهار Banner داخل المحادثة.
+
+يشمل:
+
+Reservation Status
+
+Timeline
+
+Reservation ID
+
+Current State
+
+Quick Actions
+
+بدون تعديل Business Logic.
+
+9. Notification UX
+
+كل Notification يجب أن:
+
+تفتح الشاشة الصحيحة مباشرة.
+
+Deep Linking كامل.
+
+يدعم:
+
+Reservation Details
+
+Conversation
+
+Product
+
+Store
+
+بدون Navigation Bugs.
+
+10. Loading Experience
+
+منع أي Flash.
+
+استخدام:
+
+Skeletons
+
+Placeholder
+
+Progress Indicators
+
+Shimmer
+
+بدون Layout Shift.
+
+11. Offline Experience
+
+دعم انقطاع الشبكة.
+
+يشمل:
+
+Cached Reservations
+
+Retry Queue
+
+Offline Banner
+
+Reconnect Sync
+
+Pending Mutations
+
+12. Error Recovery
+
+تصميم احترافي للأخطاء.
+
+يشمل:
+
+Retry
+
+Recover
+
+Reconnect
+
+Conflict Resolution
+
+Toast Messages
+
+بدون Crash.
+
+13. Accessibility
+
+دعم كامل لـ:
+
+Screen Readers
+
+Accessibility Labels
+
+Roles
+
+Hints
+
+RTL
+
+Large Fonts
+
+Reduced Motion
+
+بدون كسر التصميم.
+
+14. Animation System
+
+إضافة Animation احترافية فقط للعناصر المهمة.
+
+يشمل:
+
+Reservation Created
+
+Status Changed
+
+Confirmation
+
+Cancellation
+
+Timeline
+
+Notification Arrival
+
+Badge Update
+
+باستخدام:
+
+Reanimated
+
+Layout Animations
+
+Shared Transition
+
+Opacity
+
+Scale
+
+دون مبالغة.
+
+15. Performance
+
+عدم زيادة:
+
+Render Count
+
+Memory Usage
+
+API Calls
+
+Re-render
+
+Bundle Size
+
+مع استخدام:
+
+Memoization
+
+useCallback
+
+useMemo
+
+Virtualization
+
+Lazy Rendering
+
+معايير الجودة
+
+يجب أن تكون جميع التغييرات:
+
+Modular
+Typed
+Reusable
+Production Ready
+Enterprise Grade
+قيود صارمة
+
+ممنوع:
+
+تعديل Database Schema
+تعديل OpenAPI
+تعديل Business Rules
+تعديل Reservation State Machine
+تعديل Notification Logic
+تعديل Conversation Logic
+إضافة Features جديدة
+تغيير Architecture
+استخدام حلول مؤقتة
+استخدام Hardcoded Values
+تعطيل أي ميزة موجودة
+كسر Backward Compatibility
+إعادة كتابة ملفات تعمل بالفعل
+إضافة Dependencies غير ضرورية
+تعديل أي API Contract
+معايير القبول (Acceptance Criteria)
+
+لن يعتبر Sprint G.5 منجزًا إلا إذا تحقق الآتي:
+
+جميع حالات الحجز تتزامن لحظيًا عبر التطبيق.
+لا يحتاج المستخدم إلى Refresh يدوي في أي شاشة.
+تحديثات React Query محسّنة وخالية من الطلبات المكررة.
+جميع شاشات الحجز تعرض حالات Loading وError وEmpty وSuccess بصورة احترافية.
+جميع الإشعارات تدعم Deep Linking الصحيح.
+واجهات البائع والمشتري متزامنة بالكامل.
+تجربة الاستخدام سلسة مع رسوم انتقالية خفيفة ومدروسة.
+لا توجد إعادة رسم غير ضرورية أو تراجع في الأداء.
+لا يتم تعديل أي منطق أعمال أو عقود API أو قاعدة البيانات.
+يمر المشروع بالكامل دون أخطاء TypeScript أو ESLint أو Build، مع الحفاظ على التوافق الكامل مع ما تم إنجازه في G.0–G.4.

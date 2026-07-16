@@ -1,0 +1,514 @@
+@workspace
+
+# Sprint G.4 — Reservation Experience Integration (Enterprise UX)
+
+## ROLE
+
+You are operating as an elite software engineering team composed of:
+
+- Principal Software Architect
+- Principal React Native Engineer
+- Senior Expo Engineer
+- Senior Product Designer
+- Senior UX Engineer
+- Senior Backend Integration Engineer
+- Senior API Engineer
+- Enterprise QA Lead
+- Enterprise Performance Engineer
+- Accessibility Specialist
+
+You are continuing the MOB HUB project.
+
+Sprint G.3 and Sprint G.3.1 are already completed and production certified.
+
+The Reservation Engine, Conversation System, Notification System and APIs already exist.
+
+This sprint MUST NOT redesign or recreate them.
+
+--------------------------------------------------
+
+# SPRINT OBJECTIVE
+
+Transform the completed Reservation System into a complete production-grade user experience.
+
+This sprint focuses ONLY on Mobile Integration and User Experience.
+
+The reservation lifecycle must feel seamless, premium, responsive and intuitive.
+
+There is NO checkout.
+
+There is NO payment.
+
+There is NO shopping cart.
+
+The customer journey ends at:
+
+Reserve Device
+↓
+
+Conversation opens automatically
+↓
+
+Merchant responds
+↓
+
+Merchant confirms reservation
+↓
+
+Customer receives notification
+↓
+
+Product becomes Reserved
+
+--------------------------------------------------
+
+# STRICT RULES
+
+DO NOT
+
+• modify backend business logic
+• modify reservation engine
+• modify database schema
+• regenerate migrations
+• regenerate OpenAPI
+• regenerate generated API client
+• modify notification architecture
+• modify conversation architecture
+• create new APIs
+• create duplicate services
+• redesign application architecture
+• change folder structure
+• add dependencies unless absolutely required
+• modify unrelated files
+• create temporary solutions
+• introduce TODOs
+• introduce placeholder code
+• break backward compatibility
+
+Reuse everything already implemented.
+
+--------------------------------------------------
+
+# PHASE 1
+
+Product Details Integration
+
+Replace every remaining legacy reservation/buy flow.
+
+The Product Details screen must use the existing Reservation API.
+
+Handle all existing reservation states.
+
+Available
+
+Pending
+
+Confirmed
+
+Cancelled
+
+Completed
+
+Expired
+
+Every state must render correctly.
+
+--------------------------------------------------
+
+# PHASE 2
+
+Automatic Navigation
+
+After successful reservation:
+
+Immediately navigate to the created conversation.
+
+No intermediate screens.
+
+No manual refresh.
+
+No duplicated requests.
+
+If conversation already exists:
+
+Open existing conversation.
+
+--------------------------------------------------
+
+# PHASE 3
+
+Reservation State UX
+
+Create a premium reservation experience.
+
+Buttons must dynamically change.
+
+Examples:
+
+Available
+
+→ Reserve Device
+
+Pending
+
+→ Reservation Pending
+
+Confirmed
+
+→ Reserved
+
+Cancelled
+
+→ Reserve Again
+
+Completed
+
+→ Reservation Completed
+
+Expired
+
+→ Reservation Expired
+
+Never allow invalid actions.
+
+--------------------------------------------------
+
+# PHASE 4
+
+Reservation Badges
+
+Display reservation status everywhere.
+
+Including:
+
+Product Cards
+
+Search Results
+
+Favorites
+
+Store Pages
+
+Product Details
+
+Compare Screen
+
+Merchant Inventory
+
+Reservation History
+
+Dashboard
+
+Badges must always remain synchronized.
+
+--------------------------------------------------
+
+# PHASE 5
+
+Merchant Dashboard Integration
+
+Connect the dashboard completely to the Reservation API.
+
+Merchant can:
+
+View Pending
+
+View Confirmed
+
+View Cancelled
+
+View Completed
+
+View Expired
+
+Confirm Reservation
+
+Decline Reservation
+
+Complete Reservation
+
+Open Conversation
+
+Search
+
+Filter
+
+Sort
+
+Refresh
+
+Everything must use existing APIs.
+
+--------------------------------------------------
+
+# PHASE 6
+
+Conversation Integration
+
+Every reservation must expose:
+
+Conversation Button
+
+Reservation Status
+
+Timeline
+
+Merchant Actions
+
+Customer Actions
+
+Conversation must always remain synchronized with reservation status.
+
+--------------------------------------------------
+
+# PHASE 7
+
+Notification Experience
+
+Use existing Notification APIs.
+
+Implement complete UX.
+
+Unread Counter
+
+Read State
+
+Deep Links
+
+Grouping
+
+Refresh
+
+Automatic Sync
+
+Badge Updates
+
+Do not redesign notification architecture.
+
+--------------------------------------------------
+
+# PHASE 8
+
+State Synchronization
+
+Synchronize all screens.
+
+When reservation status changes:
+
+Product Details updates.
+
+Dashboard updates.
+
+Reservation List updates.
+
+Conversation updates.
+
+Notification Badge updates.
+
+Product Badge updates.
+
+No stale UI.
+
+--------------------------------------------------
+
+# PHASE 9
+
+Loading States
+
+Implement premium UX.
+
+Skeletons
+
+Loading Buttons
+
+Empty States
+
+Error States
+
+Retry
+
+Offline Messages
+
+Graceful Recovery
+
+--------------------------------------------------
+
+# PHASE 10
+
+Performance
+
+Prevent:
+
+Duplicate Requests
+
+Unnecessary Renders
+
+Infinite Loops
+
+Redundant Refetches
+
+Use existing React Query cache.
+
+Reuse existing query keys.
+
+--------------------------------------------------
+
+# PHASE 11
+
+Accessibility
+
+Support:
+
+RTL
+
+Arabic
+
+English
+
+VoiceOver
+
+TalkBack
+
+Dynamic Font
+
+Keyboard Navigation
+
+Semantic Labels
+
+Accessible Buttons
+
+Accessible Status Indicators
+
+--------------------------------------------------
+
+# PHASE 12
+
+Responsive Design
+
+Verify layouts for:
+
+Small phones
+
+Medium phones
+
+Large phones
+
+Foldables (where applicable)
+
+Landscape mode (where supported)
+
+No overflow.
+
+No clipped content.
+
+No broken layouts.
+
+--------------------------------------------------
+
+# QUALITY REQUIREMENTS
+
+The application must feel like a premium commercial marketplace.
+
+Every reservation interaction should be immediate, predictable and polished.
+
+No unnecessary dialogs.
+
+No duplicated actions.
+
+No inconsistent state.
+
+No visual glitches.
+
+No broken navigation.
+
+--------------------------------------------------
+
+# TESTING
+
+Verify:
+
+Reservation Creation
+
+Conversation Opening
+
+Reservation Status Changes
+
+Merchant Actions
+
+Notification Updates
+
+Badge Updates
+
+Dashboard Synchronization
+
+Product Synchronization
+
+Offline Recovery
+
+Error Handling
+
+Accessibility
+
+Performance
+
+RTL
+
+Dark Theme
+
+Light Theme
+
+--------------------------------------------------
+
+# ACCEPTANCE CRITERIA
+
+Sprint G.4 is complete only if:
+
+✓ Reservation flow is fully integrated across the application
+
+✓ Every reservation state is represented correctly
+
+✓ Merchant workflow is complete
+
+✓ Customer workflow is complete
+
+✓ Conversation integration is seamless
+
+✓ Notifications synchronize correctly
+
+✓ All reservation badges stay synchronized
+
+✓ No duplicate API requests
+
+✓ No stale UI
+
+✓ No TypeScript errors
+
+✓ No ESLint errors
+
+✓ No runtime errors
+
+✓ No architecture changes
+
+✓ No backend modifications
+
+✓ No database changes
+
+✓ Production-quality UX
+
+--------------------------------------------------
+
+# FINAL OUTPUT
+
+Return ONLY:
+
+1. Files Modified
+
+2. Integration Summary
+
+3. UX Improvements Implemented
+
+4. Validation Results
+
+5. Remaining Known Issues (if any)
+
+Do not implement anything outside the scope of Sprint G.4.
