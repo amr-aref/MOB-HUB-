@@ -7,7 +7,7 @@ import {
   chatMessagesTable,
   type ReservationStatus,
 } from "@workspace/db/schema";
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { createNotification } from "./notificationService";
 import { logger } from "../lib/logger";
 
@@ -280,7 +280,12 @@ async function postSystemMessage(conversationId: string, content: string): Promi
 
   await db
     .update(conversationsTable)
-    .set({ lastMessageText: content, lastMessageAt: now, updatedAt: now })
+    .set({
+      lastMessageText: content,
+      lastMessageAt: now,
+      updatedAt: now,
+      buyerUnreadCount: sql`${conversationsTable.buyerUnreadCount} + 1`,
+    })
     .where(eq(conversationsTable.id, conversationId));
 }
 
@@ -415,6 +420,7 @@ export async function createReservation(input: CreateReservationInput) {
       productNameAr: product.nameAr,
       productNameEn: product.nameEn,
       buyerId,
+      conversationId: conversationId ?? null,
     },
   });
 
@@ -609,7 +615,6 @@ export async function declineReservation(id: string, input: DeclineReservationIn
       .update(reservationsTable)
       .set({
         status: "declined",
-        cancelledBy: "merchant",
         declinedAt: now,
         updatedAt: now,
         ...(cancellationReason ? { merchantNotes: cancellationReason } : {}),
@@ -708,7 +713,11 @@ export async function cancelReservation(id: string, input: CancelReservationInpu
         cancelledBy,
         cancelledAt: now,
         updatedAt: now,
-        ...(cancellationReason ? { merchantNotes: cancellationReason } : {}),
+        ...(cancellationReason
+          ? cancelledBy === "buyer"
+            ? { buyerNotes: cancellationReason }
+            : { merchantNotes: cancellationReason }
+          : {}),
       })
       .where(eq(reservationsTable.id, id))
       .returning();

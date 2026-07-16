@@ -13,6 +13,7 @@ import {
   ReservationForbiddenError,
   ReservationTransitionError,
 } from "../services/reservationService";
+import { RESERVATION_STATUSES } from "@workspace/db/schema";
 
 const router: IRouter = Router();
 
@@ -97,6 +98,12 @@ router.get("/reservations", async (req, res) => {
   }
 
   const status = requireString(q.status, "status") ?? undefined;
+
+  if (status && !RESERVATION_STATUSES.includes(status as (typeof RESERVATION_STATUSES)[number])) {
+    res.status(400).json({ error: `Invalid status. Must be one of: ${RESERVATION_STATUSES.join(", ")}` });
+    return;
+  }
+
   const limit = validateLimit(q.limit);
   const offset = validateOffset(q.offset);
 
