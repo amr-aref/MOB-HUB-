@@ -1,0 +1,297 @@
+@workspace
+
+# Sprint G.3 Verification & Integration Audit (NO IMPLEMENTATION)
+
+## ROLE
+
+You are acting as a Principal Software Architect, Principal Backend Engineer, Senior React Native Engineer, Enterprise QA Lead, API Architect, and Senior Code Reviewer.
+
+Sprint G.3 has ALREADY been implemented.
+
+Your mission is NOT to implement it again.
+
+Your mission is ONLY to verify, audit, validate and integrate the existing implementation.
+
+--------------------------------------------------
+
+## STRICT RULES
+
+DO NOT create any new features.
+
+DO NOT rewrite existing code.
+
+DO NOT refactor architecture.
+
+DO NOT modify database schema.
+
+DO NOT regenerate migrations.
+
+DO NOT regenerate OpenAPI.
+
+DO NOT create duplicate logic.
+
+DO NOT change business rules.
+
+DO NOT add new dependencies.
+
+DO NOT create placeholder code.
+
+DO NOT modify UI unless fixing a real integration issue.
+
+Only inspect, validate and fix confirmed integration defects.
+
+--------------------------------------------------
+
+## OBJECTIVE
+
+Perform a complete enterprise verification of Sprint G.3.
+
+Assume implementation already exists.
+
+Verify that every component is correctly connected.
+
+--------------------------------------------------
+
+## VERIFY
+
+### Reservation → Conversation
+
+Confirm that creating a reservation automatically opens or links the correct conversation.
+
+Verify there is no duplicate conversation creation.
+
+Verify existing conversations are reused correctly.
+
+--------------------------------------------------
+
+### Reservation → Notification
+
+Verify notificationService is called correctly.
+
+Verify notifications are created exactly once.
+
+Verify notification payloads are correct.
+
+Verify notification type.
+
+Verify timestamps.
+
+Verify unread status.
+
+Verify deep-link metadata.
+
+--------------------------------------------------
+
+### Merchant Actions
+
+Verify Confirm Reservation.
+
+Verify Cancel Reservation.
+
+Verify notification delivery.
+
+Verify reservation state transition.
+
+Verify no invalid transitions exist.
+
+--------------------------------------------------
+
+### Reservation Lifecycle
+
+Validate:
+
+Pending
+
+↓
+
+Confirmed
+
+↓
+
+Cancelled
+
+↓
+
+Expired (if implemented)
+
+Ensure state transitions follow business rules.
+
+--------------------------------------------------
+
+### Data Integrity
+
+Verify:
+
+Foreign Keys
+
+Conversation IDs
+
+Reservation IDs
+
+Product IDs
+
+Store IDs
+
+Buyer IDs
+
+No orphan records.
+
+No duplicated reservations.
+
+No inconsistent states.
+
+--------------------------------------------------
+
+### API Verification
+
+Validate every reservation endpoint.
+
+Validate request validation.
+
+Validate response schema.
+
+Validate HTTP status codes.
+
+Validate error responses.
+
+Validate OpenAPI compatibility.
+
+--------------------------------------------------
+
+### Notification Integrity
+
+Verify
+
+Reservation Created
+
+Reservation Confirmed
+
+Reservation Cancelled
+
+Merchant Reply
+
+No duplicated notifications.
+
+No missing notifications.
+
+--------------------------------------------------
+
+### Conversation Integration
+
+Verify:
+
+Conversation opens correctly.
+
+Messages belong to reservation.
+
+Merchant receives correct context.
+
+Customer receives correct context.
+
+--------------------------------------------------
+
+### Dashboard Integration
+
+Verify reservation status updates.
+
+Verify merchant dashboard refresh.
+
+Verify customer reservation list.
+
+Verify product status synchronization.
+
+--------------------------------------------------
+
+### Performance
+
+Verify unnecessary API requests.
+
+Verify duplicate queries.
+
+Verify cache invalidation.
+
+Verify React Query synchronization.
+
+--------------------------------------------------
+
+### Error Handling
+
+Test:
+
+Offline
+
+Timeout
+
+Network Error
+
+Server Error
+
+Unauthorized
+
+Duplicate Reservation
+
+Already Reserved
+
+Conflict
+
+--------------------------------------------------
+
+### Logging
+
+Verify important reservation events are logged.
+
+Do not add verbose logging.
+
+--------------------------------------------------
+
+## FINAL REPORT
+
+Produce ONLY a verification report containing:
+
+1. Verified Components
+
+2. Failed Components
+
+3. Integration Problems
+
+4. Data Integrity Issues
+
+5. API Issues
+
+6. Notification Issues
+
+7. Conversation Issues
+
+8. Performance Issues
+
+9. Critical Bugs
+
+10. Recommended Fixes
+
+For every issue include:
+
+• Severity
+• Root Cause
+• File
+• Function
+• Suggested Fix
+
+--------------------------------------------------
+
+## OUTPUT RULES
+
+Do NOT implement new code.
+
+Do NOT rewrite existing modules.
+
+Do NOT regenerate files.
+
+Do NOT modify architecture.
+
+Do NOT create migrations.
+
+Do NOT change APIs.
+
+Only validate the existing Sprint G.3 implementation and fix confirmed integration defects if absolutely necessary.
+
+The goal is to certify Sprint G.3 as production-ready before starting Sprint G.4.
