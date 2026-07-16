@@ -212,6 +212,12 @@ export default function ProfileScreen() {
               </Text>
               <View style={styles.settingsList}>
                 <SettingsRow
+                  icon="bookmark-outline"
+                  label={language === 'ar' ? 'حجوزاتي' : 'My Reservations'}
+                  onPress={() => router.push('/reservations' as any)}
+                  isRTL={isRTL}
+                />
+                <SettingsRow
                   icon="notifications-outline"
                   label={t('notifications')}
                   onPress={() => router.push({ pathname: '/notifications', params: deviceId ? { userId: deviceId } : {} })}

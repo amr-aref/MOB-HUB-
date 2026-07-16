@@ -31,6 +31,12 @@ const NOTIFICATION_ICONS: Record<string, IconMeta> = {
   favorite_price_change: { icon: 'trending-down', color: '#DC2626' },
   promotional_campaign: { icon: 'pricetag', color: '#D97706' },
   system_announcement: { icon: 'megaphone', color: colors.light.primary },
+  // Reservation lifecycle
+  reservation_created:   { icon: 'bookmark',               color: colors.light.primary },
+  reservation_confirmed: { icon: 'checkmark-circle',        color: '#2FBE5C' },
+  reservation_declined:  { icon: 'close-circle',            color: '#FF4D4D' },
+  reservation_cancelled: { icon: 'ban',                     color: '#8A8782' },
+  reservation_completed: { icon: 'checkmark-done-circle',   color: '#3E8BFF' },
 };
 
 const DEFAULT_ICON: IconMeta = { icon: 'notifications', color: colors.light.primary };

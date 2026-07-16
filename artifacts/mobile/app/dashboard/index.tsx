@@ -41,8 +41,9 @@ const STATS = [
 
 const QUICK_ACTIONS = [
   { labelAr: 'إضافة منتج', labelEn: 'Add Product', icon: 'add-circle-outline', color: '#2563EB', route: '/dashboard/add-product' as const },
+  { labelAr: 'الحجوزات', labelEn: 'Reservations', icon: 'calendar-outline', color: '#059669', route: '/dashboard/reservations' as const },
   { labelAr: 'الفئات', labelEn: 'Categories', icon: 'grid-outline', color: '#7C3AED', route: null },
-  { labelAr: 'العروض', labelEn: 'Offers', icon: 'pricetag-outline', color: '#059669', route: null },
+  { labelAr: 'العروض', labelEn: 'Offers', icon: 'pricetag-outline', color: '#EA580C', route: null },
   { labelAr: 'التحليلات', labelEn: 'Analytics', icon: 'bar-chart-outline', color: '#0891B2', route: null },
   { labelAr: 'الموقع', labelEn: 'Location', icon: 'location-outline', color: '#DC2626', route: null },
   { labelAr: 'المعرض', labelEn: 'Gallery', icon: 'images-outline', color: '#D97706', route: null },
@@ -328,7 +329,7 @@ export default function DashboardScreen() {
             <Text style={[styles.cardTitle, { textAlign: isRTL ? 'right' : 'left', marginBottom: 0 }]}>
               {language === 'ar' ? 'أحدث الطلبات' : 'Latest Orders'}
             </Text>
-            <Pressable>
+            <Pressable onPress={() => router.push('/dashboard/reservations' as any)}>
               <Text style={styles.seeAllText}>{language === 'ar' ? 'عرض الكل' : 'See All'}</Text>
             </Pressable>
           </View>
