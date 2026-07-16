@@ -99,6 +99,9 @@ export const reservationsTable = pgTable(
     /** Set when the merchant marks the in-store visit as completed. */
     completedAt: timestamp("completed_at"),
 
+    /** Set when the system auto-expires a pending reservation past its deadline. */
+    expiredAt: timestamp("expired_at"),
+
     // ── Audit ─────────────────────────────────────────────────────────────
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),

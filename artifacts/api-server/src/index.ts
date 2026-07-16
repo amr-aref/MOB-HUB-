@@ -1,5 +1,6 @@
 import app from "./app";
 import { logger } from "./lib/logger";
+import { reservationWorker } from "./services/reservationWorker";
 
 const rawPort = process.env["PORT"];
 
@@ -22,4 +23,21 @@ app.listen(port, (err) => {
   }
 
   logger.info({ port }, "Server listening");
+
+  // ── Background workers ──────────────────────────────────────────────────
+  // Start after the HTTP server is bound so startup failures are reported
+  // before any background processing begins.
+  reservationWorker.start();
 });
+
+// ── Graceful shutdown ─────────────────────────────────────────────────────────
+// Stop background workers before exiting so in-flight batches complete cleanly.
+
+function shutdown(signal: string) {
+  logger.info({ signal }, "Shutdown signal received");
+  reservationWorker.stop();
+  process.exit(0);
+}
+
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT",  () => shutdown("SIGINT"));

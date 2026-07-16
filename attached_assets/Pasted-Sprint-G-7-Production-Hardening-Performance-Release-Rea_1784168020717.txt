@@ -1,0 +1,471 @@
+Sprint G.7 — Production Hardening, Performance & Release Readiness
+
+Enterprise Prompt — Principal Software Architect | Backend Architect | Mobile Architect | DevOps | Performance Engineer | QA Lead
+
+الهدف من هذا الـ Sprint هو الوصول بالمشروع إلى حالة Production Ready بعد اكتمال G.0 → G.6.
+
+هذا Sprint ليس لإضافة أي ميزة جديدة.
+مهمته الوحيدة هي تحسين الأداء، تقوية الاعتمادية، مراجعة جودة الكود، والاستعداد للإطلاق.
+
+الدور (Role)
+
+أنت تعمل كفريق مكون من:
+
+Principal Software Architect
+Senior Backend Engineer
+Senior React Native Engineer
+Database Performance Engineer
+DevOps Engineer
+QA Lead
+Security Reviewer
+
+أنت تعمل على مشروع:
+
+MOB HUB
+
+ويجب الالتزام بالمعمارية الحالية بالكامل.
+
+ممنوع تماماً
+لا تضف إطلاقاً
+
+❌ Features جديدة
+
+❌ UI جديدة
+
+❌ Screens جديدة
+
+❌ APIs جديدة
+
+❌ جداول جديدة
+
+❌ تعديل Business Logic
+
+❌ تعديل Reservation Flow
+
+❌ تعديل Authentication
+
+❌ تعديل Notifications
+
+❌ تعديل Conversations
+
+❌ تغيير OpenAPI
+
+❌ تغيير Database Schema
+
+❌ Refactor بدون داعي
+
+❌ تغيير أسماء الملفات
+
+❌ نقل الملفات
+
+❌ حذف أي جزء يعمل
+
+المطلوب
+
+العمل يقتصر على:
+
+Performance
+Reliability
+Stability
+Maintainability
+Release Readiness
+
+ولا شيء آخر.
+
+المرحلة الأولى
+Backend Performance Audit
+
+راجع بالكامل:
+
+artifacts/api-server
+
+ثم:
+
+افحص
+
+Database Queries
+
+Indexes Usage
+
+Transactions
+
+Async Operations
+
+Memory Usage
+
+Connection Usage
+
+Logging
+
+Repeated Queries
+
+N+1 Queries
+
+Sequential Queries
+
+Large Payloads
+
+Blocking Operations
+
+Slow Queries
+
+Duplicate Serialization
+
+JSON Parsing
+
+Response Size
+
+Hot Paths
+
+إذا وجدت مشكلة
+
+قم بإصلاحها
+
+بأقل تعديل ممكن
+
+دون تغيير السلوك.
+
+المرحلة الثانية
+Database Optimization
+
+راجع:
+
+lib/db
+
+وافحص:
+
+Indexes
+
+Composite Indexes
+
+Unique Indexes
+
+Foreign Keys
+
+Query Plans
+
+Sorting
+
+Filtering
+
+Reservation Queries
+
+Conversation Queries
+
+Notification Queries
+
+Review Queries
+
+Store Queries
+
+Product Queries
+
+لا تضف جداول جديدة.
+
+لا تغير العلاقات.
+
+إذا احتاج Query Index فقط
+
+أضفه.
+
+المرحلة الثالثة
+Mobile Performance
+
+راجع:
+
+artifacts/mobile
+
+ثم افحص:
+
+React Rendering
+
+Re-renders
+
+FlatList
+
+Memoization
+
+Callbacks
+
+Image Rendering
+
+Navigation
+
+Heavy Components
+
+Query Refetches
+
+Animations
+
+Bundle Size
+
+Lazy Loading
+
+Screen Mounting
+
+قم بتحسين الأداء فقط.
+
+المرحلة الرابعة
+API Optimization
+
+راجع جميع Endpoints.
+
+افحص:
+
+HTTP Status
+
+Payload Size
+
+Validation Cost
+
+Response Time
+
+Repeated Queries
+
+Caching Opportunities
+
+Error Handling
+
+ممنوع تعديل Contract.
+
+المرحلة الخامسة
+React Query Optimization
+
+راجع بالكامل:
+
+Query Keys
+
+Invalidation
+
+Mutation Updates
+
+Caching
+
+Optimistic Updates
+
+Retry Logic
+
+Stale Time
+
+Garbage Collection
+
+Duplicate Fetches
+
+Polling
+
+إذا وجدت تحسينات
+
+طبقها.
+
+المرحلة السادسة
+Logging Audit
+
+راجع:
+
+Logger
+
+Console
+
+Error Logs
+
+Warning Logs
+
+Production Logs
+
+Sensitive Data
+
+Stack Traces
+
+احذف أي Logs غير ضرورية.
+
+احتفظ فقط بالـ Production Logs.
+
+المرحلة السابعة
+Memory Audit
+
+راجع:
+
+Memory Leaks
+
+Subscriptions
+
+Event Listeners
+
+Timers
+
+Intervals
+
+Cleanup
+
+Abort Controllers
+
+Query Cancellation
+
+Unmount Safety
+
+أصلح أي Memory Leak.
+
+المرحلة الثامنة
+Code Quality Audit
+
+راجع:
+
+Naming
+
+Dead Code
+
+Unused Imports
+
+Unused Types
+
+Unused Variables
+
+Duplicated Logic
+
+Duplicate Functions
+
+Duplicate Constants
+
+Magic Numbers
+
+TODO
+
+FIXME
+
+Commented Code
+
+احذف فقط الكود غير المستخدم.
+
+لا تقم بأي Refactor كبير.
+
+المرحلة التاسعة
+Security Verification
+
+تأكد أن:
+
+Authentication
+
+Authorization
+
+Reservation Ownership
+
+Conversation Ownership
+
+Notification Ownership
+
+Store Ownership
+
+Input Validation
+
+Rate Limiting
+
+SQL Injection
+
+XSS
+
+Sensitive Logs
+
+Error Messages
+
+Secrets
+
+كلها مازالت سليمة.
+
+المرحلة العاشرة
+Release Readiness
+
+تأكد أن المشروع:
+
+يبني بدون أخطاء
+
+Typecheck ناجح
+
+Lint ناجح
+
+Tests ناجحة
+
+Migration سليمة
+
+OpenAPI Generated
+
+Mobile Builds
+
+API Builds
+
+بدون أي Errors.
+
+المطلوب في النهاية
+
+قدّم تقريرًا فقط يحتوي على:
+
+1.
+
+ما الذي تمت مراجعته
+
+2.
+
+ما الذي تم تحسينه
+
+3.
+
+سبب كل تحسين
+
+4.
+
+تأثيره على الأداء
+
+5.
+
+الملفات التي تم تعديلها
+
+6.
+
+قياسات قبل وبعد إن أمكن
+
+مثل:
+
+Response Time
+
+Bundle Size
+
+Query Count
+
+Rendering Count
+
+Memory Usage
+
+7.
+
+أي مشاكل حرجة متبقية تمنع الإطلاق.
+
+إذا لم توجد
+
+اذكر بوضوح:
+
+Project is Production Ready from Performance & Stability perspective.
+
+قواعد التنفيذ
+لا تضف أي Feature.
+لا تغير أي API.
+لا تغير أي Database Schema.
+لا تغير أي UX.
+لا تغير أي UI.
+لا تغير أي Business Logic.
+لا تنقل الملفات.
+لا تعيد كتابة أجزاء مستقرة.
+أصلح فقط ما يؤثر على الأداء أو الاستقرار أو الجاهزية للإنتاج.
+كل تعديل يجب أن يكون صغيرًا، مبررًا، وقابلًا للمراجعة.
+إذا كان أي تحسين يحمل مخاطرة بتغيير السلوك الوظيفي، لا تنفذه وسجّله في التقرير بدلًا من ذلك.
+معايير القبول (Acceptance Criteria)
+
+لا يُعتبر Sprint G.7 مكتملًا إلا إذا تحققت جميع الشروط التالية:
+
+✅ لا توجد Features جديدة أو تغييرات وظيفية.
+✅ لا يوجد تغيير في Database Schema أو OpenAPI.
+✅ لا يوجد Regression في سلوك التطبيق.
+✅ لا توجد استعلامات غير ضرورية أو مشاكل أداء معروفة في المسارات الحرجة.
+✅ لا توجد Memory Leaks أو موارد غير مُحررة في المكونات والخدمات الأساسية.
+✅ سجلات الإنتاج (Logs) نظيفة ولا تحتوي على بيانات حساسة.
+✅ جميع اختبارات G.6 ما زالت ناجحة.
+✅ المشروع يبني بنجاح (Backend + Mobile + Generated API Client).
+✅ تقرير نهائي يوضح جميع التحسينات المنفذة والسبب والتأثير والملفات المعدلة فقط.

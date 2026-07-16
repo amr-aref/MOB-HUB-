@@ -29,6 +29,7 @@ export const NOTIFICATION_TYPES = [
   "reservation_declined",  // Buyer receives when the merchant declines.
   "reservation_cancelled", // The other party receives on cancellation.
   "reservation_completed", // Buyer receives when the merchant marks the visit done.
+  "reservation_expired",   // Buyer receives when a pending reservation auto-expires.
 ] as const;
 
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];

@@ -8,6 +8,7 @@ import {
   declineReservation,
   cancelReservation,
   completeReservation,
+  getReservationHistory,
   ReservationNotFoundError,
   ReservationConflictError,
   ReservationForbiddenError,
@@ -18,8 +19,8 @@ import { RESERVATION_STATUSES } from "@workspace/db/schema";
 const router: IRouter = Router();
 
 // ─── Error mapper ─────────────────────────────────────────────────────────────
-// Translates service-layer domain errors to HTTP responses. Keeps all HTTP
-// concerns out of the service layer (which only throws typed domain errors).
+// Translates service-layer domain errors to HTTP responses. All HTTP concerns
+// stay in the route layer; the service layer throws only typed domain errors.
 
 function handleServiceError(err: unknown, res: Response): void {
   if (err instanceof ReservationNotFoundError) {
@@ -43,7 +44,7 @@ function handleServiceError(err: unknown, res: Response): void {
 
 // ─── Input validators ─────────────────────────────────────────────────────────
 
-function requireString(value: unknown, field: string): string | null {
+function requireString(value: unknown, _field: string): string | null {
   if (typeof value === "string" && value.trim().length > 0) return value.trim();
   return null;
 }
@@ -72,7 +73,10 @@ router.post("/products/:id/reserve", async (req, res) => {
     return;
   }
 
-  const buyerNotes = typeof body.buyerNotes === "string" ? body.buyerNotes.trim().slice(0, 500) : undefined;
+  const buyerNotes =
+    typeof body.buyerNotes === "string"
+      ? body.buyerNotes.trim().slice(0, 500)
+      : undefined;
 
   try {
     const dto = await createReservation({ productId, buyerId, buyerNotes });
@@ -99,12 +103,17 @@ router.get("/reservations", async (req, res) => {
 
   const status = requireString(q.status, "status") ?? undefined;
 
-  if (status && !RESERVATION_STATUSES.includes(status as (typeof RESERVATION_STATUSES)[number])) {
-    res.status(400).json({ error: `Invalid status. Must be one of: ${RESERVATION_STATUSES.join(", ")}` });
+  if (
+    status &&
+    !RESERVATION_STATUSES.includes(status as (typeof RESERVATION_STATUSES)[number])
+  ) {
+    res.status(400).json({
+      error: `Invalid status. Must be one of: ${RESERVATION_STATUSES.join(", ")}`,
+    });
     return;
   }
 
-  const limit = validateLimit(q.limit);
+  const limit  = validateLimit(q.limit);
   const offset = validateOffset(q.offset);
 
   try {
@@ -129,6 +138,25 @@ router.get("/reservations/:id", async (req, res) => {
   try {
     const dto = await getReservation(id, { buyerId, storeId });
     res.json(dto);
+  } catch (err) {
+    handleServiceError(err, res as any);
+  }
+});
+
+// ─── GET /reservations/:id/history ───────────────────────────────────────────
+// Returns the full audit trail (timeline) for a reservation.
+// Requires buyerId or storeId to confirm participation.
+
+router.get("/reservations/:id/history", async (req, res) => {
+  const { id } = req.params;
+  const q = req.query as Record<string, string | undefined>;
+
+  const buyerId = requireString(q.buyerId, "buyerId") ?? undefined;
+  const storeId = requireString(q.storeId, "storeId") ?? undefined;
+
+  try {
+    const history = await getReservationHistory(id, { buyerId, storeId });
+    res.json(history);
   } catch (err) {
     handleServiceError(err, res as any);
   }

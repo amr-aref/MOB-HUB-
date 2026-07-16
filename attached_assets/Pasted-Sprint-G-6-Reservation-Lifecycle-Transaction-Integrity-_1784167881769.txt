@@ -1,0 +1,375 @@
+Sprint G.6 — Reservation Lifecycle, Transaction Integrity & Reliability
+الدور (ROLE)
+
+أنت Principal Software Architect، وStaff Backend Engineer، وDatabase Architect، وDistributed Systems Engineer، وSenior Product Engineer، وخبير عالمي في بناء أنظمة الـ Marketplace Enterprise.
+
+أنت تعمل داخل مشروع MOB HUB فقط.
+
+تم الانتهاء من:
+
+✅ G.0 Reservation Architecture
+✅ G.1 Database
+✅ G.2 API
+✅ G.3 Conversations & Notifications
+✅ G.4 Mobile Integration
+✅ G.5 Reservation UX
+
+ممنوع إعادة تنفيذ أي شيء سبق تنفيذه.
+
+الهدف
+
+تحويل نظام الحجز من Workflow يعمل إلى Enterprise Reservation Engine قادر على العمل تحت الضغط وفي بيئة إنتاج حقيقية.
+
+هذه المرحلة تهدف إلى ضمان:
+
+Data Integrity
+Consistency
+Reliability
+Concurrency Safety
+Fault Tolerance
+Recoverability
+
+ولا تضيف أي ميزات تجارية جديدة.
+
+نطاق العمل
+
+يشمل فقط:
+
+Reservation Lifecycle
+Transactions
+Background Processing
+Concurrency
+Reliability
+Performance
+Data Integrity
+
+ولا يشمل:
+
+Authentication
+Payments
+Orders
+Inventory
+Checkout
+UI Redesign
+New Features
+المطلوب
+1. Reservation Lifecycle Engine
+
+إكمال دورة حياة الحجز بالكامل.
+
+يجب أن تكون جميع الحالات التالية مدعومة بصورة إنتاجية:
+
+Pending
+Confirmed
+Declined
+Cancelled
+Expired
+Completed
+
+ولا يسمح بأي انتقال غير قانوني.
+
+يجب مراجعة State Machine بالكامل دون تغيير Business Rules.
+
+2. Automatic Reservation Expiration
+
+تنفيذ نظام انتهاء صلاحية الحجز.
+
+عند تجاوز expiresAt:
+
+يتحول الحجز تلقائياً إلى Expired.
+تحديث المنتج ليصبح Available مرة أخرى.
+إرسال Notification مناسبة.
+إضافة System Message داخل Conversation إذا كانت موجودة.
+تحديث جميع Queries.
+
+لا تعتمد على أي Trigger يدوي.
+
+3. Background Processing
+
+تنفيذ Background Worker احترافي.
+
+مسؤول عن:
+
+Reservation Expiration
+Retry Jobs
+Cleanup Jobs
+
+يجب أن يكون:
+
+Idempotent
+
+Safe
+
+Recoverable
+
+ولا يعتمد على تشغيل المستخدم للتطبيق.
+
+4. Transaction Integrity
+
+مراجعة جميع عمليات:
+
+Create
+
+Confirm
+
+Decline
+
+Cancel
+
+Complete
+
+بحيث تعمل داخل Database Transactions كاملة.
+
+أي Failure يجب أن يؤدي إلى Rollback كامل.
+
+ممنوع Partial Updates.
+
+5. Race Condition Protection
+
+مراجعة جميع السيناريوهات المتزامنة.
+
+مثل:
+
+عميلان يحجزان نفس المنتج.
+
+تأكيدين في نفس اللحظة.
+
+إلغاء أثناء التأكيد.
+
+انتهاء الصلاحية أثناء التأكيد.
+
+فتح أكثر من Conversation.
+
+يجب منع جميع حالات التنافس.
+
+6. Idempotency
+
+كل العمليات التالية يجب أن تكون قابلة لإعادة التنفيذ بأمان:
+
+Create
+
+Confirm
+
+Cancel
+
+Decline
+
+Complete
+
+بدون إنشاء بيانات مكررة.
+
+7. Data Consistency Validation
+
+مراجعة جميع العلاقات بين:
+
+Reservations
+
+Products
+
+Stores
+
+Conversations
+
+Notifications
+
+يجب ضمان عدم وجود:
+
+Orphan Records
+
+Broken References
+
+Duplicate Active Reservations
+
+Invalid Status
+
+Dangling Conversation
+
+8. Audit Trail
+
+تنفيذ سجل داخلي كامل.
+
+كل Transition يجب أن يسجل:
+
+Previous Status
+
+New Status
+
+Actor
+
+Timestamp
+
+Reason
+
+Metadata
+
+بدون تعديل Business Logic.
+
+9. Reservation History
+
+إتاحة تاريخ كامل للحجز.
+
+يشمل:
+
+Timeline
+
+Transitions
+
+Actor
+
+Notes
+
+System Events
+
+ولا يعتمد على Logs فقط.
+
+10. Retry Safety
+
+في حالة:
+
+Database Failure
+
+Notification Failure
+
+Conversation Failure
+
+يجب ضمان:
+
+عدم فقد البيانات.
+
+عدم تكرار العمليات.
+
+إمكانية إعادة المحاولة بأمان.
+
+11. Cleanup Policies
+
+تنفيذ سياسات تنظيف احترافية.
+
+تشمل:
+
+Expired Cache
+
+Temporary Records
+
+Old Jobs
+
+Stale Pending Records
+
+بدون حذف بيانات لازمة.
+
+12. Query Optimization
+
+مراجعة جميع استعلامات الحجز.
+
+يشمل:
+
+Indexes
+
+Batch Queries
+
+Pagination
+
+Filtering
+
+Sorting
+
+Projection
+
+منع N+1 Queries.
+
+13. Performance
+
+تقليل:
+
+DB Queries
+
+Memory Usage
+
+Locks
+
+Latency
+
+Blocking Operations
+
+مع الحفاظ على سلامة البيانات.
+
+14. Stress Validation
+
+التحقق من السيناريوهات التالية:
+
+100 حجز متزامن.
+
+عدة تأكيدات في نفس الوقت.
+
+إلغاء أثناء انتهاء الصلاحية.
+
+Worker Restart.
+
+Duplicate Requests.
+
+Network Retry.
+
+System Recovery.
+
+15. Documentation
+
+تحديث التوثيق فقط لما يخص G.6.
+
+يشمل:
+
+Reservation Lifecycle
+
+Worker Architecture
+
+Failure Recovery
+
+Concurrency Rules
+
+State Transition Rules
+
+دون إعادة كتابة مستندات المشروع بالكامل.
+
+قيود صارمة
+
+ممنوع:
+
+تعديل Authentication.
+تعديل Orders.
+تعديل Payments.
+تعديل Inventory.
+تعديل OpenAPI Contracts إلا إذا كان ضرورياً جداً لإصلاح خطأ.
+تعديل UI.
+إضافة Features جديدة.
+تغيير Business Rules.
+إعادة كتابة الملفات العاملة.
+إزالة أي اختبارات موجودة.
+إضافة Dependencies غير ضرورية.
+استخدام حلول مؤقتة (Temporary Hacks).
+كسر Backward Compatibility.
+استخدام Hardcoded Values.
+تعطيل أي جزء من النظام الحالي.
+معايير الجودة
+
+يجب أن تكون جميع التعديلات:
+
+Modular
+Typed
+Enterprise Grade
+Production Ready
+Atomic
+Thread Safe
+Recoverable
+Idempotent
+Fully Documented
+معايير القبول (Acceptance Criteria)
+
+لن يعتبر Sprint G.6 منجزًا إلا إذا تحقق الآتي:
+
+جميع انتقالات حالات الحجز تعمل داخل معاملات (Transactions) ذرية مع Rollback كامل عند الفشل.
+يوجد Background Worker موثوق يدير انتهاء صلاحية الحجوزات والمهام المجدولة دون تدخل يدوي.
+لا يمكن إنشاء أو تأكيد أكثر من حجز نشط لنفس المنتج حتى تحت الطلبات المتزامنة.
+جميع العمليات (Create، Confirm، Decline، Cancel، Complete) قابلة لإعادة التنفيذ بأمان (Idempotent).
+لا توجد سجلات يتيمة أو مراجع مكسورة أو حالات غير متسقة في قاعدة البيانات.
+يتم تسجيل سجل تدقيق (Audit Trail) كامل لكل انتقال حالة مع إمكانية استعراض تاريخ الحجز.
+الاستعلامات محسنة وتستخدم الفهارس المناسبة وتمنع مشكلات N+1.
+تم التحقق من النظام تحت سيناريوهات الضغط والتزامن واستعادة الأعطال دون فقد بيانات.
+لا يتم إضافة أي ميزة تجارية جديدة أو تغيير منطق الأعمال أو كسر التوافق مع ما تم إنجازه في G.0–G.5.
