@@ -644,6 +644,11 @@ paths:
           in: path
           required: true
           schema: { type: string }
+        - name: userId
+          in: query
+          required: true
+          description: Recipient ID — must match the notification owner
+          schema: { type: string }
       responses:
         "200":
           description: Notification
@@ -651,6 +656,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/NotificationDto"
+        "403":
+          description: Forbidden — userId does not match notification owner
         "404":
           description: Notification not found
     delete:
@@ -662,9 +669,16 @@ paths:
           in: path
           required: true
           schema: { type: string }
+        - name: userId
+          in: query
+          required: true
+          description: Recipient ID — must match the notification owner
+          schema: { type: string }
       responses:
         "204":
           description: Deleted
+        "403":
+          description: Forbidden — userId does not match notification owner
         "404":
           description: Notification not found
 
@@ -678,6 +692,11 @@ paths:
           in: path
           required: true
           schema: { type: string }
+        - name: userId
+          in: query
+          required: true
+          description: Recipient ID — must match the notification owner
+          schema: { type: string }
       responses:
         "200":
           description: Updated notification
@@ -685,6 +704,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/NotificationDto"
+        "403":
+          description: Forbidden — userId does not match notification owner
         "404":
           description: Notification not found
 

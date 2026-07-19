@@ -140,7 +140,7 @@ export default function ReviewFormModal({
     } else {
       slideAnim.setValue(600);
     }
-  }, [visible, reviewToEdit]);
+  }, [visible, reviewToEdit, language, slideAnim]);
 
   // ------ mutations ------
   const invalidateQueries = useCallback(() => {

@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Text, TextStyle, StyleProp } from 'react-native';
-import Animated, { useSharedValue, useAnimatedProps, withTiming, Easing, runOnJS } from 'react-native-reanimated';
-
-const AnimatedText = Animated.createAnimatedComponent(Text);
+import { useSharedValue, withTiming, Easing } from 'react-native-reanimated';
 
 export function AnimatedCounter({ 
   value, 
@@ -33,7 +31,7 @@ export function AnimatedCounter({
     animationFrameId = requestAnimationFrame(updateText);
     
     return () => cancelAnimationFrame(animationFrameId);
-  }, [value, duration]);
+  }, [value, duration, progress]);
 
   return <Text style={style}>{displayValue}</Text>;
 }

@@ -764,6 +764,10 @@ export const GetNotificationParams = zod.object({
   "id": zod.coerce.string()
 })
 
+export const GetNotificationQueryParams = zod.object({
+  "userId": zod.coerce.string().describe('Recipient ID — must match the notification owner')
+})
+
 export const GetNotificationResponse = zod.object({
   "id": zod.string(),
   "userId": zod.string(),
@@ -786,6 +790,10 @@ export const DeleteNotificationParams = zod.object({
   "id": zod.coerce.string()
 })
 
+export const DeleteNotificationQueryParams = zod.object({
+  "userId": zod.coerce.string().describe('Recipient ID — must match the notification owner')
+})
+
 export const DeleteNotificationResponse = zod.void()
 
 
@@ -794,6 +802,10 @@ export const DeleteNotificationResponse = zod.void()
  */
 export const MarkNotificationReadParams = zod.object({
   "id": zod.coerce.string()
+})
+
+export const MarkNotificationReadQueryParams = zod.object({
+  "userId": zod.coerce.string().describe('Recipient ID — must match the notification owner')
 })
 
 export const MarkNotificationReadResponse = zod.object({

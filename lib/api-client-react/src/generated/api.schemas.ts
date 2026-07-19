@@ -467,6 +467,27 @@ export type MarkAllNotificationsRead200 = {
   success: boolean;
 };
 
+export type GetNotificationParams = {
+/**
+ * Recipient ID — must match the notification owner
+ */
+userId: string;
+};
+
+export type DeleteNotificationParams = {
+/**
+ * Recipient ID — must match the notification owner
+ */
+userId: string;
+};
+
+export type MarkNotificationReadParams = {
+/**
+ * Recipient ID — must match the notification owner
+ */
+userId: string;
+};
+
 export type GetReservationsParams = {
 /**
  * Buyer device UUID — returns all reservations made by this buyer

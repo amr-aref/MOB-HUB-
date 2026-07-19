@@ -1,17 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Pressable, PressableProps, StyleSheet, Text, View, ViewStyle, StyleProp } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
   withTiming,
-  withSequence,
   withDelay,
   Easing,
   interpolateColor,
 } from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
-import colors from '@/constants/colors';
 import { getFontFamily } from '@/constants/fonts';
 
 const EASE_OUT = Easing.bezier(0.22, 1, 0.36, 1);
@@ -50,7 +47,7 @@ export function Toggle({ value, onToggle, isRTL }: { value: boolean; onToggle: (
 
   useEffect(() => {
     progress.value = withTiming(value ? 1 : 0, { duration: 200, easing: EASE_OUT });
-  }, [value]);
+  }, [value, progress]);
 
   const trackStyle = useAnimatedStyle(() => {
     const bgColor = interpolateColor(
@@ -82,7 +79,7 @@ export function ChartBar({ value, max, isToday, label, delay = 0, isRTL }: { val
   useEffect(() => {
     const targetHeight = max > 0 ? (value / max) * 100 : 0;
     heightProgress.value = withDelay(delay, withTiming(targetHeight, { duration: 600, easing: EASE_OUT }));
-  }, [value, max]);
+  }, [value, max, delay, heightProgress]);
 
   const barStyle = useAnimatedStyle(() => ({
     height: `${heightProgress.value}%`,

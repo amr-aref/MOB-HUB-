@@ -60,8 +60,12 @@ export function useNotifications(userId: string | undefined) {
       unreadQuery.refetch();
     },
     isRefetching: listQuery.isRefetching,
-    markRead: (id: string) => markReadMutation.mutate({ id }),
-    markAllRead: () => userId && markAllReadMutation.mutate({ data: { userId } }),
-    remove: (id: string) => deleteMutation.mutate({ id }),
+    // Pass userId as a required query param so the server can verify ownership.
+    markRead: (id: string) =>
+      userId && markReadMutation.mutate({ id, params: { userId } }),
+    markAllRead: () =>
+      userId && markAllReadMutation.mutate({ data: { userId } }),
+    remove: (id: string) =>
+      userId && deleteMutation.mutate({ id, params: { userId } }),
   };
 }

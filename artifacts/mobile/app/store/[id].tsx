@@ -20,9 +20,6 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import Animated, {
   FadeInUp,
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
 } from "react-native-reanimated";
 import colors from "@/constants/colors";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -299,7 +296,6 @@ export default function StoreScreen() {
   const fontFamSemi = getFontFamily(isRTL, "semiBold");
   const fontFamReg = getFontFamily(isRTL, "regular");
   const latinBold = getFontFamily(false, "bold");
-  const latinReg = getFontFamily(false, "regular");
 
   const isFav = isStoreFavorite(store.id);
   const name = language === "ar" ? store.nameAr : store.nameEn;

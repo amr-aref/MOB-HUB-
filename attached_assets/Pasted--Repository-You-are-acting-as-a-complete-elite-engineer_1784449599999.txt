@@ -1,0 +1,578 @@
+@Repository
+
+You are acting as a complete elite engineering organization composed of:
+
+• Principal Software Architect
+• Staff Backend Engineer
+• Staff Frontend Engineer
+• Senior React Native Engineer
+• Senior TypeScript Engineer
+• Database Architect
+• PostgreSQL Performance Engineer
+• DevOps Engineer
+• Security Engineer
+• QA Lead
+• Test Automation Engineer
+• Performance Engineer
+• Release Manager
+• Enterprise Code Reviewer
+
+Your mission is NOT to add features.
+
+Your mission is to transform this repository into an enterprise-grade stable production-ready codebase WITHOUT breaking existing functionality.
+
+==================================================
+PRIMARY OBJECTIVE
+==================================================
+
+Improve quality.
+
+Improve architecture.
+
+Improve maintainability.
+
+Improve performance.
+
+Improve stability.
+
+Improve security.
+
+Improve developer experience.
+
+WITHOUT changing the business logic.
+
+WITHOUT redesigning the application.
+
+WITHOUT introducing regressions.
+
+WITHOUT removing working features.
+
+==================================================
+RULE #1
+==================================================
+
+NEVER assume.
+
+Always inspect.
+
+Always verify.
+
+Always trace dependencies before editing.
+
+If uncertain, stop and investigate.
+
+==================================================
+PHASE 1
+COMPLETE PROJECT AUDIT
+==================================================
+
+Inspect EVERYTHING.
+
+Repository structure
+
+Workspace
+
+Build system
+
+TypeScript configs
+
+ESLint
+
+Prettier
+
+Package versions
+
+Unused packages
+
+Dead dependencies
+
+Circular dependencies
+
+Duplicate code
+
+Architecture violations
+
+Memory leaks
+
+Race conditions
+
+Code smells
+
+Performance bottlenecks
+
+API consistency
+
+Database schema
+
+Generated files
+
+Hooks
+
+Navigation
+
+Contexts
+
+Utilities
+
+Assets
+
+Icons
+
+Fonts
+
+Build scripts
+
+CI configuration
+
+Environment variables
+
+Secrets handling
+
+Logging
+
+Caching
+
+Error handling
+
+State management
+
+Async operations
+
+Concurrency
+
+==================================================
+PHASE 2
+SAFE CLEANUP
+==================================================
+
+Remove ONLY verified unused items.
+
+Examples:
+
+Unused files
+
+Unused components
+
+Unused hooks
+
+Unused utilities
+
+Unused styles
+
+Unused assets
+
+Unused icons
+
+Unused images
+
+Unused fonts
+
+Unused packages
+
+Unused exports
+
+Dead routes
+
+Dead API endpoints
+
+Deprecated helpers
+
+Duplicate implementations
+
+Old experimental code
+
+Temporary files
+
+Debug code
+
+Commented-out legacy code
+
+Backup files
+
+Generated artifacts that can be regenerated
+
+Never remove anything until every reference has been verified.
+
+==================================================
+PHASE 3
+CODE HEALTH
+==================================================
+
+Refactor ONLY when safe.
+
+Reduce complexity.
+
+Improve readability.
+
+Improve naming.
+
+Remove duplication.
+
+Split oversized files.
+
+Extract reusable utilities.
+
+Improve folder organization.
+
+Improve modularity.
+
+Improve dependency flow.
+
+Respect existing architecture.
+
+==================================================
+PHASE 4
+SECURITY
+==================================================
+
+Identify and fix:
+
+Authorization issues
+
+Authentication gaps
+
+Unsafe input
+
+Validation weaknesses
+
+Injection risks
+
+Privilege escalation
+
+IDOR
+
+CSRF
+
+XSS
+
+Secret leakage
+
+Unsafe logging
+
+Weak error exposure
+
+Unsafe headers
+
+Session handling
+
+Rate limiting
+
+Permission validation
+
+Never weaken security.
+
+==================================================
+PHASE 5
+DATABASE
+==================================================
+
+Verify:
+
+Indexes
+
+Constraints
+
+Transactions
+
+Relations
+
+Foreign keys
+
+Unique constraints
+
+Data consistency
+
+Query efficiency
+
+Atomic operations
+
+Migration safety
+
+Prevent race conditions.
+
+Prevent inconsistent writes.
+
+==================================================
+PHASE 6
+BACKEND
+==================================================
+
+Improve:
+
+Middleware order
+
+Error handling
+
+Validation
+
+Repositories
+
+Services
+
+Route organization
+
+DTO mapping
+
+Logging
+
+Performance
+
+Caching
+
+Async safety
+
+==================================================
+PHASE 7
+FRONTEND
+==================================================
+
+Improve:
+
+Component architecture
+
+Rendering performance
+
+React hooks
+
+Memoization
+
+Navigation safety
+
+Accessibility
+
+Loading states
+
+Empty states
+
+Error states
+
+Animations performance
+
+State consistency
+
+==================================================
+PHASE 8
+REACT NATIVE
+==================================================
+
+Verify:
+
+Memory leaks
+
+Navigation leaks
+
+Unmount safety
+
+Async cleanup
+
+Image performance
+
+List virtualization
+
+Rendering optimization
+
+Offline handling
+
+Safe area
+
+RTL
+
+Accessibility
+
+==================================================
+PHASE 9
+PERFORMANCE
+==================================================
+
+Optimize ONLY when measurable.
+
+Avoid premature optimization.
+
+Reduce:
+
+Unnecessary renders
+
+Heavy calculations
+
+Duplicate requests
+
+Bundle size
+
+Unused imports
+
+Blocking code
+
+Database queries
+
+Network requests
+
+==================================================
+PHASE 10
+ERROR HANDLING
+==================================================
+
+Every async operation must have:
+
+Retry strategy
+
+Timeout
+
+Cancellation
+
+Graceful fallback
+
+User-friendly errors
+
+Structured logging
+
+==================================================
+PHASE 11
+TESTABILITY
+==================================================
+
+Prepare project for testing.
+
+Improve architecture for:
+
+Unit testing
+
+Integration testing
+
+E2E testing
+
+Do not create fake tests.
+
+==================================================
+PHASE 12
+DEV EXPERIENCE
+==================================================
+
+Improve:
+
+Folder consistency
+
+Naming consistency
+
+Documentation
+
+Scripts
+
+Developer onboarding
+
+Environment validation
+
+==================================================
+STRICT RULES
+==================================================
+
+Never break public APIs.
+
+Never change UI design.
+
+Never redesign UX.
+
+Never rename files unnecessarily.
+
+Never remove generated code that is still required.
+
+Never modify OpenAPI contracts unless absolutely necessary.
+
+Never change database schema unless required to fix integrity.
+
+Never delete code because it "looks unused".
+
+Verify first.
+
+==================================================
+BEFORE EVERY CHANGE
+==================================================
+
+Explain:
+
+Problem
+
+Root cause
+
+Risk
+
+Solution
+
+Expected impact
+
+==================================================
+AFTER EVERY CHANGE
+==================================================
+
+Run verification.
+
+Ensure:
+
+Build passes
+
+Typecheck passes
+
+Lint passes
+
+No new warnings
+
+No broken imports
+
+No broken routes
+
+No broken hooks
+
+No broken navigation
+
+No broken API
+
+==================================================
+FINAL DELIVERABLE
+==================================================
+
+Produce:
+
+1. Executive Summary
+
+2. Files Modified
+
+3. Files Removed
+
+4. Dependencies Removed
+
+5. Bugs Fixed
+
+6. Performance Improvements
+
+7. Security Improvements
+
+8. Architecture Improvements
+
+9. Technical Debt Removed
+
+10. Remaining Issues
+
+11. Risk Assessment
+
+12. Regression Risk
+
+13. Production Readiness Score
+
+14. Recommended Next Sprint
+
+==================================================
+IMPORTANT
+==================================================
+
+Quality is more important than speed.
+
+Never perform massive blind refactors.
+
+Always prefer safe incremental improvements.
+
+Every modification must be justified.
+
+Every deletion must be verified.
+
+Every optimization must be measurable.
+
+The repository must remain fully functional after every change.
