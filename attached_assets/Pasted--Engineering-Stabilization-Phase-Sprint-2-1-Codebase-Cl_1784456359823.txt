@@ -1,0 +1,414 @@
+المرحلة الثانية
+Engineering Stabilization Phase
+Sprint 2.1
+Codebase Cleanup & Dead Code Elimination
+الهدف
+
+تنظيف المشروع بالكامل بدون تغيير أي سلوك.
+
+المهام
+إزالة الملفات غير المستخدمة
+إزالة Components المهجورة
+إزالة Hooks غير المستخدمة
+إزالة Utils غير المستخدمة
+إزالة Imports
+إزالة Dependencies
+إزالة duplicated code
+إزالة legacy code
+إزالة commented code
+إزالة TODO القديمة
+إزالة أي experimental files
+Refactor
+توحيد أسماء الملفات
+توحيد Naming Convention
+توحيد Folder Structure
+توحيد Barrel Exports
+إزالة Circular Imports
+Quality
+
+الوصول إلى
+
+0 dead files
+
+0 duplicate exports
+
+0 duplicate imports
+
+0 circular imports
+
+0 orphan files
+Exit Criteria
+Behavior unchanged
+
+Build passes
+
+Lint same or better
+
+No deleted file was referenced
+
+Git diff reviewed
+Sprint 2.2
+Large File Refactoring
+
+خصوصاً
+
+store/[id].tsx
+
+1835 lines
+
+تقسيمه إلى
+
+sections/
+
+hooks/
+
+components/
+
+cards/
+
+modals/
+
+animations/
+
+بدون تغيير UI.
+
+الهدف
+
+بدلاً من
+
+1835 lines
+
+يصبح
+
+StoreScreen.tsx
+
+≈250 lines
+Sprint 2.3
+TypeScript Hardening
+
+حل
+
+all TS errors
+
+بشكل صحيح
+
+بدون
+
+any
+
+ts-ignore
+
+eslint-disable
+تحويل
+unknown
+
+union types
+
+discriminated unions
+
+strict inference
+إزالة
+non-null assertions
+
+!
+تحسين
+DTO Types
+
+API Types
+
+Response Types
+
+Query Types
+
+Mutation Types
+Sprint 2.4
+Lint Zero
+
+الوصول إلى
+
+0 ESLint Warnings
+
+0 ESLint Errors
+
+مع منع
+
+disable eslint
+Sprint 2.5
+Architecture Refactoring
+
+استخراج
+
+DTO Mapping
+
+Pagination
+
+Filtering
+
+Validators
+
+Helpers
+
+Query Builders
+
+Constants
+
+إلى Shared Modules.
+
+الهدف
+
+تحقيق
+
+DRY
+
+SOLID
+
+SRP
+
+OCP
+
+Dependency inversion
+Sprint 2.6
+Runtime Safety
+
+إضافة
+
+Error Boundaries
+
+Suspense
+
+Fallback UI
+
+Retry
+
+Recovery
+
+Graceful Errors
+
+Global Error Handling
+
+Crash Recovery
+
+بعد انتهاء Sprint 2
+
+نبدأ Phase 3
+
+Authentication
+
+وليس قبل ذلك.
+
+الآن البرومبت الاحترافي
+C — Context
+
+You are acting as a Staff Software Engineer, Principal Architect, Staff React Native Engineer, Senior Backend Engineer, Staff TypeScript Engineer, DevOps Engineer, QA Lead, and Code Quality Reviewer.
+
+The MOB HUB project has already completed Phase 1 hardening (security and infrastructure). Your mission is not to add new features. Your mission is to transform the repository into a clean, maintainable, production-grade codebase while preserving all current functionality.
+
+This is a stabilization and engineering-quality sprint.
+
+A — Action
+
+Perform the work exactly in the following order.
+
+Stage 1 — Repository Analysis
+
+Before modifying anything:
+
+Scan the entire repository.
+Build a dependency graph.
+Detect:
+dead files
+orphan components
+unused hooks
+duplicated code
+duplicated exports
+duplicated imports
+circular dependencies
+legacy code
+unreachable code
+unused npm packages
+commented-out code
+stale TODOs
+experimental files
+oversized files
+inconsistent naming
+architecture violations
+
+Generate an internal execution plan.
+
+Do not edit anything before the audit is complete.
+
+Stage 2 — Safe Cleanup
+
+Remove only items proven to be unused.
+
+Never guess.
+
+Before deleting anything verify:
+
+zero imports
+zero runtime usage
+zero dynamic imports
+zero code generation dependency
+
+If uncertainty exists:
+
+DO NOT DELETE.
+
+Stage 3 — Large File Refactoring
+
+Refactor oversized files into modular architecture.
+
+Rules:
+
+No UI changes.
+
+No API changes.
+
+No behavior changes.
+
+No routing changes.
+
+No styling changes.
+
+Split only by responsibility.
+
+Follow SRP.
+
+Stage 4 — Type Safety
+
+Remove unsafe typing.
+
+Replace:
+
+any
+ts-ignore
+non-null assertions
+unsafe casts
+
+with proper TypeScript types.
+
+Improve:
+
+DTO types
+API types
+Hook return types
+Query types
+Mutation types
+Context types
+
+Enable maximum strictness.
+
+Stage 5 — Code Quality
+
+Eliminate:
+
+duplicated mapping
+duplicated pagination
+duplicated filtering
+duplicated validation
+duplicated constants
+
+Extract reusable modules.
+
+Stage 6 — Runtime Stability
+
+Introduce only safe improvements:
+
+Error Boundaries
+graceful fallback UI
+retry strategy
+loading consistency
+defensive programming
+
+No visual redesign.
+
+Stage 7 — Validation
+
+Run:
+
+TypeScript
+ESLint
+Build
+API startup
+Mobile startup
+
+Verify:
+
+No regressions.
+
+V — Verification
+
+Before considering any task complete verify:
+
+✓ Build passes
+
+✓ TypeScript passes
+
+✓ ESLint passes
+
+✓ Application launches
+
+✓ API launches
+
+✓ No deleted file was referenced
+
+✓ No import is broken
+
+✓ No runtime crash
+
+✓ No route changed
+
+✓ No UI changed unintentionally
+
+✓ No feature removed
+
+✓ No API contract changed
+
+If any verification fails:
+
+Rollback that change immediately.
+
+E — Execution Constraints
+
+Mandatory rules:
+
+Never rewrite working code without measurable benefit.
+Never modify business logic unless fixing a verified defect.
+Never introduce breaking changes.
+Never rename public APIs.
+Never change database schema.
+Never modify OpenAPI contracts.
+Never change routing.
+Never remove files unless proven unused.
+Never suppress errors with eslint-disable, @ts-ignore, or any.
+Prefer refactoring over rewriting.
+Preserve backward compatibility.
+Work incrementally in small, reviewable commits.
+After every logical group of changes, re-run validation before continuing.
+If uncertainty exists, stop and report instead of guessing.
+M — Mode
+
+Operate as a coordinated engineering review board composed of:
+
+Principal Software Architect
+Staff Backend Engineer
+Staff React Native Engineer
+Senior TypeScript Engineer
+DevOps Engineer
+QA Automation Lead
+Security Engineer
+Performance Engineer
+Code Quality Reviewer
+
+Every modification must satisfy all reviewers before it is accepted.
+
+Optimize for:
+
+correctness,
+maintainability,
+stability,
+readability,
+performance,
+production readiness.
+
+Success is defined as achieving the highest possible reduction in technical debt without changing product behavior, while leaving the repository cleaner, more modular, and easier to maintain than before.
