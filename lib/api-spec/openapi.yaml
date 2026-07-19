@@ -2,12 +2,25 @@ openapi: 3.1.0
 info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
-  version: 0.3.0
+  version: 0.4.0
   description: MOB HUB Egypt — Mobile Phone Marketplace API
 servers:
   - url: /api
     description: Base API path
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >
+        JWT access token issued by POST /auth/login or POST /auth/register.
+        Pass as `Authorization: Bearer <token>`.
+
 tags:
+  - name: auth
+    description: Authentication and session management
   - name: health
     description: Health operations
   - name: stores

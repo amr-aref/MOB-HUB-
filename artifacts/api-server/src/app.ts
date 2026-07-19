@@ -6,7 +6,8 @@ import pinoHttp from "pino-http";
 import router from "./routes";
 import { logger } from "./lib/logger";
 import { errorHandler } from "./middlewares/errorHandler";
-import { generalLimiter, writeLimiter } from "./middlewares/rateLimiter";
+import { generalLimiter, writeLimiter, authLimiter } from "./middlewares/rateLimiter";
+import { correlationId } from "./middlewares/correlationId";
 
 const app: Express = express();
 
@@ -18,9 +19,14 @@ const app: Express = express();
 // load-balancer) — not arbitrary XFF chains supplied by untrusted clients.
 app.set("trust proxy", 1);
 
+// ─── Correlation ID ───────────────────────────────────────────────────────────
+// Must be first so every subsequent middleware and route handler can read
+// req.correlationId and the response header is always present.
+app.use(correlationId);
+
 // ─── Security headers (Helmet) ────────────────────────────────────────────────
 // Sets X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, HSTS,
-// Referrer-Policy, and removes X-Powered-By. Must be the first middleware.
+// Referrer-Policy, and removes X-Powered-By.
 app.use(helmet());
 
 // ─── CORS ────────────────────────────────────────────────────────────────────
@@ -29,16 +35,16 @@ app.use(helmet());
 const rawOrigin = process.env.CORS_ORIGIN;
 const corsOrigin: string | string[] | boolean = rawOrigin
   ? rawOrigin.split(",").map((s) => s.trim())
-  : true; // allow all — safe default for a mobile-first API
+  : true;
 
 app.use(
   cors({
     origin: corsOrigin,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Accept"],
-    // Credentials are not used; keeping this false avoids wildcard+credentials conflicts.
+    allowedHeaders: ["Content-Type", "Accept", "Authorization", "X-Correlation-ID"],
+    exposedHeaders: ["X-Correlation-ID"],
     credentials: false,
-    maxAge: 86400, // preflight cache: 24 hours
+    maxAge: 86400,
   }),
 );
 
@@ -46,6 +52,7 @@ app.use(
 app.use(
   pinoHttp({
     logger,
+    genReqId: (req) => (req as typeof req & { correlationId?: string }).correlationId ?? req.id,
     serializers: {
       req(req) {
         return {
@@ -55,9 +62,7 @@ app.use(
         };
       },
       res(res) {
-        return {
-          statusCode: res.statusCode,
-        };
+        return { statusCode: res.statusCode };
       },
     },
   }),
@@ -68,12 +73,27 @@ app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 
 // ─── Response compression ─────────────────────────────────────────────────────
-// Compresses JSON/text responses with gzip/deflate. Skips responses < 1kb
-// (compression() threshold default) and already-compressed payloads.
-// Applied before rate limiting so it covers all API responses.
 app.use(compression());
 
 // ─── Rate limiting ────────────────────────────────────────────────────────────
+// Auth-specific limiter — tighter window for brute-force mitigation.
+app.use(
+  "/api/auth",
+  (req, res, next) => {
+    if (
+      [
+        "/api/auth/login",
+        "/api/auth/register",
+        "/api/auth/forgot-password",
+        "/api/auth/reset-password",
+      ].includes(req.path === req.url ? req.path : req.url.split("?")[0]!)
+    ) {
+      return authLimiter(req, res, next);
+    }
+    return next();
+  },
+);
+
 // General limiter on all API routes.
 app.use("/api", generalLimiter);
 
@@ -89,8 +109,6 @@ app.use("/api", (req, res, next) => {
 app.use("/api", router);
 
 // ─── Global error handler ────────────────────────────────────────────────────
-// Must be registered AFTER all routes. Catches any error passed via next(err)
-// or thrown inside an Express 5 async route handler.
 app.use(errorHandler);
 
 export default app;

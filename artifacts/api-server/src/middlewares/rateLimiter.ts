@@ -5,7 +5,7 @@ import rateLimit from "express-rate-limit";
  * 200 requests per 15 minutes per IP.
  */
 export const generalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000,
   limit: 200,
   standardHeaders: "draft-8",
   legacyHeaders: false,
@@ -24,4 +24,17 @@ export const writeLimiter = rateLimit({
   standardHeaders: "draft-8",
   legacyHeaders: false,
   message: { error: "Too many write requests, please try again later." },
+});
+
+/**
+ * Auth limiter: applied exclusively to authentication endpoints.
+ * 10 attempts per 15 minutes per IP — mitigates brute-force / credential stuffing.
+ */
+export const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  message: { error: "Too many authentication attempts, please try again later." },
+  skipSuccessfulRequests: false,
 });

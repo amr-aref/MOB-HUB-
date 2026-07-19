@@ -10,3 +10,11 @@ export * from "./conversations";
 export * from "./notifications";
 export * from "./reservations";
 export * from "./reservationAuditLog";
+// ── Auth ──────────────────────────────────────────────────────────────────────
+export * from "./users";
+export * from "./sessions";
+export * from "./refreshTokens";
+export * from "./userDevices";
+export * from "./auditLogs";
+export * from "./authEvents";
+export * from "./verificationTokens";

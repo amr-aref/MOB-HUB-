@@ -27,49 +27,52 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { FavoritesProvider } from '@/contexts/FavoritesContext';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 SplashScreen.preventAutoHideAsync();
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: (failureCount, error) => {
+        // Don't retry on 401/403 — auth errors require user action
+        if (
+          error instanceof Error &&
+          'status' in error &&
+          (error.status === 401 || error.status === 403)
+        ) {
+          return false;
+        }
+        return failureCount < 2;
+      },
+    },
+  },
+});
 
 function RootLayoutNav() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       <Stack.Screen
         name="store/[id]"
-        options={{
-          headerShown: false,
-          presentation: 'card',
-        }}
+        options={{ headerShown: false, presentation: 'card' }}
       />
       <Stack.Screen
         name="product/[id]"
-        options={{
-          headerShown: false,
-          presentation: 'card',
-        }}
+        options={{ headerShown: false, presentation: 'card' }}
       />
       <Stack.Screen
         name="dashboard/index"
-        options={{
-          headerShown: false,
-          presentation: 'card',
-        }}
+        options={{ headerShown: false, presentation: 'card' }}
       />
       <Stack.Screen
         name="dashboard/add-product"
-        options={{
-          headerShown: false,
-          presentation: 'card',
-        }}
+        options={{ headerShown: false, presentation: 'card' }}
       />
       <Stack.Screen
         name="dashboard/products"
-        options={{
-          headerShown: false,
-          presentation: 'card',
-        }}
+        options={{ headerShown: false, presentation: 'card' }}
       />
       <Stack.Screen
         name="notifications/index"
@@ -119,17 +122,19 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <ErrorBoundary>
-        <QueryClientProvider client={queryClient}>
-          <LanguageProvider>
-            <FavoritesProvider>
-              <GestureHandlerRootView style={{ flex: 1 }}>
-                <KeyboardProvider>
-                  <RootLayoutNav />
-                </KeyboardProvider>
-              </GestureHandlerRootView>
-            </FavoritesProvider>
-          </LanguageProvider>
-        </QueryClientProvider>
+        <AuthProvider>
+          <QueryClientProvider client={queryClient}>
+            <LanguageProvider>
+              <FavoritesProvider>
+                <GestureHandlerRootView style={{ flex: 1 }}>
+                  <KeyboardProvider>
+                    <RootLayoutNav />
+                  </KeyboardProvider>
+                </GestureHandlerRootView>
+              </FavoritesProvider>
+            </LanguageProvider>
+          </QueryClientProvider>
+        </AuthProvider>
       </ErrorBoundary>
     </SafeAreaProvider>
   );
