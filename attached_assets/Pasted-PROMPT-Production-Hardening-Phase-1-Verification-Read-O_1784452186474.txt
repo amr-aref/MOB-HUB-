@@ -1,0 +1,403 @@
+PROMPT — Production Hardening Phase 1 Verification (Read-Only Audit)
+
+You are acting as a Principal Software Architect, Staff Backend Engineer, Senior React Native Engineer, Senior DevOps Engineer, Security Engineer, Database Architect, and QA Lead performing a strict production-readiness verification audit for the MOB HUB monorepo.
+
+IMPORTANT
+
+This is a READ-ONLY VERIFICATION.
+
+DO NOT modify any file.
+
+DO NOT regenerate code.
+
+DO NOT auto-fix anything.
+
+DO NOT install packages.
+
+DO NOT delete files.
+
+Your only responsibility is to verify whether Production Hardening Phase 1 has been completed successfully.
+
+Verification Scope
+
+Audit the entire repository.
+
+Check:
+
+artifacts/api-server
+artifacts/mobile
+lib/db
+lib/api-client-react
+lib/api-spec
+root configuration
+package.json files
+pnpm workspace
+GitHub workflows
+middleware
+routes
+hooks
+generated client
+OpenAPI
+database layer
+
+Do not skip anything.
+
+Verify Every Completed Item
+1. Notification IDOR Protection
+
+Verify:
+
+notification owner validation exists
+userId is required
+unauthorized access returns 403
+every notification endpoint is protected
+
+Endpoints:
+
+GET /notifications/:id
+
+PATCH /notifications/:id/read
+
+DELETE /notifications/:id
+
+Report:
+
+PASS / FAIL
+
+Evidence:
+
+File
+
+Function
+
+Lines
+
+2. OpenAPI Specification
+
+Verify:
+
+OpenAPI matches implementation.
+
+Ensure:
+
+required query params
+
+schemas
+
+responses
+
+security declarations
+
+generated client consistency
+
+PASS / FAIL
+
+3. API Client
+
+Verify generated client matches OpenAPI.
+
+No broken types.
+
+No duplicate exports.
+
+No stale generated code.
+
+PASS / FAIL
+
+4. Mobile Notifications Hook
+
+Verify:
+
+markRead()
+
+delete()
+
+fetch()
+
+all pass required parameters correctly.
+
+PASS / FAIL
+
+5. Trust Proxy
+
+Verify:
+
+app.set("trust proxy", ...)
+
+configured correctly.
+
+No rate limiter proxy warnings.
+
+PASS /FAIL
+
+6. Rate Limiter
+
+Verify:
+
+No
+
+ERR_ERL_UNEXPECTED_X_FORWARDED_FOR
+
+No configuration errors.
+
+PASS / FAIL
+
+7. Compression Middleware
+
+Verify:
+
+compression middleware installed
+
+registered
+
+executed before routes
+
+PASS / FAIL
+
+8. Database Pool
+
+Verify Pool has:
+
+max
+
+idleTimeoutMillis
+
+connectionTimeoutMillis
+
+No default unlimited configuration.
+
+PASS / FAIL
+
+9. Dependency Cleanup
+
+Verify unused packages removed.
+
+Specifically check:
+
+cookie-parser
+
+@types/cookie-parser
+
+@Replit/connectors-sdk
+
+Also verify no orphan dependencies remain.
+
+PASS / FAIL
+
+10. Dead Imports
+
+Audit entire project.
+
+Verify:
+
+unused imports removed.
+
+List remaining unused imports.
+
+PASS / FAIL
+
+11. ESLint
+
+Run lint.
+
+Report:
+
+errors
+
+warnings
+
+Compare against previous baseline.
+
+PASS / FAIL
+
+12. TypeScript
+
+Run typecheck.
+
+Verify:
+
+zero new errors introduced.
+
+Differentiate:
+
+pre-existing
+
+new
+
+PASS / FAIL
+
+13. API Build
+
+Verify:
+
+API builds successfully.
+
+PASS / FAIL
+
+14. Mobile Build
+
+Verify:
+
+Metro bundles.
+
+No module resolution failures.
+
+No duplicate exports.
+
+PASS / FAIL
+
+15. Runtime Verification
+
+Verify:
+
+API starts.
+
+Mobile launches.
+
+Home screen loads.
+
+Products load.
+
+Stores load.
+
+Notifications work.
+
+PASS / FAIL
+
+16. Repository Health
+
+Verify:
+
+No broken imports.
+
+No circular imports introduced.
+
+No duplicated exports.
+
+No generated artifacts committed incorrectly.
+
+PASS / FAIL
+
+Additional Deep Audit
+
+Also verify there are NO remaining:
+
+unused files
+
+dead code
+
+duplicate exports
+
+duplicate imports
+
+broken imports
+
+orphan utilities
+
+orphan hooks
+
+orphan components
+
+unreachable code
+
+unused helper functions
+
+unused constants
+
+unused assets
+
+unused API endpoints
+
+unused routes
+
+unused middleware
+
+unused generated code
+
+unused schemas
+
+unused DTOs
+
+unused interfaces
+
+unused enums
+
+unused package dependencies
+
+unused scripts
+
+unused configs
+
+If found,
+
+DO NOT FIX.
+
+Only report them.
+
+Deliverables
+
+Produce one final engineering report.
+
+Use exactly this structure.
+
+Executive Summary
+
+Overall Completion %
+
+Production Readiness Score
+
+Security Score
+
+Code Health Score
+
+Infrastructure Score
+
+Build Health Score
+
+Verification Matrix
+Item	Status	Evidence
+Remaining Issues
+
+Categorize as:
+
+Critical
+
+High
+
+Medium
+
+Low
+
+For each issue include:
+
+location
+
+reason
+
+impact
+
+estimated effort
+
+Regression Check
+
+Confirm whether any regression was introduced.
+
+YES / NO
+
+If yes:
+
+describe exactly.
+
+Final Decision
+
+Choose exactly one:
+
+✅ Phase 1 VERIFIED COMPLETE
+
+🟡 Phase 1 COMPLETE WITH MINOR REMAINING ITEMS
+
+🔴 Phase 1 NOT COMPLETE
+
+Justify the decision using only verified evidence.
+
+Do not make assumptions. Do not speculate. Every conclusion must be backed by direct evidence from the source code, build output, or runtime verification.
