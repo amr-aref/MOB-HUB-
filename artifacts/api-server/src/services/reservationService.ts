@@ -72,16 +72,6 @@ const ALLOWED_TRANSITIONS: Record<ReservationStatus, ReservationStatus[]> = {
   completed: [],
 };
 
-const TERMINAL_STATUSES: ReadonlySet<ReservationStatus> = new Set([
-  "declined",
-  "cancelled",
-  "expired",
-  "completed",
-]);
-
-function isTerminal(status: ReservationStatus): boolean {
-  return TERMINAL_STATUSES.has(status);
-}
 
 function assertTransition(from: string, to: ReservationStatus): void {
   const allowed = ALLOWED_TRANSITIONS[from as ReservationStatus] ?? [];

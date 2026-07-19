@@ -21,6 +21,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useLayout } from '@/hooks/useLayout';
 import {
   useGetReservations,
+  getGetReservationsQueryKey,
   useConfirmReservation,
   useDeclineReservation,
   useCompleteReservation,
@@ -228,7 +229,7 @@ export default function MerchantReservationsScreen() {
 
   const { data: reservations = [], isLoading, refetch } = useGetReservations(
     { storeId: STORE_ID, ...(activeFilter !== 'all' ? { status: activeFilter } : {}) },
-    { query: { staleTime: 15_000 } },
+    { query: { queryKey: getGetReservationsQueryKey({ storeId: STORE_ID, ...(activeFilter !== 'all' ? { status: activeFilter } : {}) }), staleTime: 15_000 } },
   );
 
   function invalidateAll() {

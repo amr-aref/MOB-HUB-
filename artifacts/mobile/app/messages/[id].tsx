@@ -18,8 +18,11 @@ import { useDeviceId } from '@/hooks/useDeviceId';
 import { useLayout } from '@/hooks/useLayout';
 import {
   useGetConversation,
+  getGetConversationQueryKey,
   useGetConversationMessages,
+  getGetConversationMessagesQueryKey,
   useGetStore,
+  getGetStoreQueryKey,
   useSendMessage,
   useMarkConversationRead,
   type ChatMessageDto,
@@ -87,7 +90,7 @@ export default function ChatScreen() {
   } = useGetConversation(
     id!,
     { buyerId: deviceId ?? undefined },
-    { query: { enabled: !!id && !!deviceId } },
+    { query: { queryKey: getGetConversationQueryKey(id!, { buyerId: deviceId ?? undefined }), enabled: !!id && !!deviceId } },
   );
 
   // ── Fetch messages (poll every 10 s) ───────────────────────────────────────
@@ -99,13 +102,13 @@ export default function ChatScreen() {
   } = useGetConversationMessages(
     id!,
     { buyerId: deviceId ?? undefined },
-    { query: { enabled: !!id && !!deviceId, refetchInterval: 10_000 } },
+    { query: { queryKey: getGetConversationMessagesQueryKey(id!, { buyerId: deviceId ?? undefined }), enabled: !!id && !!deviceId, refetchInterval: 10_000 } },
   );
 
   // ── Fetch store for header ─────────────────────────────────────────────────
   const { data: store } = useGetStore(
     conversation?.storeId ?? '',
-    { query: { enabled: !!conversation?.storeId, staleTime: 5 * 60 * 1000 } },
+    { query: { queryKey: getGetStoreQueryKey(conversation?.storeId ?? ''), enabled: !!conversation?.storeId, staleTime: 5 * 60 * 1000 } },
   );
 
   // ── Send message mutation ───────────────────────────────────────────────────

@@ -17,12 +17,10 @@ import colors from '@/constants/colors';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useDeviceId } from '@/hooks/useDeviceId';
 import { useLayout } from '@/hooks/useLayout';
-import { useGetReservations } from '@workspace/api-client-react';
+import { useGetReservations, getGetReservationsQueryKey } from '@workspace/api-client-react';
 import type { ReservationDto } from '@workspace/api-client-react';
 
 // ─── Status helpers ──────────────────────────────────────────────────────────
-
-type ReservationStatus = ReservationDto['status'];
 
 const STATUS_STYLE: Record<string, { color: string; bg: string; icon: keyof typeof Ionicons.glyphMap }> = {
   pending:   { color: colors.light.warning,        bg: colors.light.warningLight,  icon: 'time-outline' },
@@ -157,7 +155,7 @@ export default function MyReservationsScreen() {
 
   const { data: reservations = [], isLoading, refetch } = useGetReservations(
     deviceId ? { buyerId: deviceId, ...(activeFilter !== 'all' ? { status: activeFilter } : {}) } : undefined,
-    { query: { enabled: !!deviceId, staleTime: 20_000 } },
+    { query: { queryKey: getGetReservationsQueryKey(deviceId ? { buyerId: deviceId, ...(activeFilter !== 'all' ? { status: activeFilter } : {}) } : undefined), enabled: !!deviceId, staleTime: 20_000 } },
   );
 
   const loading = !deviceId || isLoading;

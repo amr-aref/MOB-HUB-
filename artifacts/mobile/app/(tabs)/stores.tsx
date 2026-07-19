@@ -33,10 +33,9 @@ export default function StoresScreen() {
   const bottomInset = isTablet ? 0 : (Platform.OS === 'web' ? 34 : 0);
 
   const cities = language === 'ar' ? CITIES_AR : CITIES_EN;
-  const citiesFilter = ['', 'القاهرة', 'الإسكندرية', 'الجيزة'];
-
   const { data: allStores = [] } = useGetStores();
   const filtered = useMemo(() => {
+    const citiesFilter = ['', 'القاهرة', 'الإسكندرية', 'الجيزة'];
     return allStores.filter((store) => {
       const name = language === 'ar' ? store.nameAr : store.nameEn;
       const matchSearch =

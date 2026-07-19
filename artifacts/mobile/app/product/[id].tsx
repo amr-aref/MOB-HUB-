@@ -1,7 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Linking,
   Platform,
   Pressable,
@@ -25,6 +25,7 @@ import {
   useCreateConversation,
   useCreateReservation,
   useGetReservations,
+  getGetReservationsQueryKey,
 } from '@workspace/api-client-react';
 import { useDeviceId } from '@/hooks/useDeviceId';
 import RatingStars from '@/components/RatingStars';
@@ -67,7 +68,7 @@ export default function ProductScreen() {
   // Fetch buyer's reservations to detect whether this product is already reserved
   const { data: myReservationsRaw = [] } = useGetReservations(
     deviceId ? { buyerId: deviceId } : undefined,
-    { query: { enabled: !!deviceId, staleTime: 30_000 } },
+    { query: { queryKey: getGetReservationsQueryKey(deviceId ? { buyerId: deviceId } : undefined), enabled: !!deviceId, staleTime: 30_000 } },
   );
   const myReservations = myReservationsRaw as Array<{ id: string; productId: string; status: string; conversationId?: string | null }>;
 

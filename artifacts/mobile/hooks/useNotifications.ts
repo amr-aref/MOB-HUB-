@@ -24,12 +24,12 @@ export function useNotifications(userId: string | undefined) {
 
   const listQuery = useGetNotifications(
     { userId: userId ?? '' },
-    { query: { enabled: !!userId } },
+    { query: { queryKey: getGetNotificationsQueryKey({ userId: userId ?? '' }), enabled: !!userId } },
   );
 
   const unreadQuery = useGetNotificationsUnreadCount(
     { userId: userId ?? '' },
-    { query: { enabled: !!userId, refetchInterval: 30_000 } },
+    { query: { queryKey: getGetNotificationsUnreadCountQueryKey({ userId: userId ?? '' }), enabled: !!userId, refetchInterval: 30_000 } },
   );
 
   const invalidate = () => {

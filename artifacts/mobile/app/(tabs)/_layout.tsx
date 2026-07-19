@@ -62,7 +62,7 @@ function TabIcon({ focused, name, label, isRTL }: { focused: boolean, name: any,
   );
 }
 
-function TabletSidebar({ state, descriptors, navigation, isRTL, t }: any) {
+function TabletSidebar({ state, descriptors, navigation, isRTL }: any) {
   const fontFam = getFontFamily(isRTL, 'semiBold');
 
   return (

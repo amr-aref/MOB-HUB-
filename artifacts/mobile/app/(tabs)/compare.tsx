@@ -76,7 +76,7 @@ export default function CompareScreen() {
     if (phoneSpecs.length >= 2 && selected.length === 0) {
       setSelected([phoneSpecs[0], phoneSpecs[1]]);
     }
-  }, [phoneSpecs]);
+  }, [phoneSpecs, selected.length]);
 
   const topInset = isTablet ? 24 : (Platform.OS === 'web' ? 67 : insets.top);
   const bottomInset = isTablet ? 0 : (Platform.OS === 'web' ? 34 : 0);

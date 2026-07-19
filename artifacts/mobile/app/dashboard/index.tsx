@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState } from 'react';
 import {
   Alert,
@@ -23,6 +24,7 @@ import {
   useGetDashboardMessages,
   useGetDashboardReviews,
   useGetConversations,
+  getGetConversationsQueryKey,
 } from '@workspace/api-client-react';
 import { useNotifications } from '@/hooks/useNotifications';
 
@@ -61,16 +63,13 @@ const RECENT_MESSAGES = [
   { id: 'm2', customer: 'Ali Hassan', productAr: 'سامسونج A55', productEn: 'Samsung Galaxy A55', timeAr: 'منذ يوم', timeEn: '1 day ago', status: 'INQUIRY', unread: 0 },
 ];
 
-const RECENT_REVIEWS = [
-  { id: 'rv1', author: 'Sarah M.', rating: 5, textAr: 'منتج رائع! أفضل متجر في مصر، الخدمة ممتازة والتوصيل سريع.', textEn: 'Amazing product! Best store in Egypt, excellent service and fast delivery.', timeAr: 'منذ يومين', timeEn: '2 days ago', unread: 1 },
-];
 
 const CHART_DATA = [180, 140, 165, 190, 160, 200, 185];
 const CHART_DAYS_AR = ['أح', 'اث', 'ثل', 'أر', 'خم', 'جم', 'سب'];
 const CHART_DAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export default function DashboardScreen() {
-  const { t, isRTL, language } = useLanguage();
+  const { isRTL, language } = useLanguage();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { isTablet } = useLayout();
@@ -86,7 +85,7 @@ export default function DashboardScreen() {
   const { data: messagesData = [] } = useGetDashboardMessages({ storeId: STORE_ID });
   const { data: conversationsData = [] } = useGetConversations(
     { storeId: STORE_ID },
-    { query: { staleTime: 30_000 } },
+    { query: { queryKey: getGetConversationsQueryKey({ storeId: STORE_ID }), staleTime: 30_000 } },
   );
   const { data: reviewsData = [] } = useGetDashboardReviews({ storeId: STORE_ID });
   const { unreadCount } = useNotifications(STORE_ID);

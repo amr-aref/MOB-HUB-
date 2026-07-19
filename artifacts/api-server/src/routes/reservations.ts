@@ -82,6 +82,7 @@ router.post("/products/:id/reserve", async (req, res) => {
     const dto = await createReservation({ productId, buyerId, buyerNotes });
     res.status(201).json(dto);
   } catch (err) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     handleServiceError(err, res as any);
   }
 });
@@ -120,6 +121,7 @@ router.get("/reservations", async (req, res) => {
     const dtos = await listReservations({ buyerId, storeId, status, limit, offset });
     res.json(dtos);
   } catch (err) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     handleServiceError(err, res as any);
   }
 });
@@ -139,6 +141,7 @@ router.get("/reservations/:id", async (req, res) => {
     const dto = await getReservation(id, { buyerId, storeId });
     res.json(dto);
   } catch (err) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     handleServiceError(err, res as any);
   }
 });
@@ -158,6 +161,7 @@ router.get("/reservations/:id/history", async (req, res) => {
     const history = await getReservationHistory(id, { buyerId, storeId });
     res.json(history);
   } catch (err) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     handleServiceError(err, res as any);
   }
 });
@@ -180,6 +184,7 @@ router.patch("/reservations/:id/confirm", async (req, res) => {
     const dto = await confirmReservation(id, storeId);
     res.json(dto);
   } catch (err) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     handleServiceError(err, res as any);
   }
 });
@@ -207,6 +212,7 @@ router.patch("/reservations/:id/decline", async (req, res) => {
     const dto = await declineReservation(id, { storeId, cancellationReason });
     res.json(dto);
   } catch (err) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     handleServiceError(err, res as any);
   }
 });
@@ -237,6 +243,7 @@ router.patch("/reservations/:id/cancel", async (req, res) => {
     const dto = await cancelReservation(id, { buyerId, storeId, cancellationReason });
     res.json(dto);
   } catch (err) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     handleServiceError(err, res as any);
   }
 });
@@ -259,6 +266,7 @@ router.patch("/reservations/:id/complete", async (req, res) => {
     const dto = await completeReservation(id, storeId);
     res.json(dto);
   } catch (err) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     handleServiceError(err, res as any);
   }
 });

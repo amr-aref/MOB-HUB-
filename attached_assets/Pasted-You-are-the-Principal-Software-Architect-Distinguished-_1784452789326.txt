@@ -1,0 +1,513 @@
+You are the Principal Software Architect, Distinguished Software Engineer, Security Architect, DevOps Lead, Database Architect, Backend Lead, Mobile Lead, QA Director, and Enterprise Code Reviewer.
+
+MISSION
+
+Phase 1 is COMPLETE.
+
+The codebase is now stable.
+
+DO NOT modify anything from Phase 1 unless an actual defect is discovered.
+
+Your responsibility is to transform this repository into an enterprise-grade production foundation without introducing regressions.
+
+This sprint is NOT about UI.
+
+This sprint is NOT about redesign.
+
+This sprint is NOT about adding random features.
+
+This sprint builds the CORE PLATFORM.
+
+========================================================
+
+PRIMARY OBJECTIVES
+
+========================================================
+
+Implement a complete production-ready authentication architecture.
+
+Implement authorization.
+
+Implement user identity.
+
+Implement secure sessions.
+
+Implement enterprise security.
+
+Implement auditability.
+
+Implement observability.
+
+Implement maintainability.
+
+Everything must integrate with the existing architecture.
+
+========================================================
+
+NON-NEGOTIABLE RULES
+
+========================================================
+
+DO NOT
+
+Break existing APIs
+
+Break generated clients
+
+Break OpenAPI
+
+Break Mobile
+
+Break Database
+
+Break Navigation
+
+Break State
+
+Break Caching
+
+Break Existing Screens
+
+Break Existing Features
+
+Rewrite stable modules
+
+Replace libraries without justification
+
+Create duplicate authentication flows
+
+Create parallel identity systems
+
+Leave temporary implementations
+
+Leave TODOs
+
+Leave console logs
+
+Leave dead code
+
+Leave commented code
+
+========================================================
+
+AUTHENTICATION REQUIREMENTS
+
+========================================================
+
+Design a production-grade authentication system.
+
+Support:
+
+JWT Access Tokens
+
+Refresh Tokens
+
+Secure Session Management
+
+Password Hashing
+
+Password Reset
+
+Email Verification
+
+Device Registration
+
+Logout
+
+Token Revocation
+
+Session Expiration
+
+Role-based Authorization
+
+Permission Middleware
+
+Protected Routes
+
+Refresh Flow
+
+Token Rotation
+
+Secure Cookie support (future-ready)
+
+Mobile Token Storage Strategy
+
+OpenAPI Authentication
+
+Generated Client Compatibility
+
+Everything must follow modern security best practices.
+
+========================================================
+
+AUTHORIZATION
+
+========================================================
+
+Introduce RBAC.
+
+Example roles:
+
+Buyer
+
+Merchant
+
+Admin
+
+Moderator
+
+Future roles must be extensible.
+
+No hardcoded role checks.
+
+Use reusable authorization middleware.
+
+========================================================
+
+DATABASE
+
+========================================================
+
+Extend schema professionally.
+
+Introduce:
+
+Users
+
+Sessions
+
+Refresh Tokens
+
+User Devices
+
+Audit Logs
+
+Authentication Events
+
+Verification Tokens
+
+Password Reset Tokens
+
+Use proper foreign keys.
+
+Use indexes.
+
+Use constraints.
+
+Use enums instead of free-text status fields.
+
+Never break existing tables.
+
+Create safe migrations.
+
+========================================================
+
+SECURITY
+
+========================================================
+
+Enforce:
+
+Helmet
+
+Rate Limiting
+
+Request Validation
+
+Input Sanitization
+
+SQL Injection Protection
+
+XSS Protection
+
+CSRF-ready architecture
+
+Replay protection
+
+JWT verification
+
+Secure password hashing
+
+Timing-safe comparisons
+
+Audit logging
+
+Secure secrets handling
+
+Environment validation
+
+Never expose sensitive information.
+
+========================================================
+
+API
+
+========================================================
+
+Update OpenAPI.
+
+Declare security schemes.
+
+Bearer Authentication.
+
+Protected endpoints.
+
+Public endpoints.
+
+Authorization responses.
+
+403
+
+401
+
+Validation schemas.
+
+Generated clients must remain fully functional.
+
+========================================================
+
+MOBILE
+
+========================================================
+
+Integrate authentication without breaking existing screens.
+
+Replace temporary device identity with authenticated user identity.
+
+Persist credentials securely.
+
+Support:
+
+Login
+
+Registration
+
+Auto Login
+
+Logout
+
+Token Refresh
+
+Expired Session Recovery
+
+Offline-safe credential restoration.
+
+Use SecureStore.
+
+Never store secrets in AsyncStorage.
+
+========================================================
+
+CODE QUALITY
+
+========================================================
+
+Follow:
+
+SOLID
+
+DRY
+
+KISS
+
+YAGNI
+
+Composition over inheritance
+
+Dependency inversion
+
+Reusable modules
+
+Clean architecture
+
+Feature boundaries
+
+Strict typing
+
+No duplicated business logic.
+
+========================================================
+
+OBSERVABILITY
+
+========================================================
+
+Add:
+
+Structured logging
+
+Authentication audit logs
+
+Security events
+
+Request correlation IDs
+
+Health endpoints
+
+Readiness checks
+
+Metrics-ready architecture
+
+========================================================
+
+TESTING
+
+========================================================
+
+Every authentication flow must be testable.
+
+Add:
+
+Unit Tests
+
+Integration Tests
+
+Authentication Tests
+
+Authorization Tests
+
+Token Tests
+
+Validation Tests
+
+Middleware Tests
+
+Regression Tests
+
+========================================================
+
+CI/CD COMPATIBILITY
+
+========================================================
+
+Everything must pass:
+
+TypeScript
+
+ESLint
+
+Build
+
+Generated Clients
+
+API Build
+
+Mobile Build
+
+Database Migrations
+
+========================================================
+
+BACKWARD COMPATIBILITY
+
+========================================================
+
+Every existing endpoint must continue functioning unless intentionally secured.
+
+Migration strategy must avoid breaking current data.
+
+Existing seeded data must remain valid.
+
+========================================================
+
+NO REGRESSIONS POLICY
+
+========================================================
+
+After every implementation batch run:
+
+Typecheck
+
+Lint
+
+API Build
+
+Mobile Build
+
+Database Migration Validation
+
+Generated Client Validation
+
+Runtime Verification
+
+========================================================
+
+FINAL QUALITY GATE
+
+========================================================
+
+Before finishing verify:
+
+✓ Authentication complete
+
+✓ Authorization complete
+
+✓ JWT working
+
+✓ Refresh tokens working
+
+✓ RBAC working
+
+✓ Secure sessions working
+
+✓ Password hashing verified
+
+✓ SecureStore integration complete
+
+✓ OpenAPI updated
+
+✓ Generated clients regenerated
+
+✓ Existing endpoints still working
+
+✓ No regressions
+
+✓ Build succeeds
+
+✓ Tests pass
+
+✓ Lint passes
+
+✓ TypeScript passes
+
+✓ Database migrations succeed
+
+✓ No dead code introduced
+
+✓ No duplicated logic introduced
+
+✓ No security vulnerabilities introduced
+
+========================================================
+
+OUTPUT
+
+========================================================
+
+Do not stop after implementing one feature.
+
+Continue until the authentication platform is enterprise-ready.
+
+At the end provide only:
+
+1. Architecture summary
+
+2. Files created
+
+3. Files modified
+
+4. Database migrations
+
+5. Security improvements
+
+6. API changes
+
+7. Mobile changes
+
+8. Test coverage added
+
+9. Regression report
+
+10. Remaining blockers (if any)
+
+Do not claim completion without verifying every requirement with actual code and successful builds.

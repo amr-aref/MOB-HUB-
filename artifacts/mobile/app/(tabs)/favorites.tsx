@@ -6,14 +6,14 @@ import { useRouter } from 'expo-router';
 import colors from '@/constants/colors';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useFavorites } from '@/contexts/FavoritesContext';
-import { useGetStores, useGetProducts, useGetReservations } from '@workspace/api-client-react';
+import { useGetStores, useGetProducts, useGetReservations, getGetReservationsQueryKey } from '@workspace/api-client-react';
 import { useDeviceId } from '@/hooks/useDeviceId';
 import StoreCard from '@/components/StoreCard';
 import ProductCard from '@/components/ProductCard';
 import { useLayout } from '@/hooks/useLayout';
 
 export default function FavoritesScreen() {
-  const { t, isRTL, language } = useLanguage();
+  const { t, isRTL } = useLanguage();
   const { favoriteStores, favoriteProducts } = useFavorites();
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -26,7 +26,7 @@ export default function FavoritesScreen() {
   const deviceId = useDeviceId();
   const { data: myReservations = [] } = useGetReservations(
     deviceId ? { buyerId: deviceId } : undefined,
-    { query: { enabled: !!deviceId, staleTime: 60_000 } },
+    { query: { queryKey: getGetReservationsQueryKey(deviceId ? { buyerId: deviceId } : undefined), enabled: !!deviceId, staleTime: 60_000 } },
   );
   const reservationStatusMap = new Map<string, string>(
     (myReservations as Array<{ productId: string; status: string }>).map((r) => [r.productId, r.status]),

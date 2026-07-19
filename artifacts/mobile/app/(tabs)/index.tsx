@@ -18,6 +18,7 @@ import {
   useGetProducts,
   useGetCategories,
   useGetReservations,
+  getGetReservationsQueryKey,
 } from '@workspace/api-client-react';
 import { BlurView } from 'expo-blur';
 import SearchBar from '@/components/SearchBar';
@@ -76,7 +77,7 @@ export default function HomeScreen() {
 
   const { data: myReservations = [] } = useGetReservations(
     deviceId ? { buyerId: deviceId } : undefined,
-    { query: { enabled: !!deviceId, staleTime: 60_000 } },
+    { query: { queryKey: getGetReservationsQueryKey(deviceId ? { buyerId: deviceId } : undefined), enabled: !!deviceId, staleTime: 60_000 } },
   );
   const reservationStatusMap = useMemo(
     () =>

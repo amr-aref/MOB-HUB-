@@ -18,7 +18,9 @@ import { useDeviceId } from '@/hooks/useDeviceId';
 import { useLayout } from '@/hooks/useLayout';
 import {
   useGetConversations,
+  getGetConversationsQueryKey,
   useGetStores,
+  getGetStoresQueryKey,
   type ConversationDto,
 } from '@workspace/api-client-react';
 import ConversationItem from '@/components/messaging/ConversationItem';
@@ -61,7 +63,7 @@ export default function MessagesScreen() {
     refetch,
   } = useGetConversations(
     { buyerId: deviceId ?? undefined },
-    { query: { enabled: !!deviceId, staleTime: 30_000 } },
+    { query: { queryKey: getGetConversationsQueryKey({ buyerId: deviceId ?? undefined }), enabled: !!deviceId, staleTime: 30_000 } },
   );
 
   // Batch-load all unique stores referenced by conversations in a single request
@@ -71,7 +73,7 @@ export default function MessagesScreen() {
   );
   const { data: storesData = [] } = useGetStores(
     { ids: uniqueStoreIds.join(',') },
-    { query: { enabled: uniqueStoreIds.length > 0, staleTime: 5 * 60 * 1000 } },
+    { query: { queryKey: getGetStoresQueryKey({ ids: uniqueStoreIds.join(',') }), enabled: uniqueStoreIds.length > 0, staleTime: 5 * 60 * 1000 } },
   );
 
   const storeMap = React.useMemo(() => {

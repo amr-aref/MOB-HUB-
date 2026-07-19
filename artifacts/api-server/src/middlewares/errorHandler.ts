@@ -63,7 +63,6 @@ export function errorHandler(
   err: unknown,
   req: Request,
   res: Response,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _next: NextFunction,
 ): void {
   const path = req.url.split("?")[0];

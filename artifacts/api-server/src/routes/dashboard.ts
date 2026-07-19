@@ -156,8 +156,8 @@ router.post("/dashboard/products", async (req, res) => {
     warranty: typeof body["warranty"] === "string" ? body["warranty"] : "",
     warrantyAr: typeof body["warrantyAr"] === "string" ? body["warrantyAr"] : "",
     colors: Array.isArray(body["colors"]) ? (body["colors"] as string[]) : [],
-    storage: typeof body["storage"] === "string" ? body["storage"] : undefined,
-    ram: typeof body["ram"] === "string" ? body["ram"] : undefined,
+    storage: typeof body["storage"] === "string" ? [body["storage"]] : undefined,
+    ram: typeof body["ram"] === "string" ? [body["ram"]] : undefined,
     imageColor:
       typeof body["imageColor"] === "string" ? body["imageColor"] : "#2563EB",
     rating: 0,

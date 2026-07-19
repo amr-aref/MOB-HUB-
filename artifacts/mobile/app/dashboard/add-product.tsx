@@ -55,7 +55,6 @@ export default function AddProductScreen() {
   const [condition, setCondition] = useState(0);
   const [warranty, setWarranty] = useState('');
   const [tags, setTags] = useState('');
-  const [images, setImages] = useState<string[]>([]);
   const [variants, setVariants] = useState([{ storage: '128GB', ram: '8GB', color: '#1C1C1E', price: '0', qty: '1' }]);
   const [currentPrice, setCurrentPrice] = useState('');
   const [oldPrice, setOldPrice] = useState('');

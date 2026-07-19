@@ -21,7 +21,6 @@ import { useLayout } from '@/hooks/useLayout';
 import {
   useGetReservation,
   useCancelReservation,
-  getGetReservationsQueryKey,
   getGetReservationQueryKey,
 } from '@workspace/api-client-react';
 
@@ -148,7 +147,7 @@ export default function ReservationDetailScreen() {
   const { data: reservation, isLoading } = useGetReservation(
     id!,
     deviceId ? { buyerId: deviceId } : {},
-    { query: { enabled: !!id && !!deviceId, staleTime: 15_000 } },
+    { query: { queryKey: getGetReservationQueryKey(id!, deviceId ? { buyerId: deviceId } : {}), enabled: !!id && !!deviceId, staleTime: 15_000 } },
   );
 
   const { mutate: cancelRes } = useCancelReservation({

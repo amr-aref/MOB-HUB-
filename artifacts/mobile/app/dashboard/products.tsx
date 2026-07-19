@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -16,7 +15,7 @@ import { getFontFamily } from '@/constants/fonts';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useLayout } from '@/hooks/useLayout';
 import { products, stores } from '@/data/mockData';
-import { AnimatedPressable, ChartBar } from '@/components/admin/AdminComponents';
+import { AnimatedPressable } from '@/components/admin/AdminComponents';
 import { AnimatedCounter } from '@/components/admin/AnimatedCounter';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming, Easing, withDelay } from 'react-native-reanimated';
 import { useNotifications } from '@/hooks/useNotifications';
@@ -38,7 +37,7 @@ const ANALYTICS = [
 ];
 
 export default function ProductsScreen() {
-  const { t, isRTL, language } = useLanguage();
+  const { isRTL, language } = useLanguage();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { isTablet } = useLayout();
@@ -222,6 +221,7 @@ function ProductCard({ product, isRTL, isAr, fontFamilyLTR, fontFamilyRTL, delay
   useEffect(() => {
     opacity.value = withDelay(delay, withTiming(1, { duration: 400, easing: Easing.bezier(0.22, 1, 0.36, 1) }));
     translateY.value = withDelay(delay, withTiming(0, { duration: 400, easing: Easing.bezier(0.22, 1, 0.36, 1) }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const animatedStyle = useAnimatedStyle(() => ({
