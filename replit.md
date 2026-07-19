@@ -2,15 +2,14 @@
 
 An Expo mobile marketplace app (Arabic RTL) for buying/comparing phones in Egypt, backed by a shared Express API server. Re-imported from GitHub on 2026-07-15; artifacts and workflows were re-registered cleanly by the platform this time (API Server, Mobile Marketplace, Canvas/mockup-sandbox).
 
-## Setup status (2026-07-19)
+## Setup status (2026-07-19 — re-import)
 
 - ✅ `pnpm install` — 1142 packages installed from lockfile
-- ✅ `pnpm --filter @workspace/db run push` — DB schema applied (13 tables)
+- ✅ `pnpm --filter @workspace/db run push` — DB schema applied
 - ✅ `pnpm --filter @workspace/db run seed` — seeded: categories, stores, products, phone specs, reviews, dashboard data, notifications, reservations
-- ✅ Workflow `API Server` — running on port 8080 (`PORT=8080 pnpm --filter @workspace/api-server run dev`)
-- ✅ Workflow `Mobile App` — running, Metro bundler active
-
-**Note (re-import quirk):** On GitHub re-import, `listArtifacts()` returns empty even though `artifacts/*/.replit-artifact/artifact.toml` files exist on disk. The platform does not auto-register them. Recovery: manually configure workflows via `configureWorkflow` for the API server; the mobile workflow was already re-created by the platform. Path-based proxy routing is not restored this way — Expo uses its own `$REPLIT_EXPO_DEV_DOMAIN` domain and works fine; the API is reached via direct port 8080 calls from the Metro proxy.
+- ✅ Workflow `artifacts/api-server: API Server` — running on port 8080
+- ✅ Workflow `artifacts/mobile: expo` — running, Metro bundler active
+- ✅ Artifacts auto-registered by platform on this re-import (API Server, Mobile Marketplace, Canvas)
 
 ## Run & Operate
 
