@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { Router, type IRouter } from "express";
 import { db } from "@workspace/db";
 import {
@@ -5,10 +6,18 @@ import {
   chatMessagesTable,
   storesTable,
 } from "@workspace/db/schema";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { createNotification } from "../services/notificationService";
 
 const router: IRouter = Router();
+
+// ─── ID helper ────────────────────────────────────────────────────────────────
+// Uses crypto.randomUUID() (Node 18+) to guarantee collision-free IDs under
+// any concurrency level. The prefix keeps IDs human-identifiable in logs.
+
+function generateId(prefix: string): string {
+  return `${prefix}_${randomUUID()}`;
+}
 
 // ─── DTO helpers ──────────────────────────────────────────────────────────────
 
@@ -41,12 +50,6 @@ export function toChatMessageDto(row: typeof chatMessagesTable.$inferSelect) {
     status: row.status,
     createdAt: row.createdAt.toISOString(),
   };
-}
-
-// ─── ID helper ────────────────────────────────────────────────────────────────
-
-function generateId(prefix: string): string {
-  return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
 // ─── GET /conversations ───────────────────────────────────────────────────────
@@ -149,43 +152,48 @@ router.post("/conversations", async (req, res) => {
     return;
   }
 
-  // Create new conversation — system welcome message inserted atomically.
-  const id = generateId("conv");
-  const now = new Date();
-
+  // ── Atomic creation: conversation row + welcome message in one transaction ───
+  // Without a transaction, a crash between the two inserts would leave a
+  // conversation with no opening message, breaking the message list UI.
   const welcomeContent = productNameAr
     ? `محادثة حول: ${productNameAr}`
     : "محادثة جديدة / New conversation";
 
-  const [created] = await db
-    .insert(conversationsTable)
-    .values({
-      id,
-      storeId,
-      buyerId,
-      productId: productId ?? null,
-      productNameAr: productNameAr ?? null,
-      productNameEn: productNameEn ?? null,
-      lastMessageText: welcomeContent,
-      lastMessageAt: now,
-      buyerUnreadCount: 0,
-      sellerUnreadCount: 1,
-      status: "active",
-      createdAt: now,
-      updatedAt: now,
-    })
-    .returning();
+  const now = new Date();
+  const convId = generateId("conv");
 
-  // System welcome message.
-  await db.insert(chatMessagesTable).values({
-    id: generateId("msg"),
-    conversationId: id,
-    senderType: "system",
-    senderId: "system",
-    type: "system",
-    content: welcomeContent,
-    status: "read",
-    createdAt: now,
+  const created = await db.transaction(async (tx) => {
+    const [conv] = await tx
+      .insert(conversationsTable)
+      .values({
+        id: convId,
+        storeId,
+        buyerId,
+        productId: productId ?? null,
+        productNameAr: productNameAr ?? null,
+        productNameEn: productNameEn ?? null,
+        lastMessageText: welcomeContent,
+        lastMessageAt: now,
+        buyerUnreadCount: 0,
+        sellerUnreadCount: 1,
+        status: "active",
+        createdAt: now,
+        updatedAt: now,
+      })
+      .returning();
+
+    await tx.insert(chatMessagesTable).values({
+      id: generateId("msg"),
+      conversationId: convId,
+      senderType: "system",
+      senderId: "system",
+      type: "system",
+      content: welcomeContent,
+      status: "read",
+      createdAt: now,
+    });
+
+    return conv;
   });
 
   res.status(201).json(toConversationDto(created));
@@ -281,41 +289,51 @@ router.post("/conversations/:id/messages", async (req, res) => {
 
   const now = new Date();
   const msgId = generateId("msg");
+  const trimmedContent = content.trim();
 
-  const [created] = await db
-    .insert(chatMessagesTable)
-    .values({
-      id: msgId,
-      conversationId: id,
-      senderType,
-      senderId,
-      type: type ?? "text",
-      content: content.trim(),
-      status: "sent",
-      createdAt: now,
-    })
-    .returning();
+  // ── Atomic send: insert message + update conversation in one transaction ──────
+  // Race-condition fix: unread counter is incremented with a SQL expression
+  // (`col + 1`) evaluated by the database, not a JS read-modify-write.
+  // Concurrent sends therefore cannot lose increments.
+  const created = await db.transaction(async (tx) => {
+    const [msg] = await tx
+      .insert(chatMessagesTable)
+      .values({
+        id: msgId,
+        conversationId: id,
+        senderType,
+        senderId,
+        type: type ?? "text",
+        content: trimmedContent,
+        status: "sent",
+        createdAt: now,
+      })
+      .returning();
 
-  // Update conversation: denormalised last message + increment opposite unread count.
-  const unreadUpdate =
-    senderType === "buyer"
-      ? { sellerUnreadCount: conv.sellerUnreadCount + 1 }
-      : { buyerUnreadCount: conv.buyerUnreadCount + 1 };
+    await tx
+      .update(conversationsTable)
+      .set({
+        lastMessageText: trimmedContent,
+        lastMessageAt: now,
+        updatedAt: now,
+        // SQL-side increment — safe under concurrent writes
+        ...(senderType === "buyer"
+          ? { sellerUnreadCount: sql`${conversationsTable.sellerUnreadCount} + 1` }
+          : { buyerUnreadCount: sql`${conversationsTable.buyerUnreadCount} + 1` }),
+      })
+      .where(eq(conversationsTable.id, id));
 
-  await db
-    .update(conversationsTable)
-    .set({
-      lastMessageText: content.trim(),
-      lastMessageAt: now,
-      updatedAt: now,
-      ...unreadUpdate,
-    })
-    .where(eq(conversationsTable.id, id));
+    return msg;
+  });
 
-  // Notify the other participant (Notification Types: New Message).
+  // Notify the other participant (fire-and-forget; outside the transaction so a
+  // notification failure does not roll back the message).
   if (senderType === "buyer" || senderType === "seller") {
     const recipientId = senderType === "buyer" ? conv.storeId : conv.buyerId;
-    const preview = content.trim().length > 80 ? `${content.trim().slice(0, 80)}…` : content.trim();
+    const preview =
+      trimmedContent.length > 80
+        ? `${trimmedContent.slice(0, 80)}…`
+        : trimmedContent;
 
     await createNotification({
       userId: recipientId,

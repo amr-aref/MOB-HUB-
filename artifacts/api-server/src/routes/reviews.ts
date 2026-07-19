@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { Router, type IRouter } from "express";
 import { db } from "@workspace/db";
 import { reviewsTable, storesTable } from "@workspace/db/schema";
@@ -6,9 +7,7 @@ import { createNotification } from "../services/notificationService";
 
 const router: IRouter = Router();
 
-// ---------------------------------------------------------------------------
-// DTO mapping
-// ---------------------------------------------------------------------------
+// ─── DTO mapping ──────────────────────────────────────────────────────────────
 
 export function toReviewDto(row: typeof reviewsTable.$inferSelect) {
   return {
@@ -31,9 +30,7 @@ export function toReviewDto(row: typeof reviewsTable.$inferSelect) {
   };
 }
 
-// ---------------------------------------------------------------------------
-// Validation helpers
-// ---------------------------------------------------------------------------
+// ─── Validation helpers ────────────────────────────────────────────────────────
 
 interface ValidCreateData {
   author: string;
@@ -68,12 +65,18 @@ function validateCreateBody(
   const textEn = typeof b.textEn === "string" ? b.textEn.trim() : "";
   const textAr = typeof b.textAr === "string" ? b.textAr.trim() : textEn;
   const title = typeof b.title === "string" ? b.title.trim().slice(0, 100) : "";
-  const userId = typeof b.userId === "string" && b.userId.length > 0 ? b.userId : undefined;
+  const userId =
+    typeof b.userId === "string" && b.userId.length > 0 ? b.userId : undefined;
 
   if (author.length < 2) errors.push("Author name must be at least 2 characters");
   if (author.length > 60) errors.push("Author name is too long (max 60 characters)");
 
-  if (typeof rating !== "number" || !Number.isInteger(rating) || rating < 1 || rating > 5) {
+  if (
+    typeof rating !== "number" ||
+    !Number.isInteger(rating) ||
+    rating < 1 ||
+    rating > 5
+  ) {
     errors.push("Rating must be an integer between 1 and 5");
   }
 
@@ -111,7 +114,12 @@ function validateUpdateBody(
   const title = typeof b.title === "string" ? b.title.trim().slice(0, 100) : "";
   const userId = typeof b.userId === "string" ? b.userId : "";
 
-  if (typeof rating !== "number" || !Number.isInteger(rating) || rating < 1 || rating > 5) {
+  if (
+    typeof rating !== "number" ||
+    !Number.isInteger(rating) ||
+    rating < 1 ||
+    rating > 5
+  ) {
     errors.push("Rating must be an integer between 1 and 5");
   }
   if (textEn.length < 10) errors.push("Review text must be at least 10 characters");
@@ -126,13 +134,15 @@ function validateUpdateBody(
   };
 }
 
-// ---------------------------------------------------------------------------
-// Rating recalculation
-// ---------------------------------------------------------------------------
-
-async function recalculateStoreRating(storeId: string): Promise<void> {
-  // Single aggregation query instead of fetching all review rows.
-  const [result] = await db
+// ─── Rating recalculation ──────────────────────────────────────────────────────
+//
+// Accepts a Drizzle transaction client so callers can include this in the same
+// transaction as the review write — making the store-rating update atomic with
+// the review insert/update/delete that triggered it.
+//
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function recalculateStoreRating(storeId: string, client: any = db): Promise<void> {
+  const [result] = await client
     .select({ avg: avg(reviewsTable.rating), count: sqlCount() })
     .from(reviewsTable)
     .where(and(eq(reviewsTable.storeId, storeId), eq(reviewsTable.status, "active")));
@@ -141,18 +151,16 @@ async function recalculateStoreRating(storeId: string): Promise<void> {
   const average =
     reviewCount > 0 ? Math.round(Number(result?.avg ?? 0) * 10) / 10 : 0;
 
-  await db
+  await client
     .update(storesTable)
     .set({ rating: average, reviewsCount: reviewCount })
     .where(eq(storesTable.id, storeId));
 }
 
-// ---------------------------------------------------------------------------
-// ID + date helpers
-// ---------------------------------------------------------------------------
+// ─── ID + date helpers ─────────────────────────────────────────────────────────
 
 function generateId(): string {
-  return `rev_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+  return `rev_${randomUUID()}`;
 }
 
 function formatDisplayDate(): string {
@@ -163,9 +171,7 @@ function formatDisplayDate(): string {
   });
 }
 
-// ---------------------------------------------------------------------------
-// POST /stores/:id/reviews
-// ---------------------------------------------------------------------------
+// ─── POST /stores/:id/reviews ─────────────────────────────────────────────────
 
 router.post("/stores/:id/reviews", async (req, res) => {
   const storeId = req.params.id;
@@ -205,26 +211,33 @@ router.post("/stores/:id/reviews", async (req, res) => {
     }
   }
 
-  const [newReview] = await db
-    .insert(reviewsTable)
-    .values({
-      id: generateId(),
-      storeId,
-      userId: userId ?? null,
-      author,
-      authorAr,
-      rating,
-      title,
-      textEn,
-      textAr,
-      date: formatDisplayDate(),
-      status: "active",
-    })
-    .returning();
+  // ── Atomic: insert review + recalculate store rating in one transaction ────────
+  // Without a transaction, a crash between the insert and the rating update
+  // would leave the store with a stale rating.
+  const newReview = await db.transaction(async (tx) => {
+    const [review] = await tx
+      .insert(reviewsTable)
+      .values({
+        id: generateId(),
+        storeId,
+        userId: userId ?? null,
+        author,
+        authorAr,
+        rating,
+        title,
+        textEn,
+        textAr,
+        date: formatDisplayDate(),
+        status: "active",
+      })
+      .returning();
 
-  await recalculateStoreRating(storeId);
+    await recalculateStoreRating(storeId, tx);
 
-  // Notify the store owner (Notification Types: Review Received).
+    return review;
+  });
+
+  // Notify the store owner — fire-and-forget outside the transaction.
   await createNotification({
     userId: storeId,
     type: "review_received",
@@ -238,9 +251,7 @@ router.post("/stores/:id/reviews", async (req, res) => {
   res.status(201).json(toReviewDto(newReview));
 });
 
-// ---------------------------------------------------------------------------
-// PUT /reviews/:id
-// ---------------------------------------------------------------------------
+// ─── PUT /reviews/:id ─────────────────────────────────────────────────────────
 
 router.put("/reviews/:id", async (req, res) => {
   const { id } = req.params;
@@ -269,22 +280,25 @@ router.put("/reviews/:id", async (req, res) => {
     return;
   }
 
-  const [updated] = await db
-    .update(reviewsTable)
-    .set({ rating, title, textEn, textAr, updatedAt: new Date() })
-    .where(eq(reviewsTable.id, id))
-    .returning();
+  // ── Atomic: update review + recalculate store rating ──────────────────────────
+  const updated = await db.transaction(async (tx) => {
+    const [updatedReview] = await tx
+      .update(reviewsTable)
+      .set({ rating, title, textEn, textAr, updatedAt: new Date() })
+      .where(eq(reviewsTable.id, id))
+      .returning();
 
-  if (updated.storeId) {
-    await recalculateStoreRating(updated.storeId);
-  }
+    if (updatedReview.storeId) {
+      await recalculateStoreRating(updatedReview.storeId, tx);
+    }
+
+    return updatedReview;
+  });
 
   res.json(toReviewDto(updated));
 });
 
-// ---------------------------------------------------------------------------
-// DELETE /reviews/:id?userId=<deviceId>
-// ---------------------------------------------------------------------------
+// ─── DELETE /reviews/:id?userId=<deviceId> ────────────────────────────────────
 
 router.delete("/reviews/:id", async (req, res) => {
   const { id } = req.params;
@@ -308,11 +322,13 @@ router.delete("/reviews/:id", async (req, res) => {
 
   const storeId = review.storeId;
 
-  await db.delete(reviewsTable).where(eq(reviewsTable.id, id));
-
-  if (storeId) {
-    await recalculateStoreRating(storeId);
-  }
+  // ── Atomic: delete review + recalculate store rating ──────────────────────────
+  await db.transaction(async (tx) => {
+    await tx.delete(reviewsTable).where(eq(reviewsTable.id, id));
+    if (storeId) {
+      await recalculateStoreRating(storeId, tx);
+    }
+  });
 
   res.status(204).send();
 });

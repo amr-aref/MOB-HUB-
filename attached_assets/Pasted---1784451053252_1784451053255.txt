@@ -1,0 +1,397 @@
+في وضع مشروعك الحالي، لا أنصح ببرومبت عام من نوع *"اصلح كل شيء"*، لأنه قد يؤدي إلى تعديلات واسعة يصعب مراجعتها أو تتبعها. الأفضل هو تنفيذ **Sprint احترافي واحد** يركز على تحويل المشروع من Prototype إلى منصة Production-Grade مع الحفاظ على الاستقرار.
+
+يمكنك استخدام البرومبت التالي مع Replit Agent أو Codex أو أي AI Agent يعمل مباشرة على المستودع:
+
+---
+
+# SPRINT: Production Hardening Phase 2 — Enterprise Reliability & Codebase Modernization
+
+You are acting as a **Principal Software Architect, Senior Backend Engineer, Senior React Native Engineer, DevOps Lead, Database Architect, Security Engineer, Performance Engineer, and Code Quality Reviewer** working together on the **MOB HUB** production codebase.
+
+The previous hardening phase has already completed several improvements including:
+
+* Notification IDOR protection
+* Response compression
+* PostgreSQL connection pool tuning
+* Trust proxy configuration
+* Dependency cleanup
+* ESLint warning reduction
+* API and Mobile app successfully running
+
+Your task is **NOT** to redesign the project.
+
+Your task is to evolve the existing architecture into a **production-grade, enterprise-quality codebase** while preserving existing behavior.
+
+---
+
+# PRIMARY OBJECTIVE
+
+Increase the engineering quality of the repository while maintaining complete feature compatibility.
+
+Do NOT introduce regressions.
+
+Do NOT break API contracts.
+
+Do NOT remove existing business features.
+
+Do NOT redesign UI.
+
+Focus entirely on reliability, maintainability, consistency, security, stability, and production readiness.
+
+---
+
+# EXECUTION RULES
+
+Before modifying anything:
+
+Perform a full repository audit.
+
+For every proposed change:
+
+* verify impact
+* identify dependencies
+* avoid breaking public interfaces
+* preserve OpenAPI compatibility
+* preserve database compatibility unless migration is required
+
+Never modify code blindly.
+
+Always understand the execution flow before editing.
+
+---
+
+# TASK 1 — Transaction Atomicity
+
+Find every multi-step database operation.
+
+Examples include:
+
+* create review
+* update review
+* delete review
+* create conversation
+* create message
+* reservation workflow
+* order workflow
+
+Wrap every multi-query operation inside proper Drizzle/PostgreSQL transactions.
+
+Guarantee ACID behavior.
+
+Guarantee rollback on failure.
+
+Prevent partial writes.
+
+Remove every possibility of inconsistent data.
+
+---
+
+# TASK 2 — Race Condition Elimination
+
+Audit every place where aggregate values are recalculated.
+
+Especially:
+
+* store ratings
+* review count
+* message count
+* reservation state
+* unread counters
+
+Prevent race conditions.
+
+Ensure concurrent requests always produce correct values.
+
+Use transactional locking or equivalent safe database mechanisms.
+
+---
+
+# TASK 3 — Validation Hardening
+
+Audit every route.
+
+Ensure every endpoint validates:
+
+* params
+* query
+* request body
+* enums
+* IDs
+* pagination
+* limits
+* sort fields
+* filters
+
+No endpoint should trust client input.
+
+Standardize all validation.
+
+Return consistent error responses.
+
+---
+
+# TASK 4 — Shared Utilities
+
+Eliminate duplicated logic.
+
+Create reusable infrastructure for:
+
+* pagination
+* DTO mapping
+* filters
+* query builders
+* response formatting
+* API errors
+* validation helpers
+
+Replace duplicated implementations with shared utilities.
+
+Improve readability.
+
+Reduce maintenance cost.
+
+---
+
+# TASK 5 — Error Handling
+
+Audit every async route.
+
+No unhandled promise.
+
+No duplicated try/catch blocks.
+
+Improve centralized error middleware.
+
+Classify errors into:
+
+* Validation
+* Authentication
+* Authorization
+* Business
+* Database
+* Internal
+
+Return standardized responses.
+
+---
+
+# TASK 6 — Mobile Error Boundaries
+
+Implement production-ready Error Boundaries.
+
+Protect:
+
+* navigation
+* screens
+* async queries
+* context providers
+
+Provide graceful fallback UI.
+
+Never allow a component crash to terminate the application.
+
+---
+
+# TASK 7 — Device Identity Stability
+
+Audit useDeviceId.
+
+Remove fragile fallback behavior.
+
+Guarantee stable identity.
+
+Support:
+
+* AsyncStorage failure
+* Secure fallback
+* App restart
+* Error recovery
+
+Prevent accidental identity changes.
+
+---
+
+# TASK 8 — Codebase Cleanup
+
+Perform a complete repository cleanup.
+
+Safely remove:
+
+* dead files
+* obsolete utilities
+* duplicated helpers
+* unused hooks
+* unused components
+* unreachable code
+* unused assets
+* stale mock files
+* unused exports
+* unused dependencies
+* unused imports
+* legacy experimental code
+
+Only remove code proven to be unused.
+
+Never delete active production code.
+
+---
+
+# TASK 9 — Performance Improvements
+
+Optimize:
+
+* repeated renders
+* unnecessary queries
+* expensive calculations
+* unnecessary object creation
+* redundant API calls
+* duplicate state
+
+Improve memoization where appropriate.
+
+Improve lazy loading.
+
+Improve bundle efficiency.
+
+---
+
+# TASK 10 — Logging & Observability
+
+Improve production logging.
+
+Introduce structured logging.
+
+Support:
+
+* request id
+* correlation id
+* execution time
+* database errors
+* validation failures
+* business errors
+
+Do NOT expose sensitive information.
+
+Verbose logs should be enabled only in development.
+
+---
+
+# TASK 11 — Production Readiness
+
+Audit the entire repository for:
+
+* memory leaks
+* connection leaks
+* async leaks
+* circular dependencies
+* unsafe any types
+* TODO leftovers
+* FIXME comments
+* deprecated APIs
+* inconsistent naming
+* oversized files
+* architectural smells
+
+Refactor only where safe.
+
+---
+
+# TASK 12 — Maintainability
+
+Improve:
+
+* folder consistency
+* naming consistency
+* import ordering
+* file organization
+* helper extraction
+* code readability
+* comments where genuinely useful
+
+Avoid unnecessary abstraction.
+
+Keep architecture clean.
+
+---
+
+# VERIFICATION
+
+Before finishing:
+
+Run:
+
+* TypeScript
+* ESLint
+* Build
+* API startup
+* Mobile startup
+
+Verify no regressions.
+
+If any change introduces instability:
+
+rollback that specific change.
+
+---
+
+# FINAL REPORT
+
+Produce a detailed engineering report including:
+
+## Completed Improvements
+
+List every completed task.
+
+---
+
+## Files Modified
+
+Include every modified file.
+
+---
+
+## Files Removed
+
+List deleted files and justify why each was safe to remove.
+
+---
+
+## Technical Debt Remaining
+
+List unresolved issues.
+
+---
+
+## Production Readiness Score
+
+Rate:
+
+* Architecture
+* Backend
+* Frontend
+* Database
+* Security
+* Reliability
+* Performance
+* Maintainability
+* DevOps
+* Testing
+* Overall
+
+---
+
+## Regression Report
+
+Confirm:
+
+* API compatibility preserved
+* Mobile compatibility preserved
+* Database compatibility preserved
+* No business feature removed
+* No UI regression introduced
+
+---
+
+## Final Goal
+
+The repository should be measurably closer to enterprise production standards while remaining stable, maintainable, and fully functional. Every modification must be evidence-based, reversible if necessary, and verified through successful build and runtime checks.
