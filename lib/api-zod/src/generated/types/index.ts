@@ -3,9 +3,11 @@
  * Do not edit manually.
  * Api
  * MOB HUB Egypt — Mobile Phone Marketplace API
- * OpenAPI spec version: 0.3.0
+ * OpenAPI spec version: 0.4.0
  */
 
+export * from './authTokensResponse';
+export * from './badRequestResponse';
 export * from './cancelReservationBody';
 export * from './categoryDto';
 export * from './chatMessageDto';
@@ -18,6 +20,9 @@ export * from './dashboardStatsDto';
 export * from './declineReservationBody';
 export * from './deleteNotificationParams';
 export * from './deleteReviewParams';
+export * from './errorResponse';
+export * from './forbiddenResponse';
+export * from './forgotPasswordBody';
 export * from './getConversationMessagesParams';
 export * from './getConversationParams';
 export * from './getConversationsParams';
@@ -33,23 +38,36 @@ export * from './getReservationParams';
 export * from './getReservationsParams';
 export * from './getStoresParams';
 export * from './healthStatus';
+export * from './loginBody';
+export * from './loginBodyPlatform';
+export * from './logoutBody';
 export * from './markAllNotificationsRead200';
 export * from './markAllNotificationsReadBody';
 export * from './markNotificationReadParams';
 export * from './markReadBody';
 export * from './merchantActionBody';
 export * from './messageDto';
+export * from './messageResponse';
 export * from './notificationDto';
 export * from './notificationDtoMetadata';
 export * from './orderDto';
 export * from './phoneSpecDto';
 export * from './productDto';
+export * from './refreshBody';
+export * from './registerBody';
+export * from './registerBodyPlatform';
+export * from './registerBodyRole';
 export * from './reservationConflictError';
 export * from './reservationDto';
 export * from './reservationProductSnapshot';
 export * from './reservationStoreSnapshot';
+export * from './resetPasswordBody';
 export * from './reviewDto';
 export * from './sendMessageBody';
 export * from './storeDto';
+export * from './unauthorizedResponse';
 export * from './unreadCountDto';
 export * from './updateReviewBody';
+export * from './userDto';
+export * from './userDtoRole';
+export * from './verifyEmailBody';

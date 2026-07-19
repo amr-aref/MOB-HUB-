@@ -8,16 +8,6 @@ servers:
   - url: /api
     description: Base API path
 
-components:
-  securitySchemes:
-    BearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-      description: >
-        JWT access token issued by POST /auth/login or POST /auth/register.
-        Pass as `Authorization: Bearer <token>`.
-
 tags:
   - name: auth
     description: Authentication and session management
@@ -41,6 +31,238 @@ tags:
     description: Product reservation workflow (buyer browses → reserves → visits physical store)
 
 paths:
+  # ─── Auth ────────────────────────────────────────────────────────────────────
+
+  /auth/register:
+    post:
+      operationId: authRegister
+      tags: [auth]
+      summary: Register a new user account
+      description: >
+        Creates a new buyer or merchant account, returns JWT access + refresh tokens
+        and a public user object. The access token expires in 15 minutes; the
+        refresh token is long-lived and must be kept in secure storage.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterBody"
+      responses:
+        "201":
+          description: Account created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthTokensResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          description: Email already registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      operationId: authLogin
+      tags: [auth]
+      summary: Log in with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginBody"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthTokensResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/refresh:
+    post:
+      operationId: authRefresh
+      tags: [auth]
+      summary: Rotate refresh token and issue a new access token
+      description: >
+        Accepts the current refresh token and returns a brand-new access + refresh
+        token pair. The old refresh token is immediately revoked. Presenting a
+        previously-revoked token triggers full session termination (reuse detection).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshBody"
+      responses:
+        "200":
+          description: Tokens rotated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthTokensResponse"
+        "401":
+          description: Invalid or expired refresh token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      operationId: authLogout
+      tags: [auth]
+      summary: Revoke the current session
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LogoutBody"
+      responses:
+        "204":
+          description: Session revoked
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /auth/logout-all:
+    post:
+      operationId: authLogoutAll
+      tags: [auth]
+      summary: Revoke all sessions for the authenticated user
+      security:
+        - BearerAuth: []
+      responses:
+        "204":
+          description: All sessions revoked
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /auth/me:
+    get:
+      operationId: authMe
+      tags: [auth]
+      summary: Return the authenticated user's profile
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserDto"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /auth/forgot-password:
+    post:
+      operationId: authForgotPassword
+      tags: [auth]
+      summary: Request a password-reset token
+      description: >
+        Sends a reset link/token to the email address if it exists. In non-production
+        the response includes `_devToken` for testing without an email provider.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForgotPasswordBody"
+      responses:
+        "200":
+          description: Reset token sent (or queued)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /auth/reset-password:
+    post:
+      operationId: authResetPassword
+      tags: [auth]
+      summary: Set a new password using a reset token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordBody"
+      responses:
+        "200":
+          description: Password updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          description: Invalid or expired reset token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/send-verification:
+    post:
+      operationId: authSendVerification
+      tags: [auth]
+      summary: Re-send the email-verification token
+      security:
+        - BearerAuth: []
+      description: >
+        In non-production the response includes `_devToken` for testing without
+        an email provider.
+      responses:
+        "200":
+          description: Verification token sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /auth/verify-email:
+    post:
+      operationId: authVerifyEmail
+      tags: [auth]
+      summary: Verify an email address using the one-time token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyEmailBody"
+      responses:
+        "200":
+          description: Email verified
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          description: Invalid or expired verification token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /healthz:
     get:
       operationId: healthCheck
@@ -1026,6 +1248,15 @@ paths:
           description: Conversation not found
 
 components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >
+        JWT access token issued by POST /auth/login or POST /auth/register.
+        Pass as `Authorization: Bearer <token>`.
+
   schemas:
     HealthStatus:
       type: object
@@ -1716,3 +1947,157 @@ components:
           type: string
           description: "DUPLICATE_RESERVATION (same buyer) or PRODUCT_ALREADY_RESERVED (another buyer)"
       required: [error, code]
+
+    # ─── Auth schemas ─────────────────────────────────────────────────────────
+
+    UserDto:
+      type: object
+      description: Public user profile returned from auth endpoints.
+      properties:
+        id: { type: string }
+        email: { type: string }
+        name: { type: string }
+        nameAr: { type: string }
+        role:
+          type: string
+          enum: [buyer, merchant, moderator, admin]
+        storeId:
+          type: string
+          nullable: true
+        isEmailVerified: { type: boolean }
+        createdAt: { type: string }
+      required: [id, email, name, nameAr, role, isEmailVerified, createdAt]
+
+    AuthTokensResponse:
+      type: object
+      description: Issued on successful login or register.
+      properties:
+        accessToken: { type: string }
+        refreshToken: { type: string }
+        expiresIn:
+          type: integer
+          description: Access-token TTL in seconds
+        user:
+          $ref: "#/components/schemas/UserDto"
+      required: [accessToken, refreshToken, expiresIn, user]
+
+    RegisterBody:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+          minLength: 8
+        name:
+          type: string
+          minLength: 2
+        nameAr:
+          type: string
+          description: Arabic display name (falls back to `name` if omitted)
+        role:
+          type: string
+          enum: [buyer, merchant]
+          default: buyer
+        storeId:
+          type: string
+          description: Required when role is merchant
+        deviceId:
+          type: string
+          description: Device UUID for session tracking
+        platform:
+          type: string
+          enum: [mobile, web]
+      required: [email, password, name]
+
+    LoginBody:
+      type: object
+      properties:
+        email:
+          type: string
+        password: { type: string }
+        deviceId:
+          type: string
+          description: Device UUID for session tracking
+        platform:
+          type: string
+          enum: [mobile, web]
+      required: [email, password]
+
+    RefreshBody:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+          description: The long-lived refresh token issued at login
+      required: [refreshToken]
+
+    LogoutBody:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+          description: Optional — revokes this specific token as well as the session
+      required: []
+
+    ForgotPasswordBody:
+      type: object
+      properties:
+        email:
+          type: string
+      required: [email]
+
+    ResetPasswordBody:
+      type: object
+      properties:
+        token:
+          type: string
+          description: One-time reset token from the forgot-password email
+        newPassword:
+          type: string
+          minLength: 8
+      required: [token, newPassword]
+
+    VerifyEmailBody:
+      type: object
+      properties:
+        token:
+          type: string
+          description: One-time verification token from the verification email
+      required: [token]
+
+    MessageResponse:
+      type: object
+      description: Generic success message
+      properties:
+        message: { type: string }
+      required: [message]
+
+    ErrorResponse:
+      type: object
+      properties:
+        error: { type: string }
+        code:
+          type: string
+          nullable: true
+      required: [error]
+
+  responses:
+    BadRequest:
+      description: Invalid request body or parameters
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Unauthorized:
+      description: Missing or invalid authentication
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Forbidden:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"

@@ -7,3 +7,4 @@
 - [api-zod index export collision](api-zod-export-collision.md) — Orval split mode generates same symbol names in both generated/api.ts (zod schemas) and generated/types/ (TS interfaces); api-zod/src/index.ts must export only from generated/api.
 - [Notification system architecture](notification-system.md) — centralized notifications table/service/hook pattern, buyer/seller shared recipient id, known trigger gaps, pre-existing queryKey typecheck issue.
 - [Reservation G.6 Reliability Architecture](reservation-g6-reliability.md) — optimistic locking pattern, audit trail table, background worker, idempotency, history endpoint added in G.6.
+- [Auth System Architecture](auth-system.md) — JWT+refresh token system; refresh lookup uses payload.tokenId not hashToken(jwt); Zod v3 / format:email issue; mobile AuthContext pattern.

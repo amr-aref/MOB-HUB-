@@ -205,12 +205,13 @@ export async function refreshTokens(rawRefreshToken: string): Promise<TokenPair>
     throw new AppError(401, "Invalid or expired refresh token", "INVALID_TOKEN");
   }
 
-  const tokenHash = hashToken(rawRefreshToken);
-
+  // The JWT payload embeds tokenId (the DB row PK). We verify the JWT signature
+  // first (above) then look up the DB row by ID. The hash stored in the DB row
+  // is a defence-in-depth measure for forensics; it is not used for lookup.
   const [storedToken] = await db
     .select()
     .from(refreshTokensTable)
-    .where(eq(refreshTokensTable.tokenHash, tokenHash));
+    .where(eq(refreshTokensTable.id, payload.tokenId));
 
   if (!storedToken) {
     throw new AppError(401, "Refresh token not found", "INVALID_TOKEN");

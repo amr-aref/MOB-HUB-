@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Api
  * MOB HUB Egypt — Mobile Phone Marketplace API
- * OpenAPI spec version: 0.3.0
+ * OpenAPI spec version: 0.4.0
  */
 export interface HealthStatus {
   status: string;
@@ -392,6 +392,142 @@ export interface ReservationConflictError {
   /** DUPLICATE_RESERVATION (same buyer) or PRODUCT_ALREADY_RESERVED (another buyer) */
   code: string;
 }
+
+export type UserDtoRole = typeof UserDtoRole[keyof typeof UserDtoRole];
+
+
+export const UserDtoRole = {
+  buyer: 'buyer',
+  merchant: 'merchant',
+  moderator: 'moderator',
+  admin: 'admin',
+} as const;
+
+/**
+ * Public user profile returned from auth endpoints.
+ */
+export interface UserDto {
+  id: string;
+  email: string;
+  name: string;
+  nameAr: string;
+  role: UserDtoRole;
+  storeId?: string | null;
+  isEmailVerified: boolean;
+  createdAt: string;
+}
+
+/**
+ * Issued on successful login or register.
+ */
+export interface AuthTokensResponse {
+  accessToken: string;
+  refreshToken: string;
+  /** Access-token TTL in seconds */
+  expiresIn: number;
+  user: UserDto;
+}
+
+export type RegisterBodyRole = typeof RegisterBodyRole[keyof typeof RegisterBodyRole];
+
+
+export const RegisterBodyRole = {
+  buyer: 'buyer',
+  merchant: 'merchant',
+} as const;
+
+export type RegisterBodyPlatform = typeof RegisterBodyPlatform[keyof typeof RegisterBodyPlatform];
+
+
+export const RegisterBodyPlatform = {
+  mobile: 'mobile',
+  web: 'web',
+} as const;
+
+export interface RegisterBody {
+  email: string;
+  /** @minLength 8 */
+  password: string;
+  /** @minLength 2 */
+  name: string;
+  /** Arabic display name (falls back to `name` if omitted) */
+  nameAr?: string;
+  role?: RegisterBodyRole;
+  /** Required when role is merchant */
+  storeId?: string;
+  /** Device UUID for session tracking */
+  deviceId?: string;
+  platform?: RegisterBodyPlatform;
+}
+
+export type LoginBodyPlatform = typeof LoginBodyPlatform[keyof typeof LoginBodyPlatform];
+
+
+export const LoginBodyPlatform = {
+  mobile: 'mobile',
+  web: 'web',
+} as const;
+
+export interface LoginBody {
+  email: string;
+  password: string;
+  /** Device UUID for session tracking */
+  deviceId?: string;
+  platform?: LoginBodyPlatform;
+}
+
+export interface RefreshBody {
+  /** The long-lived refresh token issued at login */
+  refreshToken: string;
+}
+
+export interface LogoutBody {
+  /** Optional — revokes this specific token as well as the session */
+  refreshToken?: string;
+}
+
+export interface ForgotPasswordBody {
+  email: string;
+}
+
+export interface ResetPasswordBody {
+  /** One-time reset token from the forgot-password email */
+  token: string;
+  /** @minLength 8 */
+  newPassword: string;
+}
+
+export interface VerifyEmailBody {
+  /** One-time verification token from the verification email */
+  token: string;
+}
+
+/**
+ * Generic success message
+ */
+export interface MessageResponse {
+  message: string;
+}
+
+export interface ErrorResponse {
+  error: string;
+  code?: string | null;
+}
+
+/**
+ * Invalid request body or parameters
+ */
+export type BadRequestResponse = ErrorResponse;
+
+/**
+ * Missing or invalid authentication
+ */
+export type UnauthorizedResponse = ErrorResponse;
+
+/**
+ * Insufficient permissions
+ */
+export type ForbiddenResponse = ErrorResponse;
 
 export type GetStoresParams = {
 search?: string;

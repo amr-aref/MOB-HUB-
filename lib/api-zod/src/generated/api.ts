@@ -3,9 +3,181 @@
  * Do not edit manually.
  * Api
  * MOB HUB Egypt — Mobile Phone Marketplace API
- * OpenAPI spec version: 0.3.0
+ * OpenAPI spec version: 0.4.0
  */
 import * as zod from 'zod';
+
+
+/**
+ * Creates a new buyer or merchant account, returns JWT access + refresh tokens and a public user object. The access token expires in 15 minutes; the refresh token is long-lived and must be kept in secure storage.
+ * @summary Register a new user account
+ */
+export const authRegisterBodyPasswordMin = 8;
+
+export const authRegisterBodyNameMin = 2;
+
+export const authRegisterBodyRoleDefault = `buyer`;
+
+export const AuthRegisterBody = zod.object({
+  "email": zod.string(),
+  "password": zod.string().min(authRegisterBodyPasswordMin),
+  "name": zod.string().min(authRegisterBodyNameMin),
+  "nameAr": zod.string().optional().describe('Arabic display name (falls back to `name` if omitted)'),
+  "role": zod.enum(['buyer', 'merchant']).default(authRegisterBodyRoleDefault),
+  "storeId": zod.string().optional().describe('Required when role is merchant'),
+  "deviceId": zod.string().optional().describe('Device UUID for session tracking'),
+  "platform": zod.enum(['mobile', 'web']).optional()
+})
+
+export const AuthRegisterResponse = zod.object({
+  "accessToken": zod.string(),
+  "refreshToken": zod.string(),
+  "expiresIn": zod.number().describe('Access-token TTL in seconds'),
+  "user": zod.object({
+  "id": zod.string(),
+  "email": zod.string(),
+  "name": zod.string(),
+  "nameAr": zod.string(),
+  "role": zod.enum(['buyer', 'merchant', 'moderator', 'admin']),
+  "storeId": zod.string().nullish(),
+  "isEmailVerified": zod.boolean(),
+  "createdAt": zod.string()
+}).describe('Public user profile returned from auth endpoints.')
+}).describe('Issued on successful login or register.')
+
+
+/**
+ * @summary Log in with email and password
+ */
+export const AuthLoginBody = zod.object({
+  "email": zod.string(),
+  "password": zod.string(),
+  "deviceId": zod.string().optional().describe('Device UUID for session tracking'),
+  "platform": zod.enum(['mobile', 'web']).optional()
+})
+
+export const AuthLoginResponse = zod.object({
+  "accessToken": zod.string(),
+  "refreshToken": zod.string(),
+  "expiresIn": zod.number().describe('Access-token TTL in seconds'),
+  "user": zod.object({
+  "id": zod.string(),
+  "email": zod.string(),
+  "name": zod.string(),
+  "nameAr": zod.string(),
+  "role": zod.enum(['buyer', 'merchant', 'moderator', 'admin']),
+  "storeId": zod.string().nullish(),
+  "isEmailVerified": zod.boolean(),
+  "createdAt": zod.string()
+}).describe('Public user profile returned from auth endpoints.')
+}).describe('Issued on successful login or register.')
+
+
+/**
+ * Accepts the current refresh token and returns a brand-new access + refresh token pair. The old refresh token is immediately revoked. Presenting a previously-revoked token triggers full session termination (reuse detection).
+ * @summary Rotate refresh token and issue a new access token
+ */
+export const AuthRefreshBody = zod.object({
+  "refreshToken": zod.string().describe('The long-lived refresh token issued at login')
+})
+
+export const AuthRefreshResponse = zod.object({
+  "accessToken": zod.string(),
+  "refreshToken": zod.string(),
+  "expiresIn": zod.number().describe('Access-token TTL in seconds'),
+  "user": zod.object({
+  "id": zod.string(),
+  "email": zod.string(),
+  "name": zod.string(),
+  "nameAr": zod.string(),
+  "role": zod.enum(['buyer', 'merchant', 'moderator', 'admin']),
+  "storeId": zod.string().nullish(),
+  "isEmailVerified": zod.boolean(),
+  "createdAt": zod.string()
+}).describe('Public user profile returned from auth endpoints.')
+}).describe('Issued on successful login or register.')
+
+
+/**
+ * @summary Revoke the current session
+ */
+export const AuthLogoutBody = zod.object({
+  "refreshToken": zod.string().optional().describe('Optional — revokes this specific token as well as the session')
+})
+
+export const AuthLogoutResponse = zod.void()
+
+
+/**
+ * @summary Revoke all sessions for the authenticated user
+ */
+export const AuthLogoutAllResponse = zod.void()
+
+
+/**
+ * @summary Return the authenticated user's profile
+ */
+export const AuthMeResponse = zod.object({
+  "id": zod.string(),
+  "email": zod.string(),
+  "name": zod.string(),
+  "nameAr": zod.string(),
+  "role": zod.enum(['buyer', 'merchant', 'moderator', 'admin']),
+  "storeId": zod.string().nullish(),
+  "isEmailVerified": zod.boolean(),
+  "createdAt": zod.string()
+}).describe('Public user profile returned from auth endpoints.')
+
+
+/**
+ * Sends a reset link/token to the email address if it exists. In non-production the response includes `_devToken` for testing without an email provider.
+ * @summary Request a password-reset token
+ */
+export const AuthForgotPasswordBody = zod.object({
+  "email": zod.string()
+})
+
+export const AuthForgotPasswordResponse = zod.object({
+  "message": zod.string()
+}).describe('Generic success message')
+
+
+/**
+ * @summary Set a new password using a reset token
+ */
+export const authResetPasswordBodyNewPasswordMin = 8;
+
+
+
+export const AuthResetPasswordBody = zod.object({
+  "token": zod.string().describe('One-time reset token from the forgot-password email'),
+  "newPassword": zod.string().min(authResetPasswordBodyNewPasswordMin)
+})
+
+export const AuthResetPasswordResponse = zod.object({
+  "message": zod.string()
+}).describe('Generic success message')
+
+
+/**
+ * In non-production the response includes `_devToken` for testing without an email provider.
+ * @summary Re-send the email-verification token
+ */
+export const AuthSendVerificationResponse = zod.object({
+  "message": zod.string()
+}).describe('Generic success message')
+
+
+/**
+ * @summary Verify an email address using the one-time token
+ */
+export const AuthVerifyEmailBody = zod.object({
+  "token": zod.string().describe('One-time verification token from the verification email')
+})
+
+export const AuthVerifyEmailResponse = zod.object({
+  "message": zod.string()
+}).describe('Generic success message')
 
 
 /**
