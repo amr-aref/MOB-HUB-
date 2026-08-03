@@ -19,7 +19,7 @@ import { useDeviceId } from '@/hooks/useDeviceId';
 export default function LoginScreen() {
   const { login } = useAuth();
   const { isRTL } = useLanguage();
-  const { deviceId } = useDeviceId();
+  const deviceId = useDeviceId();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
