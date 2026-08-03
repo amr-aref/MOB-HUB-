@@ -18,7 +18,7 @@ import { useDeviceId } from '@/hooks/useDeviceId';
 export default function RegisterScreen() {
   const { register } = useAuth();
   const { isRTL } = useLanguage();
-  const { deviceId } = useDeviceId();
+  const deviceId = useDeviceId();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
