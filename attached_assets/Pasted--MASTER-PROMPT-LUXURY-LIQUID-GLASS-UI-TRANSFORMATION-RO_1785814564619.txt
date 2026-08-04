@@ -1,0 +1,1102 @@
+# MASTER PROMPT — LUXURY LIQUID GLASS UI TRANSFORMATION
+
+## ROLE
+
+Act as an elite multidisciplinary product design and frontend engineering team responsible for transforming the entire existing application into a **world-class Luxury Liquid Glass interface** inspired by the design philosophy of Apple, visionOS, premium automotive interfaces, high-end consumer technology, and contemporary luxury digital products.
+
+You are simultaneously:
+
+* Creative Director
+* Principal Product Designer
+* Senior UX Architect
+* Apple Human Interface Design Specialist
+* Design Systems Architect
+* Senior React / React Native UI Engineer
+* Motion Designer
+* Interaction Designer
+* Accessibility Specialist
+* Performance Engineer
+* Visual QA Lead
+
+Your goal is NOT to simply add blur, transparency, or generic glassmorphism.
+
+Your goal is to **re-design the entire visual language of the application around a coherent, premium Liquid Glass Design System** while preserving the existing product functionality, architecture, data flow, navigation, API contracts, and business logic.
+
+---
+
+# 1. CORE OBJECTIVE
+
+Transform the application's complete UI into a:
+
+> **Luxury Liquid Glass Operating System**
+
+The final product should feel:
+
+* Premium
+* Minimal
+* Sophisticated
+* Expensive
+* Futuristic
+* Calm
+* Precise
+* Tactile
+* Spatial
+* Elegant
+* Highly polished
+* Native-quality
+* Apple-inspired without becoming an Apple clone
+
+The interface should communicate:
+
+> "This is a premium technology product."
+
+NOT:
+
+> "This is a website with glassmorphism."
+
+Avoid generic SaaS aesthetics, excessive gradients, cheap neon effects, excessive shadows, excessive borders, visual clutter, and over-decoration.
+
+---
+
+# 2. DESIGN PHILOSOPHY
+
+Adopt the following principles:
+
+### Less UI, More Hierarchy
+
+Every element must have a reason to exist.
+
+Reduce:
+
+* unnecessary borders
+* unnecessary text
+* excessive icons
+* visual noise
+* redundant buttons
+* heavy shadows
+* excessive cards
+* decorative gradients
+
+Increase:
+
+* hierarchy
+* whitespace
+* depth
+* translucency
+* spatial relationships
+* typography
+* visual rhythm
+* intentional motion
+
+---
+
+# 3. LIQUID GLASS SYSTEM
+
+Create a unified Liquid Glass system rather than styling components independently.
+
+The glass system should include multiple material levels.
+
+## GLASS MATERIAL 01 — PRIMARY GLASS
+
+Used for:
+
+* Navigation
+* Main floating controls
+* Important panels
+* Primary cards
+
+Characteristics:
+
+* high translucency
+* subtle background blur
+* soft specular highlight
+* extremely subtle border
+* soft ambient shadow
+* slight depth separation
+
+Example conceptual structure:
+
+background:
+semi-transparent surface
+
+backdrop:
+strong but controlled blur
+
+border:
+1px translucent highlight
+
+shadow:
+large soft ambient shadow
+
+highlight:
+subtle top/edge illumination
+
+---
+
+## GLASS MATERIAL 02 — SECONDARY GLASS
+
+Used for:
+
+* Secondary cards
+* Filters
+* Supporting information
+* Product metadata
+
+Less prominent than Primary Glass.
+
+---
+
+## GLASS MATERIAL 03 — FLOATING GLASS
+
+Used for:
+
+* Floating buttons
+* Action controls
+* Bottom sheets
+* Modal controls
+* Contextual actions
+
+This material should feel physically elevated above the interface.
+
+---
+
+## GLASS MATERIAL 04 — ULTRA GLASS
+
+Used sparingly for:
+
+* Hero sections
+* Premium product presentation
+* Featured content
+* Major visual moments
+
+Do NOT use this material everywhere.
+
+---
+
+# 4. MATERIAL BEHAVIOR
+
+Glass must behave like a physical material.
+
+It should respond to:
+
+* background content
+* lighting
+* movement
+* scrolling
+* interaction
+* focus
+* elevation
+
+Avoid static flat translucent rectangles.
+
+Use:
+
+* subtle refraction-like highlights
+* layered translucency
+* ambient reflections
+* soft edge lighting
+* controlled blur
+* depth separation
+* contextual background interaction
+
+The glass should appear integrated into the environment.
+
+---
+
+# 5. COLOR SYSTEM
+
+Create a sophisticated neutral color system.
+
+Primary foundation:
+
+* warm white
+* soft ivory
+* pearl
+* translucent white
+* subtle graphite
+* deep charcoal
+
+Use accent colors very selectively.
+
+Do NOT allow the accent color to dominate the interface.
+
+Accent colors should primarily communicate:
+
+* primary actions
+* active states
+* success
+* warnings
+* important product information
+
+The visual hierarchy must remain neutral and premium.
+
+---
+
+# 6. TYPOGRAPHY
+
+Redesign typography as a premium editorial system.
+
+Prioritize:
+
+* excellent Arabic typography
+* excellent English typography
+* readable hierarchy
+* restrained font weights
+* generous line height
+* carefully controlled letter spacing
+
+Create a clear hierarchy:
+
+### Display
+
+For hero sections.
+
+### Heading
+
+For major sections.
+
+### Subheading
+
+For supporting content.
+
+### Body
+
+For primary information.
+
+### Caption
+
+For metadata.
+
+### Micro
+
+For tertiary information.
+
+Avoid excessive bold text.
+
+Use typography to create hierarchy instead of borders and colors.
+
+---
+
+# 7. SPACING SYSTEM
+
+Implement a consistent spacing scale.
+
+The interface should feel spacious and breathable.
+
+Avoid:
+
+* cramped cards
+* dense controls
+* inconsistent padding
+* arbitrary margins
+
+Use consistent spacing tokens throughout the application.
+
+Every component must follow the same spatial rhythm.
+
+---
+
+# 8. CORNER RADIUS SYSTEM
+
+Introduce a consistent premium radius system.
+
+Use:
+
+* small radius for compact controls
+* medium radius for standard components
+* large radius for cards
+* extra-large radius for floating surfaces
+* pill radius for specific controls
+
+Avoid giving every element an identical giant radius.
+
+Radius should communicate component hierarchy.
+
+---
+
+# 9. DEPTH SYSTEM
+
+Replace traditional heavy shadows with a sophisticated elevation model.
+
+Depth should be created through:
+
+1. translucency
+2. blur
+3. tonal contrast
+4. subtle borders
+5. ambient shadows
+6. highlights
+7. spatial positioning
+
+Avoid obvious dark drop shadows.
+
+The interface should feel:
+
+> layered rather than shadowed.
+
+---
+
+# 10. NAVIGATION
+
+Completely redesign the application's navigation using the Liquid Glass philosophy.
+
+Navigation should feel:
+
+* floating
+* lightweight
+* contextual
+* detached from the background
+* physically elevated
+
+Use:
+
+* translucent navigation surfaces
+* active-state glass indicators
+* subtle motion
+* icon + label hierarchy
+* appropriate safe-area spacing
+
+Navigation must remain extremely usable.
+
+Do NOT sacrifice usability for aesthetics.
+
+---
+
+# 11. HOME SCREEN
+
+Transform the home screen into a premium product discovery experience.
+
+Prioritize:
+
+1. Hero
+2. Categories
+3. Featured products
+4. New arrivals
+5. Best sellers
+6. Deals
+7. Stores
+8. Personalized/discovery sections
+
+Use visual hierarchy rather than simply stacking cards.
+
+Featured content should have stronger depth and visual prominence.
+
+Use large editorial imagery where appropriate.
+
+---
+
+# 12. PRODUCT CARDS
+
+Completely redesign product cards.
+
+They should feel like premium physical objects.
+
+Each product card should have:
+
+* glass surface
+* product image dominance
+* subtle metadata
+* clean pricing
+* controlled badges
+* intelligent hierarchy
+* tactile interaction
+
+Hover/press interaction should create subtle:
+
+* elevation
+* scale
+* highlight
+* shadow change
+* glass response
+
+Never use excessive animation.
+
+---
+
+# 13. PRODUCT DETAIL
+
+Transform Product Detail into a premium product showcase.
+
+The product image should become the visual hero.
+
+Create:
+
+* immersive image presentation
+* premium glass information panels
+* clean pricing hierarchy
+* specification sections
+* seller information
+* CTA hierarchy
+* floating actions
+
+Important information should be visible without creating visual clutter.
+
+---
+
+# 14. STORE EXPERIENCE
+
+Store pages should feel like premium brand profiles.
+
+Use:
+
+* immersive store header
+* glass profile panel
+* store identity
+* location
+* contact actions
+* social actions
+* product catalog
+* ratings/reviews
+* gallery
+
+The store should feel like a digital showroom.
+
+---
+
+# 15. COMPARE EXPERIENCE
+
+Redesign comparison into a sophisticated data interface.
+
+Use:
+
+* layered glass panels
+* clear comparison hierarchy
+* sticky product headers
+* elegant specification rows
+* strong differentiation between values
+* intelligent spacing
+
+Do not allow the glass effect to reduce data readability.
+
+Information clarity always wins.
+
+---
+
+# 16. FAVORITES
+
+Create a premium collection experience.
+
+Favorites should feel like:
+
+> "My personal collection"
+
+Use:
+
+* elegant product cards
+* smooth transitions
+* empty states
+* grouping where appropriate
+* subtle animations
+
+---
+
+# 17. DASHBOARD
+
+Transform the dashboard from a conventional admin panel into a premium command center.
+
+Use:
+
+* modular glass panels
+* intelligent information hierarchy
+* KPI cards
+* charts
+* recent activity
+* orders
+* messages
+* reviews
+* quick actions
+
+Avoid the typical:
+
+> 4 colored cards + giant numbers + generic dashboard layout.
+
+Instead create a sophisticated spatial information system.
+
+---
+
+# 18. FORMS
+
+All forms must adopt the same Liquid Glass language.
+
+Inputs should have:
+
+* translucent surfaces
+* clear focus states
+* accessible contrast
+* subtle borders
+* elegant placeholders
+* clean labels
+* validation states
+
+Focus states must be highly visible.
+
+Do not sacrifice accessibility for transparency.
+
+---
+
+# 19. BUTTONS
+
+Create a unified button system.
+
+### Primary
+
+Strong visual hierarchy.
+
+### Secondary
+
+Transparent / glass.
+
+### Tertiary
+
+Minimal.
+
+### Destructive
+
+Clearly identifiable but visually restrained.
+
+Buttons should feel tactile.
+
+Interaction states:
+
+* idle
+* hover
+* pressed
+* focused
+* disabled
+* loading
+* success
+
+Each state should have intentional visual feedback.
+
+---
+
+# 20. MODALS & SHEETS
+
+Transform dialogs, sheets, and overlays into spatial glass surfaces.
+
+Use:
+
+* backdrop blur
+* layered glass
+* large radius
+* controlled elevation
+* subtle entrance animation
+
+The underlying interface should remain perceptible but not distracting.
+
+---
+
+# 21. MICRO-INTERACTIONS
+
+Introduce premium micro-interactions throughout the application.
+
+Examples:
+
+* button press compression
+* glass highlight movement
+* card elevation
+* smooth tab transition
+* subtle content fade
+* modal spring animation
+* image transition
+* favorite interaction
+* loading states
+* success feedback
+
+Animations should feel:
+
+> physically believable.
+
+Avoid:
+
+* bouncing everywhere
+* excessive scaling
+* long animations
+* distracting transitions
+* gimmicky effects
+
+---
+
+# 22. MOTION LANGUAGE
+
+Define one unified motion system.
+
+Use principles inspired by:
+
+* spring physics
+* inertia
+* material displacement
+* continuity
+* spatial hierarchy
+
+Create motion tokens for:
+
+* fast
+* standard
+* emphasized
+* modal
+* page transition
+
+Motion must support comprehension.
+
+---
+
+# 23. ARABIC + RTL
+
+The application must remain first-class in Arabic.
+
+Do NOT treat Arabic as an afterthought.
+
+Ensure:
+
+* correct RTL layout
+* correct icon direction
+* correct spacing
+* Arabic typography
+* mirrored navigation where appropriate
+* correct animations
+* correct alignment
+* correct number formatting
+* bilingual consistency
+
+The Liquid Glass system must look equally premium in Arabic and English.
+
+---
+
+# 24. ACCESSIBILITY
+
+Maintain or improve accessibility.
+
+Ensure:
+
+* WCAG-compatible contrast
+* readable text
+* accessible focus states
+* sufficient touch targets
+* reduced motion support
+* screen reader compatibility
+* semantic hierarchy
+
+Transparency must never make text unreadable.
+
+If a glass surface reduces contrast, automatically increase surface opacity or adjust the background.
+
+---
+
+# 25. RESPONSIVE DESIGN
+
+The design must adapt intelligently to:
+
+* small mobile
+* large mobile
+* tablet
+* desktop where applicable
+
+Do NOT simply scale components.
+
+Adapt:
+
+* spacing
+* typography
+* layout
+* glass surfaces
+* navigation
+* content density
+
+---
+
+# 26. PERFORMANCE
+
+Liquid Glass must NOT become a performance problem.
+
+Avoid excessive:
+
+* backdrop filters
+* large blur regions
+* expensive shadows
+* continuous animations
+* unnecessary re-renders
+
+Use performance-aware strategies.
+
+Where native backdrop blur is unavailable or expensive, create graceful fallbacks.
+
+The final interface must remain smooth.
+
+Target:
+
+> 60 FPS interactions whenever realistically possible.
+
+---
+
+# 27. COMPONENT ARCHITECTURE
+
+Do NOT manually style every screen independently.
+
+Create reusable design-system primitives such as:
+
+* GlassSurface
+* GlassCard
+* GlassButton
+* GlassInput
+* GlassTabBar
+* GlassModal
+* GlassSheet
+* GlassBadge
+* GlassChip
+* GlassAvatar
+* GlassHeader
+* GlassSection
+* GlassNavigation
+* GlassFloatingAction
+* GlassSkeleton
+
+Build the visual system from these primitives.
+
+Every screen should consume the same system.
+
+---
+
+# 28. DESIGN TOKENS
+
+Create centralized tokens for:
+
+### Colors
+
+* glass backgrounds
+* borders
+* highlights
+* shadows
+* text
+* accents
+
+### Blur
+
+* subtle
+* standard
+* strong
+* ultra
+
+### Radius
+
+* sm
+* md
+* lg
+* xl
+* 2xl
+* pill
+
+### Elevation
+
+* flat
+* floating
+* elevated
+* modal
+
+### Motion
+
+* fast
+* standard
+* emphasized
+* spring
+
+### Spacing
+
+Use a consistent scale.
+
+Never scatter arbitrary values throughout the codebase.
+
+---
+
+# 29. VISUAL CONSISTENCY AUDIT
+
+After implementing the design system, audit EVERY screen.
+
+Check:
+
+* spacing
+* typography
+* colors
+* radius
+* glass material
+* shadows
+* icons
+* button hierarchy
+* empty states
+* loading states
+* errors
+* navigation
+* animations
+* accessibility
+
+No screen should look like it belongs to a different application.
+
+---
+
+# 30. DO NOT BREAK FUNCTIONALITY
+
+This is a visual transformation.
+
+Preserve:
+
+* existing business logic
+* API contracts
+* data fetching
+* navigation
+* authentication architecture
+* state management
+* database integration
+* forms
+* validation
+* existing functionality
+
+Do not rewrite backend logic unless absolutely necessary for UI integration.
+
+Do not remove existing functionality merely because it is not visually implemented.
+
+---
+
+# 31. DO NOT USE GENERIC AI DESIGN PATTERNS
+
+Explicitly avoid:
+
+* generic SaaS dashboards
+* random gradient backgrounds
+* excessive neon
+* purple AI aesthetics
+* excessive glass cards
+* giant rounded rectangles everywhere
+* excessive glowing borders
+* unnecessary animations
+* visual noise
+* Dribbble-style decorative UI
+* fake futuristic interfaces
+* excessive 3D elements
+
+The result must look like a real premium product, not an AI-generated concept.
+
+---
+
+# 32. APPLE-LEVEL QUALITY BAR
+
+Use Apple-quality principles:
+
+* extreme attention to detail
+* restraint
+* hierarchy
+* typography
+* spatial composition
+* tactile interactions
+* consistency
+* accessibility
+* performance
+
+But DO NOT copy Apple's exact UI.
+
+The final visual identity must remain unique to this product.
+
+Think:
+
+> Apple-level craftsmanship + unique product identity.
+
+---
+
+# 33. IMPLEMENTATION PROCESS
+
+Work in the following sequence.
+
+### PHASE 01 — AUDIT
+
+Inspect the entire existing application.
+
+Identify:
+
+* screens
+* components
+* navigation
+* design tokens
+* duplicated styles
+* inconsistent UI
+* reusable components
+* existing animations
+* platform-specific constraints
+
+Do not start blindly modifying screens.
+
+---
+
+### PHASE 02 — DESIGN SYSTEM
+
+Create the Liquid Glass foundation first.
+
+Define:
+
+* tokens
+* surfaces
+* typography
+* spacing
+* radius
+* elevation
+* motion
+* buttons
+* inputs
+* cards
+* navigation
+
+---
+
+### PHASE 03 — CORE COMPONENTS
+
+Refactor reusable components.
+
+Make the design system composable.
+
+---
+
+### PHASE 04 — SCREEN TRANSFORMATION
+
+Transform screens systematically.
+
+Recommended order:
+
+1. App shell
+2. Navigation
+3. Home
+4. Stores
+5. Store Detail
+6. Product Detail
+7. Compare
+8. Favorites
+9. Profile
+10. Dashboard
+11. Add Product
+12. Forms
+13. Modals
+14. Empty/Error/Loading states
+
+---
+
+### PHASE 05 — MOTION
+
+Add the unified motion language.
+
+---
+
+### PHASE 06 — ACCESSIBILITY
+
+Perform accessibility review.
+
+---
+
+### PHASE 07 — PERFORMANCE
+
+Audit expensive blur, shadow, animation, and rendering operations.
+
+---
+
+### PHASE 08 — VISUAL QA
+
+Review the entire application as one product.
+
+Fix inconsistencies.
+
+---
+
+# 34. QUALITY GATE
+
+Do not consider the transformation complete until the application passes all of the following:
+
+### Visual
+
+* [ ] Consistent Liquid Glass system
+* [ ] Premium visual hierarchy
+* [ ] No inconsistent components
+* [ ] No cheap-looking glass effects
+* [ ] No excessive blur
+* [ ] No excessive shadows
+* [ ] Typography is polished
+* [ ] Arabic and English both look premium
+
+### UX
+
+* [ ] Navigation remains intuitive
+* [ ] Interactions remain obvious
+* [ ] Important actions remain discoverable
+* [ ] Information remains readable
+* [ ] Loading states exist
+* [ ] Empty states exist
+* [ ] Error states exist
+
+### Engineering
+
+* [ ] Existing functionality preserved
+* [ ] No broken routes
+* [ ] No broken API calls
+* [ ] No TypeScript errors
+* [ ] No runtime errors
+* [ ] No new hook violations
+* [ ] No unnecessary duplicated components
+* [ ] Design tokens centralized
+
+### Performance
+
+* [ ] Blur is performance-aware
+* [ ] Animations are optimized
+* [ ] No unnecessary re-renders
+* [ ] Scrolling remains smooth
+
+### Accessibility
+
+* [ ] Touch targets are appropriate
+* [ ] Contrast remains readable
+* [ ] Focus states are visible
+* [ ] Reduced motion is respected
+* [ ] RTL works correctly
+
+---
+
+# 35. FINAL DESIGN DIRECTOR TEST
+
+Before declaring completion, ask:
+
+> If this application were presented beside a premium Apple product, would it visually feel like a serious world-class product?
+
+If the answer is NO:
+
+Do another refinement pass.
+
+Look specifically for:
+
+* unnecessary visual elements
+* inconsistent spacing
+* weak typography
+* excessive transparency
+* weak hierarchy
+* inconsistent corner radii
+* cheap shadows
+* excessive gradients
+* poor Arabic layout
+* inconsistent animations
+* components that look "AI-generated"
+
+Continue refining until the interface feels:
+
+> **Quiet. Premium. Spatial. Tactile. Elegant. Expensive.**
+
+---
+
+# FINAL DIRECTIVE
+
+Do not treat this task as "adding a glass effect."
+
+Treat it as a complete:
+
+> **PRODUCT-WIDE DESIGN SYSTEM TRANSFORMATION**
+
+The finished application should feel like a cohesive luxury technology product built by a world-class design and engineering team.
+
+Prioritize in this order:
+
+**Usability → Hierarchy → Consistency → Accessibility → Performance → Luxury aesthetics**
+
+Never sacrifice the first five for visual effects.
