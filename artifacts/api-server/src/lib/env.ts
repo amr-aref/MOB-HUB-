@@ -1,7 +1,6 @@
 /**
- * Environment validation — throws on startup if required variables are absent.
- * Import this module early in index.ts so misconfiguration is caught before
- * any connections or route handlers are registered.
+ * Environment validation — throws on startup if required variables are absent
+ * or unsafe values are supplied in production.
  */
 
 function require(key: string): string {
@@ -20,11 +19,25 @@ function optional(key: string, fallback: string): string {
   return value && value.trim() !== "" ? value.trim() : fallback;
 }
 
+const NODE_ENV = optional("NODE_ENV", "development");
+const JWT_SECRET = require("JWT_SECRET");
+const JWT_REFRESH_SECRET = require("JWT_REFRESH_SECRET");
+
+if (JWT_SECRET.length < 32 || JWT_REFRESH_SECRET.length < 32) {
+  throw new Error("JWT_SECRET and JWT_REFRESH_SECRET must each be at least 32 characters long.");
+}
+
+const CORS_ORIGIN = process.env.CORS_ORIGIN?.trim() || "";
+if (NODE_ENV === "production" && !CORS_ORIGIN) {
+  throw new Error("CORS_ORIGIN must be configured in production.");
+}
+
 export const env = {
-  NODE_ENV: optional("NODE_ENV", "development"),
+  NODE_ENV,
   PORT: require("PORT"),
-  JWT_SECRET: require("JWT_SECRET"),
-  JWT_REFRESH_SECRET: require("JWT_REFRESH_SECRET"),
+  JWT_SECRET,
+  JWT_REFRESH_SECRET,
+  CORS_ORIGIN,
   /** Access token TTL — default 15 minutes */
   JWT_ACCESS_EXPIRES_IN: optional("JWT_ACCESS_EXPIRES_IN", "15m"),
   /** Refresh token TTL — default 30 days */
