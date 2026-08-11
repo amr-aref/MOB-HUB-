@@ -5,11 +5,40 @@ import { sessionsTable, usersTable } from "@workspace/db/schema";
 import { verifyAccessToken, extractBearerToken } from "../lib/jwt";
 import { AppError } from "../lib/api-helpers";
 
+async function resolveActiveUser(payload: ReturnType<typeof verifyAccessToken>) {
+  const [session] = await db
+    .select({
+      sessionId: sessionsTable.id,
+      userId: usersTable.id,
+      email: usersTable.email,
+      role: usersTable.role,
+      storeId: usersTable.storeId,
+      isActive: usersTable.isActive,
+    })
+    .from(sessionsTable)
+    .innerJoin(usersTable, eq(usersTable.id, sessionsTable.userId))
+    .where(
+      and(
+        eq(sessionsTable.id, payload.sessionId),
+        eq(sessionsTable.userId, payload.sub),
+        gt(sessionsTable.expiresAt, new Date()),
+      ),
+    );
+
+  if (!session || !session.isActive) return null;
+
+  return {
+    sub: session.userId,
+    email: session.email,
+    role: session.role,
+    sessionId: session.sessionId,
+    ...(session.storeId ? { storeId: session.storeId } : {}),
+  };
+}
+
 /**
- * Strict authentication. In addition to verifying the JWT, requireAuth checks
- * that the backing session still exists, has not expired, and belongs to an
- * active user. This makes logout, logout-all, suspension, and session revocation
- * take effect immediately for access-token requests.
+ * Strict authentication. JWT signature/claims are verified and the backing
+ * session plus current database user state are checked on every protected request.
  */
 export async function requireAuth(
   req: Request,
@@ -24,28 +53,12 @@ export async function requireAuth(
 
   try {
     const payload = verifyAccessToken(token);
-    const [session] = await db
-      .select({
-        sessionId: sessionsTable.id,
-        userId: usersTable.id,
-        isActive: usersTable.isActive,
-      })
-      .from(sessionsTable)
-      .innerJoin(usersTable, eq(usersTable.id, sessionsTable.userId))
-      .where(
-        and(
-          eq(sessionsTable.id, payload.sessionId),
-          eq(sessionsTable.userId, payload.sub),
-          gt(sessionsTable.expiresAt, new Date()),
-        ),
-      );
-
-    if (!session || !session.isActive) {
+    const user = await resolveActiveUser(payload);
+    if (!user) {
       next(new AppError(401, "Session is no longer active", "SESSION_INVALID"));
       return;
     }
-
-    req.user = payload;
+    req.user = user;
     next();
   } catch {
     next(new AppError(401, "Invalid or expired token", "INVALID_TOKEN"));
@@ -53,8 +66,8 @@ export async function requireAuth(
 }
 
 /**
- * Optional authentication. Invalid or revoked credentials are treated as
- * anonymous so public endpoints can safely support personalized responses.
+ * Optional authentication. Invalid, revoked, expired, or suspended credentials
+ * are treated as anonymous.
  */
 export async function optionalAuth(
   req: Request,
@@ -69,19 +82,8 @@ export async function optionalAuth(
 
   try {
     const payload = verifyAccessToken(token);
-    const [session] = await db
-      .select({ sessionId: sessionsTable.id, isActive: usersTable.isActive })
-      .from(sessionsTable)
-      .innerJoin(usersTable, eq(usersTable.id, sessionsTable.userId))
-      .where(
-        and(
-          eq(sessionsTable.id, payload.sessionId),
-          eq(sessionsTable.userId, payload.sub),
-          gt(sessionsTable.expiresAt, new Date()),
-        ),
-      );
-
-    if (session?.isActive) req.user = payload;
+    const user = await resolveActiveUser(payload);
+    if (user) req.user = user;
   } catch {
     // Continue as anonymous.
   }
