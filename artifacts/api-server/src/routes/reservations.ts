@@ -15,12 +15,10 @@ import {
   ReservationTransitionError,
 } from "../services/reservationService";
 import { RESERVATION_STATUSES } from "@workspace/db/schema";
+import { requireAuth } from "../middlewares/authenticate";
+import { AppError } from "../lib/api-helpers";
 
 const router: IRouter = Router();
-
-// ─── Error mapper ─────────────────────────────────────────────────────────────
-// Translates service-layer domain errors to HTTP responses. All HTTP concerns
-// stay in the route layer; the service layer throws only typed domain errors.
 
 function handleServiceError(err: unknown, res: Response): void {
   if (err instanceof ReservationNotFoundError) {
@@ -39,14 +37,17 @@ function handleServiceError(err: unknown, res: Response): void {
     res.status(422).json({ error: err.message, code: "INVALID_TRANSITION" });
     return;
   }
-  throw err; // Re-throw unknown errors — the global errorHandler catches them.
+  throw err;
 }
 
-// ─── Input validators ─────────────────────────────────────────────────────────
-
-function requireString(value: unknown, _field: string): string | null {
-  if (typeof value === "string" && value.trim().length > 0) return value.trim();
-  return null;
+function requireMerchant(req: Parameters<typeof requireAuth>[0]): string {
+  if (!req.user || !["merchant", "admin", "moderator"].includes(req.user.role)) {
+    throw new AppError(403, "Merchant access required", "FORBIDDEN");
+  }
+  if (!req.user.storeId && req.user.role !== "admin" && req.user.role !== "moderator") {
+    throw new AppError(403, "A store is required for merchant actions", "STORE_REQUIRED");
+  }
+  return req.user.storeId ?? "";
 }
 
 function validateLimit(raw: unknown): number {
@@ -59,215 +60,144 @@ function validateOffset(raw: unknown): number {
   return isNaN(n) || n < 0 ? 0 : n;
 }
 
-// ─── POST /products/:id/reserve ───────────────────────────────────────────────
-// Buyer creates a reservation for a product.
-// Body: { buyerId, buyerNotes? }
+router.use(requireAuth);
 
-router.post("/products/:id/reserve", async (req, res) => {
+// Reservation-only marketplace: creating a reservation never creates an order
+// or payment and is always associated with the authenticated buyer.
+router.post("/products/:id/reserve", async (req, res, next) => {
   const productId = req.params.id;
-  const body = req.body as Record<string, unknown>;
-
-  const buyerId = requireString(body.buyerId, "buyerId");
-  if (!buyerId) {
-    res.status(400).json({ error: "buyerId is required" });
-    return;
-  }
-
-  const buyerNotes =
-    typeof body.buyerNotes === "string"
-      ? body.buyerNotes.trim().slice(0, 500)
-      : undefined;
+  const buyerNotes = typeof req.body?.buyerNotes === "string"
+    ? req.body.buyerNotes.trim().slice(0, 500)
+    : undefined;
 
   try {
-    const dto = await createReservation({ productId, buyerId, buyerNotes });
+    const dto = await createReservation({
+      productId,
+      buyerId: req.user!.sub,
+      buyerNotes,
+    });
     res.status(201).json(dto);
   } catch (err) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    handleServiceError(err, res as any);
+    try { handleServiceError(err, res); } catch (unknownError) { next(unknownError); }
   }
 });
 
-// ─── GET /reservations ────────────────────────────────────────────────────────
-// List reservations for a buyer (buyerId) or merchant (storeId).
-// At least one of buyerId or storeId is required.
-// Optional filters: status, limit, offset.
-
-router.get("/reservations", async (req, res) => {
-  const q = req.query as Record<string, string | undefined>;
-  const buyerId = requireString(q.buyerId, "buyerId") ?? undefined;
-  const storeId = requireString(q.storeId, "storeId") ?? undefined;
-
-  if (!buyerId && !storeId) {
-    res.status(400).json({ error: "At least one of buyerId or storeId is required" });
+router.get("/reservations", async (req, res, next) => {
+  const status = typeof req.query.status === "string" ? req.query.status.trim() : undefined;
+  if (status && !RESERVATION_STATUSES.includes(status as (typeof RESERVATION_STATUSES)[number])) {
+    res.status(400).json({ error: `Invalid status. Must be one of: ${RESERVATION_STATUSES.join(", ")}` });
     return;
   }
 
-  const status = requireString(q.status, "status") ?? undefined;
+  const isMerchant = ["merchant", "admin", "moderator"].includes(req.user!.role);
+  const requestedStoreId = typeof req.query.storeId === "string" ? req.query.storeId.trim() : undefined;
+  const requestedBuyerId = typeof req.query.buyerId === "string" ? req.query.buyerId.trim() : undefined;
 
-  if (
-    status &&
-    !RESERVATION_STATUSES.includes(status as (typeof RESERVATION_STATUSES)[number])
-  ) {
-    res.status(400).json({
-      error: `Invalid status. Must be one of: ${RESERVATION_STATUSES.join(", ")}`,
-    });
+  if (requestedBuyerId && requestedBuyerId !== req.user!.sub) {
+    res.status(403).json({ error: "You can only access your own reservations" });
     return;
   }
 
-  const limit  = validateLimit(q.limit);
-  const offset = validateOffset(q.offset);
+  if (requestedStoreId && !isMerchant) {
+    res.status(403).json({ error: "Merchant access required" });
+    return;
+  }
+
+  if (requestedStoreId && req.user!.role === "merchant" && requestedStoreId !== req.user!.storeId) {
+    res.status(403).json({ error: "You can only access your own store reservations" });
+    return;
+  }
+
+  const buyerId = requestedStoreId ? undefined : req.user!.sub;
+  const storeId = requestedStoreId ?? (isMerchant ? req.user!.storeId ?? undefined : undefined);
 
   try {
-    const dtos = await listReservations({ buyerId, storeId, status, limit, offset });
+    const dtos = await listReservations({
+      buyerId,
+      storeId,
+      status,
+      limit: validateLimit(req.query.limit),
+      offset: validateOffset(req.query.offset),
+    });
     res.json(dtos);
   } catch (err) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    handleServiceError(err, res as any);
+    try { handleServiceError(err, res); } catch (unknownError) { next(unknownError); }
   }
 });
 
-// ─── GET /reservations/:id ────────────────────────────────────────────────────
-// Get a single reservation by ID.
-// Requires buyerId or storeId for access control (returns 404 if not a participant).
-
-router.get("/reservations/:id", async (req, res) => {
-  const { id } = req.params;
-  const q = req.query as Record<string, string | undefined>;
-
-  const buyerId = requireString(q.buyerId, "buyerId") ?? undefined;
-  const storeId = requireString(q.storeId, "storeId") ?? undefined;
-
+router.get("/reservations/:id", async (req, res, next) => {
   try {
-    const dto = await getReservation(id, { buyerId, storeId });
+    const options = ["merchant", "admin", "moderator"].includes(req.user!.role)
+      ? { buyerId: req.user!.sub, storeId: req.user!.storeId ?? undefined }
+      : { buyerId: req.user!.sub };
+    const dto = await getReservation(req.params.id, options);
     res.json(dto);
   } catch (err) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    handleServiceError(err, res as any);
+    try { handleServiceError(err, res); } catch (unknownError) { next(unknownError); }
   }
 });
 
-// ─── GET /reservations/:id/history ───────────────────────────────────────────
-// Returns the full audit trail (timeline) for a reservation.
-// Requires buyerId or storeId to confirm participation.
-
-router.get("/reservations/:id/history", async (req, res) => {
-  const { id } = req.params;
-  const q = req.query as Record<string, string | undefined>;
-
-  const buyerId = requireString(q.buyerId, "buyerId") ?? undefined;
-  const storeId = requireString(q.storeId, "storeId") ?? undefined;
-
+router.get("/reservations/:id/history", async (req, res, next) => {
   try {
-    const history = await getReservationHistory(id, { buyerId, storeId });
+    const options = ["merchant", "admin", "moderator"].includes(req.user!.role)
+      ? { buyerId: req.user!.sub, storeId: req.user!.storeId ?? undefined }
+      : { buyerId: req.user!.sub };
+    const history = await getReservationHistory(req.params.id, options);
     res.json(history);
   } catch (err) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    handleServiceError(err, res as any);
+    try { handleServiceError(err, res); } catch (unknownError) { next(unknownError); }
   }
 });
 
-// ─── PATCH /reservations/:id/confirm ─────────────────────────────────────────
-// Merchant confirms a pending reservation.
-// Body: { storeId }
-
-router.patch("/reservations/:id/confirm", async (req, res) => {
-  const { id } = req.params;
-  const body = req.body as Record<string, unknown>;
-
-  const storeId = requireString(body.storeId, "storeId");
-  if (!storeId) {
-    res.status(400).json({ error: "storeId is required" });
-    return;
-  }
-
+router.patch("/reservations/:id/confirm", async (req, res, next) => {
   try {
-    const dto = await confirmReservation(id, storeId);
+    const storeId = requireMerchant(req);
+    if (!storeId) { res.status(403).json({ error: "A store is required" }); return; }
+    const dto = await confirmReservation(req.params.id, storeId);
     res.json(dto);
   } catch (err) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    handleServiceError(err, res as any);
+    try { handleServiceError(err, res); } catch (unknownError) { next(unknownError); }
   }
 });
 
-// ─── PATCH /reservations/:id/decline ─────────────────────────────────────────
-// Merchant declines a pending reservation.
-// Body: { storeId, cancellationReason? }
-
-router.patch("/reservations/:id/decline", async (req, res) => {
-  const { id } = req.params;
-  const body = req.body as Record<string, unknown>;
-
-  const storeId = requireString(body.storeId, "storeId");
-  if (!storeId) {
-    res.status(400).json({ error: "storeId is required" });
-    return;
-  }
-
-  const cancellationReason =
-    typeof body.cancellationReason === "string"
-      ? body.cancellationReason.trim().slice(0, 500)
+router.patch("/reservations/:id/decline", async (req, res, next) => {
+  try {
+    const storeId = requireMerchant(req);
+    if (!storeId) { res.status(403).json({ error: "A store is required" }); return; }
+    const cancellationReason = typeof req.body?.cancellationReason === "string"
+      ? req.body.cancellationReason.trim().slice(0, 500)
       : undefined;
-
-  try {
-    const dto = await declineReservation(id, { storeId, cancellationReason });
+    const dto = await declineReservation(req.params.id, { storeId, cancellationReason });
     res.json(dto);
   } catch (err) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    handleServiceError(err, res as any);
+    try { handleServiceError(err, res); } catch (unknownError) { next(unknownError); }
   }
 });
 
-// ─── PATCH /reservations/:id/cancel ──────────────────────────────────────────
-// Cancel a reservation. Either the buyer or the merchant may cancel.
-// Body: { buyerId?, storeId?, cancellationReason? }
-// At least one of buyerId or storeId is required.
-
-router.patch("/reservations/:id/cancel", async (req, res) => {
-  const { id } = req.params;
-  const body = req.body as Record<string, unknown>;
-
-  const buyerId = requireString(body.buyerId, "buyerId") ?? undefined;
-  const storeId = requireString(body.storeId, "storeId") ?? undefined;
-
-  if (!buyerId && !storeId) {
-    res.status(400).json({ error: "Either buyerId or storeId is required" });
-    return;
-  }
-
-  const cancellationReason =
-    typeof body.cancellationReason === "string"
-      ? body.cancellationReason.trim().slice(0, 500)
-      : undefined;
+router.patch("/reservations/:id/cancel", async (req, res, next) => {
+  const cancellationReason = typeof req.body?.cancellationReason === "string"
+    ? req.body.cancellationReason.trim().slice(0, 500)
+    : undefined;
+  const isMerchant = ["merchant", "admin", "moderator"].includes(req.user!.role);
+  const buyerId = req.user!.sub;
+  const storeId = isMerchant ? req.user!.storeId ?? undefined : undefined;
 
   try {
-    const dto = await cancelReservation(id, { buyerId, storeId, cancellationReason });
+    const dto = await cancelReservation(req.params.id, { buyerId, storeId, cancellationReason });
     res.json(dto);
   } catch (err) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    handleServiceError(err, res as any);
+    try { handleServiceError(err, res); } catch (unknownError) { next(unknownError); }
   }
 });
 
-// ─── PATCH /reservations/:id/complete ────────────────────────────────────────
-// Merchant marks a confirmed reservation as completed (customer visited the store).
-// Body: { storeId }
-
-router.patch("/reservations/:id/complete", async (req, res) => {
-  const { id } = req.params;
-  const body = req.body as Record<string, unknown>;
-
-  const storeId = requireString(body.storeId, "storeId");
-  if (!storeId) {
-    res.status(400).json({ error: "storeId is required" });
-    return;
-  }
-
+router.patch("/reservations/:id/complete", async (req, res, next) => {
   try {
-    const dto = await completeReservation(id, storeId);
+    const storeId = requireMerchant(req);
+    if (!storeId) { res.status(403).json({ error: "A store is required" }); return; }
+    const dto = await completeReservation(req.params.id, storeId);
     res.json(dto);
   } catch (err) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    handleServiceError(err, res as any);
+    try { handleServiceError(err, res); } catch (unknownError) { next(unknownError); }
   }
 });
 
