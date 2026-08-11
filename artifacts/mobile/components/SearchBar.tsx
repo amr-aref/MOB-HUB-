@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import colors from '@/constants/colors';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { getFontFamily } from '@/constants/fonts';
@@ -16,14 +17,19 @@ interface SearchBarProps {
 
 export default function SearchBar({ value, onChangeText, onSubmit, placeholder, isRTL = false }: SearchBarProps) {
   const { isRTL: rtlContext } = useLanguage();
+  const router = useRouter();
   const rtl = isRTL || rtlContext;
   const fontFam = getFontFamily(rtl, 'regular');
   const [isFocused, setIsFocused] = useState(false);
 
-  const inputStyle = [
-    styles.input,
-    { textAlign: rtl ? 'right' as const : 'left' as const, fontFamily: fontFam },
-  ];
+  const submit = () => {
+    const query = value.trim();
+    if (onSubmit) {
+      onSubmit();
+      return;
+    }
+    if (query) router.push({ pathname: '/products/search', params: { query } });
+  };
 
   return (
     <View style={[styles.container, isFocused && styles.containerFocused, { flexDirection: rtl ? 'row-reverse' : 'row' }]}>
@@ -34,20 +40,15 @@ export default function SearchBar({ value, onChangeText, onSubmit, placeholder, 
         onChangeText={onChangeText}
         placeholder={placeholder}
         placeholderTextColor={colors.light.textTertiary}
-        style={inputStyle}
+        style={[styles.input, { textAlign: rtl ? 'right' : 'left', fontFamily: fontFam }]}
         returnKeyType="search"
         autoCorrect={false}
-        onSubmitEditing={onSubmit}
+        onSubmitEditing={submit}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
       />
       {value.length > 0 && (
-        <Ionicons
-          name="close-circle"
-          size={18}
-          color={colors.light.mutedForeground}
-          onPress={() => onChangeText('')}
-        />
+        <Ionicons name="close-circle" size={18} color={colors.light.mutedForeground} onPress={() => onChangeText('')} />
       )}
     </View>
   );
@@ -62,7 +63,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     height: 48,
     alignItems: 'center',
-    flexDirection: 'row',
     gap: 12,
     overflow: 'hidden',
     shadowColor: '#1E190F',
@@ -78,10 +78,5 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
   },
   blurLayer: { borderRadius: 999 },
-  input: {
-    flex: 1,
-    fontSize: 15,
-    color: colors.light.foreground,
-    padding: 0,
-  },
+  input: { flex: 1, fontSize: 15, color: colors.light.foreground, padding: 0 },
 });
