@@ -21,22 +21,10 @@ import { AppError } from "../lib/api-helpers";
 const router: IRouter = Router();
 
 function handleServiceError(err: unknown, res: Response): void {
-  if (err instanceof ReservationNotFoundError) {
-    res.status(404).json({ error: err.message });
-    return;
-  }
-  if (err instanceof ReservationConflictError) {
-    res.status(409).json({ error: err.message, code: err.code });
-    return;
-  }
-  if (err instanceof ReservationForbiddenError) {
-    res.status(403).json({ error: err.message });
-    return;
-  }
-  if (err instanceof ReservationTransitionError) {
-    res.status(422).json({ error: err.message, code: "INVALID_TRANSITION" });
-    return;
-  }
+  if (err instanceof ReservationNotFoundError) { res.status(404).json({ error: err.message }); return; }
+  if (err instanceof ReservationConflictError) { res.status(409).json({ error: err.message, code: err.code }); return; }
+  if (err instanceof ReservationForbiddenError) { res.status(403).json({ error: err.message }); return; }
+  if (err instanceof ReservationTransitionError) { res.status(422).json({ error: err.message, code: "INVALID_TRANSITION" }); return; }
   throw err;
 }
 
@@ -62,20 +50,14 @@ function validateOffset(raw: unknown): number {
 
 router.use(requireAuth);
 
-// Reservation-only marketplace: creating a reservation never creates an order
-// or payment and is always associated with the authenticated buyer.
+// MOB HUB is reservation-only. This endpoint never creates an order or payment.
+// The authenticated session is the authoritative buyer identity.
 router.post("/products/:id/reserve", async (req, res, next) => {
-  const productId = req.params.id;
   const buyerNotes = typeof req.body?.buyerNotes === "string"
     ? req.body.buyerNotes.trim().slice(0, 500)
     : undefined;
-
   try {
-    const dto = await createReservation({
-      productId,
-      buyerId: req.user!.sub,
-      buyerNotes,
-    });
+    const dto = await createReservation({ productId: req.params.id, buyerId: req.user!.sub, buyerNotes });
     res.status(201).json(dto);
   } catch (err) {
     try { handleServiceError(err, res); } catch (unknownError) { next(unknownError); }
@@ -91,34 +73,22 @@ router.get("/reservations", async (req, res, next) => {
 
   const isMerchant = ["merchant", "admin", "moderator"].includes(req.user!.role);
   const requestedStoreId = typeof req.query.storeId === "string" ? req.query.storeId.trim() : undefined;
-  const requestedBuyerId = typeof req.query.buyerId === "string" ? req.query.buyerId.trim() : undefined;
-
-  if (requestedBuyerId && requestedBuyerId !== req.user!.sub) {
-    res.status(403).json({ error: "You can only access your own reservations" });
-    return;
-  }
-
   if (requestedStoreId && !isMerchant) {
     res.status(403).json({ error: "Merchant access required" });
     return;
   }
-
   if (requestedStoreId && req.user!.role === "merchant" && requestedStoreId !== req.user!.storeId) {
     res.status(403).json({ error: "You can only access your own store reservations" });
     return;
   }
 
+  // Ignore client-supplied buyerId completely. Existing mobile builds still send
+  // a device UUID; the authenticated session must remain the source of truth.
   const buyerId = requestedStoreId ? undefined : req.user!.sub;
   const storeId = requestedStoreId ?? (isMerchant ? req.user!.storeId ?? undefined : undefined);
 
   try {
-    const dtos = await listReservations({
-      buyerId,
-      storeId,
-      status,
-      limit: validateLimit(req.query.limit),
-      offset: validateOffset(req.query.offset),
-    });
+    const dtos = await listReservations({ buyerId, storeId, status, limit: validateLimit(req.query.limit), offset: validateOffset(req.query.offset) });
     res.json(dtos);
   } catch (err) {
     try { handleServiceError(err, res); } catch (unknownError) { next(unknownError); }
@@ -130,8 +100,7 @@ router.get("/reservations/:id", async (req, res, next) => {
     const options = ["merchant", "admin", "moderator"].includes(req.user!.role)
       ? { buyerId: req.user!.sub, storeId: req.user!.storeId ?? undefined }
       : { buyerId: req.user!.sub };
-    const dto = await getReservation(req.params.id, options);
-    res.json(dto);
+    res.json(await getReservation(req.params.id, options));
   } catch (err) {
     try { handleServiceError(err, res); } catch (unknownError) { next(unknownError); }
   }
@@ -142,8 +111,7 @@ router.get("/reservations/:id/history", async (req, res, next) => {
     const options = ["merchant", "admin", "moderator"].includes(req.user!.role)
       ? { buyerId: req.user!.sub, storeId: req.user!.storeId ?? undefined }
       : { buyerId: req.user!.sub };
-    const history = await getReservationHistory(req.params.id, options);
-    res.json(history);
+    res.json(await getReservationHistory(req.params.id, options));
   } catch (err) {
     try { handleServiceError(err, res); } catch (unknownError) { next(unknownError); }
   }
@@ -153,8 +121,7 @@ router.patch("/reservations/:id/confirm", async (req, res, next) => {
   try {
     const storeId = requireMerchant(req);
     if (!storeId) { res.status(403).json({ error: "A store is required" }); return; }
-    const dto = await confirmReservation(req.params.id, storeId);
-    res.json(dto);
+    res.json(await confirmReservation(req.params.id, storeId));
   } catch (err) {
     try { handleServiceError(err, res); } catch (unknownError) { next(unknownError); }
   }
@@ -164,27 +131,22 @@ router.patch("/reservations/:id/decline", async (req, res, next) => {
   try {
     const storeId = requireMerchant(req);
     if (!storeId) { res.status(403).json({ error: "A store is required" }); return; }
-    const cancellationReason = typeof req.body?.cancellationReason === "string"
-      ? req.body.cancellationReason.trim().slice(0, 500)
-      : undefined;
-    const dto = await declineReservation(req.params.id, { storeId, cancellationReason });
-    res.json(dto);
+    const cancellationReason = typeof req.body?.cancellationReason === "string" ? req.body.cancellationReason.trim().slice(0, 500) : undefined;
+    res.json(await declineReservation(req.params.id, { storeId, cancellationReason }));
   } catch (err) {
     try { handleServiceError(err, res); } catch (unknownError) { next(unknownError); }
   }
 });
 
 router.patch("/reservations/:id/cancel", async (req, res, next) => {
-  const cancellationReason = typeof req.body?.cancellationReason === "string"
-    ? req.body.cancellationReason.trim().slice(0, 500)
-    : undefined;
   const isMerchant = ["merchant", "admin", "moderator"].includes(req.user!.role);
-  const buyerId = req.user!.sub;
-  const storeId = isMerchant ? req.user!.storeId ?? undefined : undefined;
-
+  const cancellationReason = typeof req.body?.cancellationReason === "string" ? req.body.cancellationReason.trim().slice(0, 500) : undefined;
   try {
-    const dto = await cancelReservation(req.params.id, { buyerId, storeId, cancellationReason });
-    res.json(dto);
+    res.json(await cancelReservation(req.params.id, {
+      buyerId: req.user!.sub,
+      storeId: isMerchant ? req.user!.storeId ?? undefined : undefined,
+      cancellationReason,
+    }));
   } catch (err) {
     try { handleServiceError(err, res); } catch (unknownError) { next(unknownError); }
   }
@@ -194,8 +156,7 @@ router.patch("/reservations/:id/complete", async (req, res, next) => {
   try {
     const storeId = requireMerchant(req);
     if (!storeId) { res.status(403).json({ error: "A store is required" }); return; }
-    const dto = await completeReservation(req.params.id, storeId);
-    res.json(dto);
+    res.json(await completeReservation(req.params.id, storeId));
   } catch (err) {
     try { handleServiceError(err, res); } catch (unknownError) { next(unknownError); }
   }
