@@ -1,15 +1,6 @@
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import { setAuthTokenGetter } from '@workspace/api-client-react';
-
-// ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface AuthUser {
   id: string;
@@ -21,12 +12,7 @@ export interface AuthUser {
   isEmailVerified: boolean;
 }
 
-interface AuthState {
-  user: AuthUser | null;
-  isLoading: boolean;
-  isAuthenticated: boolean;
-}
-
+interface AuthState { user: AuthUser | null; isLoading: boolean; isAuthenticated: boolean; }
 interface AuthContextValue extends AuthState {
   login: (email: string, password: string, deviceId?: string) => Promise<void>;
   register: (params: RegisterParams) => Promise<void>;
@@ -39,12 +25,8 @@ export interface RegisterParams {
   password: string;
   name: string;
   nameAr?: string;
-  role?: 'buyer' | 'merchant';
-  storeId?: string;
   deviceId?: string;
 }
-
-// ─── SecureStore keys ─────────────────────────────────────────────────────────
 
 const KEYS = {
   ACCESS_TOKEN: 'auth.accessToken',
@@ -52,47 +34,27 @@ const KEYS = {
   USER: 'auth.user',
 } as const;
 
-// ─── API helpers ──────────────────────────────────────────────────────────────
+const BASE_URL = process.env['EXPO_PUBLIC_DOMAIN'] ? `https://${process.env['EXPO_PUBLIC_DOMAIN']}` : 'http://localhost:8080';
 
-const _apiDomain = process.env['EXPO_PUBLIC_DOMAIN'];
-const BASE_URL = _apiDomain ? `https://${_apiDomain}` : 'http://localhost:8080';
+type TokensResponse = { accessToken: string; refreshToken: string; expiresIn: number; user: AuthUser };
 
-async function apiPost<T>(
-  path: string,
-  body: unknown,
-  accessToken?: string,
-): Promise<T> {
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
+type ApiError = Error & { code?: string; status?: number };
 
-  const res = await fetch(`${BASE_URL}/api${path}`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(body),
-  });
+async function apiRequest<T>(path: string, method: 'GET' | 'POST', body?: unknown, accessToken?: string): Promise<T> {
+  const headers: Record<string, string> = {};
+  if (body !== undefined) headers['Content-Type'] = 'application/json';
+  if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
 
+  const res = await fetch(`${BASE_URL}/api${path}`, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
   const data = await res.json().catch(() => ({}));
-
   if (!res.ok) {
-    const message = (data as Record<string, string>).error ?? `HTTP ${res.status}`;
-    const code = (data as Record<string, string>).code;
-    const err = new Error(message) as Error & { code?: string; status?: number };
-    err.code = code;
+    const err = new Error((data as Record<string, string>).error ?? `HTTP ${res.status}`) as ApiError;
+    err.code = (data as Record<string, string>).code;
     err.status = res.status;
     throw err;
   }
-
   return data as T;
 }
-
-interface TokensResponse {
-  accessToken: string;
-  refreshToken: string;
-  expiresIn: number;
-  user: AuthUser;
-}
-
-// ─── Context ──────────────────────────────────────────────────────────────────
 
 const AuthContext = createContext<AuthContextValue>({
   user: null,
@@ -104,87 +66,27 @@ const AuthContext = createContext<AuthContextValue>({
   refreshSession: async () => false,
 });
 
-export function useAuth(): AuthContextValue {
-  return useContext(AuthContext);
-}
-
-// ─── Provider ─────────────────────────────────────────────────────────────────
+export function useAuth(): AuthContextValue { return useContext(AuthContext); }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<AuthState>({
-    user: null,
-    isLoading: true,
-    isAuthenticated: false,
-  });
-
-  // Ref so the token getter closure always has the latest value without
-  // causing unnecessary re-renders or stale captures.
+  const [state, setState] = useState<AuthState>({ user: null, isLoading: true, isAuthenticated: false });
   const accessTokenRef = useRef<string | null>(null);
 
-  // Register the token getter once — customFetch will call this before every
-  // authenticated request.
   useEffect(() => {
-    setAuthTokenGetter(async () => {
-      const stored = await SecureStore.getItemAsync(KEYS.ACCESS_TOKEN);
-      return stored;
-    });
-    return () => {
-      setAuthTokenGetter(null);
-    };
+    setAuthTokenGetter(async () => SecureStore.getItemAsync(KEYS.ACCESS_TOKEN));
+    return () => setAuthTokenGetter(null);
   }, []);
 
-  // ── Restore session on mount ────────────────────────────────────────────────
-  useEffect(() => {
-    let cancelled = false;
-
-    async function restore() {
-      try {
-        const [storedUser, storedAccess] = await Promise.all([
-          SecureStore.getItemAsync(KEYS.USER),
-          SecureStore.getItemAsync(KEYS.ACCESS_TOKEN),
-        ]);
-
-        if (!storedUser || !storedAccess) {
-          if (!cancelled) {
-            setState({ user: null, isLoading: false, isAuthenticated: false });
-          }
-          return;
-        }
-
-        const user = JSON.parse(storedUser) as AuthUser;
-        accessTokenRef.current = storedAccess;
-
-        if (!cancelled) {
-          setState({ user, isLoading: false, isAuthenticated: true });
-        }
-      } catch {
-        if (!cancelled) {
-          setState({ user: null, isLoading: false, isAuthenticated: false });
-        }
-      }
-    }
-
-    restore();
-    return () => {
-      cancelled = true;
-    };
+  const persist = useCallback(async (user: AuthUser, accessToken: string, refreshToken: string) => {
+    accessTokenRef.current = accessToken;
+    await Promise.all([
+      SecureStore.setItemAsync(KEYS.ACCESS_TOKEN, accessToken),
+      SecureStore.setItemAsync(KEYS.REFRESH_TOKEN, refreshToken),
+      SecureStore.setItemAsync(KEYS.USER, JSON.stringify(user)),
+    ]);
   }, []);
 
-  // ── Persist helpers ─────────────────────────────────────────────────────────
-
-  const _persist = useCallback(
-    async (user: AuthUser, accessToken: string, refreshToken: string) => {
-      accessTokenRef.current = accessToken;
-      await Promise.all([
-        SecureStore.setItemAsync(KEYS.ACCESS_TOKEN, accessToken),
-        SecureStore.setItemAsync(KEYS.REFRESH_TOKEN, refreshToken),
-        SecureStore.setItemAsync(KEYS.USER, JSON.stringify(user)),
-      ]);
-    },
-    [],
-  );
-
-  const _clear = useCallback(async () => {
+  const clear = useCallback(async () => {
     accessTokenRef.current = null;
     await Promise.all([
       SecureStore.deleteItemAsync(KEYS.ACCESS_TOKEN),
@@ -193,78 +95,69 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     ]);
   }, []);
 
-  // ── refreshSession ──────────────────────────────────────────────────────────
-
   const refreshSession = useCallback(async (): Promise<boolean> => {
     try {
-      const storedRefresh = await SecureStore.getItemAsync(KEYS.REFRESH_TOKEN);
-      if (!storedRefresh) return false;
-
-      const data = await apiPost<TokensResponse>('/auth/refresh', {
-        refreshToken: storedRefresh,
-      });
-
-      await _persist(data.user, data.accessToken, data.refreshToken);
+      const refreshToken = await SecureStore.getItemAsync(KEYS.REFRESH_TOKEN);
+      if (!refreshToken) return false;
+      const data = await apiRequest<TokensResponse>('/auth/refresh', 'POST', { refreshToken });
+      await persist(data.user, data.accessToken, data.refreshToken);
       setState({ user: data.user, isLoading: false, isAuthenticated: true });
       return true;
     } catch {
-      await _clear();
+      await clear();
       setState({ user: null, isLoading: false, isAuthenticated: false });
       return false;
     }
-  }, [_persist, _clear]);
+  }, [persist, clear]);
 
-  // ── login ───────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    let cancelled = false;
+    async function restore() {
+      try {
+        const accessToken = await SecureStore.getItemAsync(KEYS.ACCESS_TOKEN);
+        if (!accessToken) {
+          if (!cancelled) setState({ user: null, isLoading: false, isAuthenticated: false });
+          return;
+        }
 
-  const login = useCallback(
-    async (email: string, password: string, deviceId?: string) => {
-      const data = await apiPost<TokensResponse>('/auth/login', {
-        email,
-        password,
-        deviceId,
-        platform: 'mobile',
-      });
+        accessTokenRef.current = accessToken;
+        const data = await apiRequest<{ user: AuthUser }>('/auth/me', 'GET', undefined, accessToken);
+        const refreshToken = await SecureStore.getItemAsync(KEYS.REFRESH_TOKEN);
+        if (!refreshToken) throw new Error('Missing refresh token');
+        await SecureStore.setItemAsync(KEYS.USER, JSON.stringify(data.user));
+        if (!cancelled) setState({ user: data.user, isLoading: false, isAuthenticated: true });
+      } catch {
+        if (!cancelled) {
+          const refreshed = await refreshSession();
+          if (!refreshed) await clear();
+        }
+      }
+    }
+    void restore();
+    return () => { cancelled = true; };
+  }, [refreshSession, clear]);
 
-      await _persist(data.user, data.accessToken, data.refreshToken);
-      setState({ user: data.user, isLoading: false, isAuthenticated: true });
-    },
-    [_persist],
-  );
+  const login = useCallback(async (email: string, password: string, deviceId?: string) => {
+    const data = await apiRequest<TokensResponse>('/auth/login', 'POST', { email, password, deviceId, platform: 'mobile' });
+    await persist(data.user, data.accessToken, data.refreshToken);
+    setState({ user: data.user, isLoading: false, isAuthenticated: true });
+  }, [persist]);
 
-  // ── register ────────────────────────────────────────────────────────────────
-
-  const register = useCallback(
-    async (params: RegisterParams) => {
-      const data = await apiPost<TokensResponse>('/auth/register', {
-        ...params,
-        platform: 'mobile',
-      });
-
-      await _persist(data.user, data.accessToken, data.refreshToken);
-      setState({ user: data.user, isLoading: false, isAuthenticated: true });
-    },
-    [_persist],
-  );
-
-  // ── logout ──────────────────────────────────────────────────────────────────
+  const register = useCallback(async (params: RegisterParams) => {
+    const data = await apiRequest<TokensResponse>('/auth/register', 'POST', { ...params, platform: 'mobile' });
+    await persist(data.user, data.accessToken, data.refreshToken);
+    setState({ user: data.user, isLoading: false, isAuthenticated: true });
+  }, [persist]);
 
   const logout = useCallback(async () => {
     try {
-      const token = accessTokenRef.current ?? (await SecureStore.getItemAsync(KEYS.ACCESS_TOKEN));
-      if (token) {
-        await apiPost('/auth/logout', {}, token).catch(() => {});
-      }
+      const token = accessTokenRef.current ?? await SecureStore.getItemAsync(KEYS.ACCESS_TOKEN);
+      if (token) await apiRequest('/auth/logout', 'POST', {}, token).catch(() => {});
     } finally {
-      await _clear();
+      await clear();
       setState({ user: null, isLoading: false, isAuthenticated: false });
     }
-  }, [_clear]);
+  }, [clear]);
 
-  return (
-    <AuthContext.Provider
-      value={{ ...state, login, register, logout, refreshSession }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={{ ...state, login, register, logout, refreshSession }}>{children}</AuthContext.Provider>;
 }
