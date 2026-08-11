@@ -9,11 +9,12 @@ import { getFontFamily } from '@/constants/fonts';
 interface SearchBarProps {
   value: string;
   onChangeText: (text: string) => void;
+  onSubmit?: () => void;
   placeholder?: string;
   isRTL?: boolean;
 }
 
-export default function SearchBar({ value, onChangeText, placeholder, isRTL = false }: SearchBarProps) {
+export default function SearchBar({ value, onChangeText, onSubmit, placeholder, isRTL = false }: SearchBarProps) {
   const { isRTL: rtlContext } = useLanguage();
   const rtl = isRTL || rtlContext;
   const fontFam = getFontFamily(rtl, 'regular');
@@ -36,6 +37,7 @@ export default function SearchBar({ value, onChangeText, placeholder, isRTL = fa
         style={inputStyle}
         returnKeyType="search"
         autoCorrect={false}
+        onSubmitEditing={onSubmit}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
       />
@@ -47,10 +49,6 @@ export default function SearchBar({ value, onChangeText, placeholder, isRTL = fa
           onPress={() => onChangeText('')}
         />
       )}
-      <View style={[styles.actionIcons, { flexDirection: rtl ? 'row-reverse' : 'row' }]}>
-        <Ionicons name="mic-outline" size={19} color={colors.light.mutedForeground} style={{ marginHorizontal: 4 }} />
-        <Ionicons name="camera-outline" size={19} color={colors.light.mutedForeground} style={{ marginHorizontal: 4 }} />
-      </View>
     </View>
   );
 }
@@ -79,17 +77,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.12,
     shadowRadius: 12,
   },
-  blurLayer: {
-    borderRadius: 999,
-  },
+  blurLayer: { borderRadius: 999 },
   input: {
     flex: 1,
     fontSize: 15,
     color: colors.light.foreground,
     padding: 0,
   },
-  actionIcons: {
-    alignItems: 'center',
-    gap: 4,
-  }
 });
