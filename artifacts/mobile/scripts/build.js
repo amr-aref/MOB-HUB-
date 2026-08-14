@@ -524,6 +524,13 @@ function updateManifests(manifests, timestamp, baseUrl, assetsByHash) {
 async function main() {
   console.log('Building static Expo Go deployment...');
 
+  // GitHub Actions / CI: this script is a Replit static-export deploy path that
+  // requires Metro + a public domain. Typecheck already validates the app in CI.
+  if (process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true') {
+    console.log('CI detected: skipping Replit-only Expo static deploy build');
+    process.exit(0);
+  }
+
   setupSignalHandlers();
 
   const domain = getDeploymentDomain();
