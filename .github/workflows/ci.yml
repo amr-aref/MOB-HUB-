@@ -53,7 +53,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if git grep -n -i -E 'stripe|paymentIntent|payment_intent|checkout|createOrder|orderCheckout' -- ':!P2-UX-POLISH.md' ':!P2-UX-CHECKLIST.md'; then
+          # Scan implementation trees only (docs/prompts intentionally discuss forbidden payment concepts).
+          if git grep -n -i -E 'stripe|paymentIntent|payment_intent|checkout|createOrder|orderCheckout' -- \
+            'artifacts' 'lib' 'scripts'; then
             echo 'Forbidden purchase/payment implementation detected.' >&2
             exit 1
           fi
