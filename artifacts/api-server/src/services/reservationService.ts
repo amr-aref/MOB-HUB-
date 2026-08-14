@@ -62,8 +62,9 @@ export class ReservationTransitionError extends Error {
 //
 // 'expired' is a system-only terminal state reached when a pending reservation
 // passes its expiresAt deadline without merchant action.
+// Exported for unit tests (pure domain rule).
 
-const ALLOWED_TRANSITIONS: Record<ReservationStatus, ReservationStatus[]> = {
+export const ALLOWED_TRANSITIONS: Record<ReservationStatus, ReservationStatus[]> = {
   pending:   ["confirmed", "declined", "cancelled", "expired"],
   confirmed: ["completed", "cancelled"],
   declined:  [],
@@ -72,8 +73,8 @@ const ALLOWED_TRANSITIONS: Record<ReservationStatus, ReservationStatus[]> = {
   completed: [],
 };
 
-
-function assertTransition(from: string, to: ReservationStatus): void {
+/** Assert that a status transition is allowed by the domain state machine. Exported for unit tests. */
+export function assertTransition(from: string, to: ReservationStatus): void {
   const allowed = ALLOWED_TRANSITIONS[from as ReservationStatus] ?? [];
   if (!allowed.includes(to)) {
     throw new ReservationTransitionError(from, to);
@@ -94,8 +95,9 @@ function defaultExpiresAt(): Date {
  * Returns true when a DB error is a unique-constraint violation (PG code 23505).
  * Drizzle wraps the PG error in `_DrizzleQueryError`; the original PG error
  * lives in `err.cause.code`.
+ * Exported for unit tests.
  */
-function isUniqueViolation(err: unknown): boolean {
+export function isUniqueViolation(err: unknown): boolean {
   if (typeof err !== "object" || err === null) return false;
   const e = err as Record<string, unknown>;
 
