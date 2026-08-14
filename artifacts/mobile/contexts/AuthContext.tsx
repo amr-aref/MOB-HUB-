@@ -25,6 +25,7 @@ export interface RegisterParams {
   password: string;
   name: string;
   nameAr?: string;
+  role?: 'buyer' | 'merchant';
   deviceId?: string;
 }
 

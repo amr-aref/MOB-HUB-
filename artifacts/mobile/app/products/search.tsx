@@ -3,7 +3,7 @@ import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, Text, u
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useGetProducts } from '@workspace/api-client-react';
+import { getGetProductsQueryKey, useGetProducts } from '@workspace/api-client-react';
 import ProductCard from '@/components/ProductCard';
 import colors from '@/constants/colors';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -17,9 +17,15 @@ export default function SearchResultsScreen() {
   const insets = useSafeAreaInsets();
   const { isTablet } = useLayout();
   const { width } = useWindowDimensions();
+  const params = search ? { search } : undefined;
   const { data: products = [], isLoading } = useGetProducts(
-    search ? { search } : undefined,
-    { query: { enabled: Boolean(search) } },
+    params,
+    {
+      query: {
+        enabled: Boolean(search),
+        queryKey: getGetProductsQueryKey(params),
+      },
+    },
   );
 
   const topInset = isTablet ? 24 : Platform.OS === 'web' ? 67 : insets.top;
