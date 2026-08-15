@@ -8,94 +8,58 @@ import {
   markNotificationRead,
   toNotificationDto,
 } from "../services/notificationService";
+import { requireAuth } from "../middlewares/authenticate";
 
 const router: IRouter = Router();
 
-// GET /notifications?userId= — list a recipient's notifications, newest first.
+// All notification routes require an authenticated session.
+// Recipient identity is ALWAYS derived from req.user.sub — client-supplied
+// userId query/body params are ignored for authorization.
+router.use(requireAuth);
+
+// GET /notifications — list the authenticated user's notifications, newest first.
 router.get("/notifications", async (req, res) => {
-  const userId = typeof req.query.userId === "string" ? req.query.userId : undefined;
-
-  if (!userId) {
-    res.status(400).json({ error: "userId is required" });
-    return;
-  }
-
+  const userId = req.user!.sub;
   const rows = await listNotifications(userId);
   res.json(rows.map(toNotificationDto));
 });
 
-// GET /notifications/unread-count?userId= — badge count.
+// GET /notifications/unread-count — badge count for the authenticated user.
 // Registered before /notifications/:id so "unread-count" isn't treated as an id.
 router.get("/notifications/unread-count", async (req, res) => {
-  const userId = typeof req.query.userId === "string" ? req.query.userId : undefined;
-
-  if (!userId) {
-    res.status(400).json({ error: "userId is required" });
-    return;
-  }
-
+  const userId = req.user!.sub;
   const unreadCount = await getUnreadCount(userId);
   res.json({ unreadCount });
 });
 
-// PATCH /notifications/read-all — mark every notification read for a recipient.
-// Body: { userId }
+// PATCH /notifications/read-all — mark every notification read for the authenticated user.
 router.patch("/notifications/read-all", async (req, res) => {
-  const { userId } = req.body as { userId?: string };
-
-  if (!userId) {
-    res.status(400).json({ error: "userId is required" });
-    return;
-  }
-
+  const userId = req.user!.sub;
   await markAllNotificationsRead(userId);
   res.json({ success: true });
 });
 
-// GET /notifications/:id?userId= — fetch a single notification.
-// Requires userId query param; returns 403 if the notification belongs to a different user.
+// GET /notifications/:id — fetch a single notification owned by the authenticated user.
+// Returns 404 (not 403) when missing or not owned to reduce enumeration.
 router.get("/notifications/:id", async (req, res) => {
-  const userId = typeof req.query.userId === "string" ? req.query.userId : undefined;
-
-  if (!userId) {
-    res.status(400).json({ error: "userId is required" });
-    return;
-  }
-
+  const userId = req.user!.sub;
   const row = await getNotification(req.params.id);
 
-  if (!row) {
+  if (!row || row.userId !== userId) {
     res.status(404).json({ error: "Notification not found" });
-    return;
-  }
-
-  if (row.userId !== userId) {
-    res.status(403).json({ error: "Forbidden" });
     return;
   }
 
   res.json(toNotificationDto(row));
 });
 
-// PATCH /notifications/:id/read?userId= — mark a single notification read.
-// Requires userId query param; 403 if the notification belongs to a different user.
+// PATCH /notifications/:id/read — mark a single notification read.
 router.patch("/notifications/:id/read", async (req, res) => {
-  const userId = typeof req.query.userId === "string" ? req.query.userId : undefined;
-
-  if (!userId) {
-    res.status(400).json({ error: "userId is required" });
-    return;
-  }
-
+  const userId = req.user!.sub;
   const existing = await getNotification(req.params.id);
 
-  if (!existing) {
+  if (!existing || existing.userId !== userId) {
     res.status(404).json({ error: "Notification not found" });
-    return;
-  }
-
-  if (existing.userId !== userId) {
-    res.status(403).json({ error: "Forbidden" });
     return;
   }
 
@@ -109,25 +73,13 @@ router.patch("/notifications/:id/read", async (req, res) => {
   res.json(toNotificationDto(updated));
 });
 
-// DELETE /notifications/:id?userId= — delete a notification.
-// Requires userId query param; 403 if the notification belongs to a different user.
+// DELETE /notifications/:id — delete a notification owned by the authenticated user.
 router.delete("/notifications/:id", async (req, res) => {
-  const userId = typeof req.query.userId === "string" ? req.query.userId : undefined;
-
-  if (!userId) {
-    res.status(400).json({ error: "userId is required" });
-    return;
-  }
-
+  const userId = req.user!.sub;
   const existing = await getNotification(req.params.id);
 
-  if (!existing) {
+  if (!existing || existing.userId !== userId) {
     res.status(404).json({ error: "Notification not found" });
-    return;
-  }
-
-  if (existing.userId !== userId) {
-    res.status(403).json({ error: "Forbidden" });
     return;
   }
 
