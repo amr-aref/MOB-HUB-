@@ -16,7 +16,7 @@ export interface RefreshTokenPayload {
   tokenId: string;
 }
 
-const USER_ROLES: readonly UserRole[] = ["buyer", "merchant", "admin"];
+const USER_ROLES: readonly UserRole[] = ["buyer", "merchant", "moderator", "admin"];
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
