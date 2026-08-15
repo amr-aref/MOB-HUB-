@@ -25,9 +25,9 @@ import {
   useCreateReservation,
   useGetReservations,
   getGetReservationsQueryKey,
+  getGetStoreQueryKey,
 } from '@workspace/api-client-react';
 import { useDeviceId } from '@/hooks/useDeviceId';
-import RatingStars from '@/components/RatingStars';
 import { useLayout } from '@/hooks/useLayout';
 
 const STATUS_META: Record<string, {
@@ -46,11 +46,16 @@ export default function ProductScreen() {
   const { isRTL, language } = useLanguage();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { isFavorite, toggleFavorite } = useFavorites();
+  const { isProductFavorite, toggleFavoriteProduct } = useFavorites();
   const { isTablet } = useLayout();
 
   const { data: product, isLoading: loadingProduct } = useGetProduct(id!);
-  const { data: store } = useGetStore(product?.storeId ?? '', { query: { enabled: !!product?.storeId } });
+  const { data: store } = useGetStore(product?.storeId ?? '', {
+    query: {
+      enabled: !!product?.storeId,
+      queryKey: getGetStoreQueryKey(product?.storeId ?? ''),
+    },
+  });
   const { data: relatedProductsData = [] } = useGetProducts(
     { category: product?.category ?? '', excludeId: id },
     { query: { enabled: !!product?.category, queryKey: ['getProducts', product?.category ?? ''] } },
@@ -185,8 +190,8 @@ export default function ProductScreen() {
           <Pressable style={[styles.backBtnAbs, { top: (Platform.OS === 'web' ? 67 : insets.top) + 8, left: isRTL ? undefined : 16, right: isRTL ? 16 : undefined }]} onPress={() => router.back()}>
             <Ionicons name={isRTL ? 'chevron-forward' : 'chevron-back'} size={22} color={colors.light.foreground} />
           </Pressable>
-          <Pressable style={[styles.favBtnAbs, { top: (Platform.OS === 'web' ? 67 : insets.top) + 8, right: isRTL ? undefined : 16, left: isRTL ? 16 : undefined }]} onPress={() => toggleFavorite(product.id)}>
-            <Ionicons name={isFavorite(product.id) ? 'heart' : 'heart-outline'} size={22} color={isFavorite(product.id) ? colors.light.destructive : colors.light.foreground} />
+          <Pressable style={[styles.favBtnAbs, { top: (Platform.OS === 'web' ? 67 : insets.top) + 8, right: isRTL ? undefined : 16, left: isRTL ? 16 : undefined }]} onPress={() => toggleFavoriteProduct(product.id)}>
+            <Ionicons name={isProductFavorite(product.id) ? 'heart' : 'heart-outline'} size={22} color={isProductFavorite(product.id) ? colors.light.destructive : colors.light.foreground} />
           </Pressable>
         </View>
 
