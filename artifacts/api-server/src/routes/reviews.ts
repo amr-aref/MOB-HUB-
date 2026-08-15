@@ -1,13 +1,12 @@
 import { randomUUID } from "crypto";
 import { Router, type IRouter } from "express";
 import { db } from "@workspace/db";
-import { reviewsTable, storesTable } from "@workspace/db/schema";
+import { reviewsTable, storesTable, usersTable } from "@workspace/db/schema";
 import { and, avg, count as sqlCount, eq } from "drizzle-orm";
 import { createNotification } from "../services/notificationService";
+import { requireAuth } from "../middlewares/authenticate";
 
 const router: IRouter = Router();
-
-// ─── DTO mapping ──────────────────────────────────────────────────────────────
 
 export function toReviewDto(row: typeof reviewsTable.$inferSelect) {
   return {
@@ -30,8 +29,6 @@ export function toReviewDto(row: typeof reviewsTable.$inferSelect) {
   };
 }
 
-// ─── Validation helpers ────────────────────────────────────────────────────────
-
 interface ValidCreateData {
   author: string;
   authorAr: string;
@@ -39,7 +36,6 @@ interface ValidCreateData {
   title: string;
   textEn: string;
   textAr: string;
-  userId: string | undefined;
 }
 
 interface ValidUpdateData {
@@ -47,7 +43,6 @@ interface ValidUpdateData {
   title: string;
   textEn: string;
   textAr: string;
-  userId: string;
 }
 
 function validateCreateBody(
@@ -65,8 +60,6 @@ function validateCreateBody(
   const textEn = typeof b.textEn === "string" ? b.textEn.trim() : "";
   const textAr = typeof b.textAr === "string" ? b.textAr.trim() : textEn;
   const title = typeof b.title === "string" ? b.title.trim().slice(0, 100) : "";
-  const userId =
-    typeof b.userId === "string" && b.userId.length > 0 ? b.userId : undefined;
 
   if (author.length < 2) errors.push("Author name must be at least 2 characters");
   if (author.length > 60) errors.push("Author name is too long (max 60 characters)");
@@ -94,7 +87,6 @@ function validateCreateBody(
       title,
       textEn,
       textAr: textAr || textEn,
-      userId,
     },
   };
 }
@@ -112,7 +104,6 @@ function validateUpdateBody(
   const textEn = typeof b.textEn === "string" ? b.textEn.trim() : "";
   const textAr = typeof b.textAr === "string" ? b.textAr.trim() : textEn;
   const title = typeof b.title === "string" ? b.title.trim().slice(0, 100) : "";
-  const userId = typeof b.userId === "string" ? b.userId : "";
 
   if (
     typeof rating !== "number" ||
@@ -124,22 +115,15 @@ function validateUpdateBody(
   }
   if (textEn.length < 10) errors.push("Review text must be at least 10 characters");
   if (textEn.length > 1000) errors.push("Review text is too long (max 1000 characters)");
-  if (!userId) errors.push("userId is required");
 
   if (errors.length > 0) return { ok: false, errors };
 
   return {
     ok: true,
-    data: { rating: rating as number, title, textEn, textAr: textAr || textEn, userId },
+    data: { rating: rating as number, title, textEn, textAr: textAr || textEn },
   };
 }
 
-// ─── Rating recalculation ──────────────────────────────────────────────────────
-//
-// Accepts a Drizzle transaction client so callers can include this in the same
-// transaction as the review write — making the store-rating update atomic with
-// the review insert/update/delete that triggered it.
-//
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function recalculateStoreRating(storeId: string, client: any = db): Promise<void> {
   const [result] = await client
@@ -157,8 +141,6 @@ async function recalculateStoreRating(storeId: string, client: any = db): Promis
     .where(eq(storesTable.id, storeId));
 }
 
-// ─── ID + date helpers ─────────────────────────────────────────────────────────
-
 function generateId(): string {
   return `rev_${randomUUID()}`;
 }
@@ -171,12 +153,20 @@ function formatDisplayDate(): string {
   });
 }
 
-// ─── POST /stores/:id/reviews ─────────────────────────────────────────────────
+async function resolveMerchantUserId(storeId: string): Promise<string | null> {
+  const [user] = await db
+    .select({ id: usersTable.id })
+    .from(usersTable)
+    .where(eq(usersTable.storeId, storeId))
+    .limit(1);
+  return user?.id ?? null;
+}
 
-router.post("/stores/:id/reviews", async (req, res) => {
+// POST /stores/:id/reviews — authenticated; userId from session
+router.post("/stores/:id/reviews", requireAuth, async (req, res) => {
   const storeId = req.params.id;
+  const sessionUserId = req.user!.sub;
 
-  // Verify store exists
   const [store] = await db
     .select({ id: storesTable.id })
     .from(storesTable)
@@ -193,34 +183,28 @@ router.post("/stores/:id/reviews", async (req, res) => {
     return;
   }
 
-  const { author, authorAr, rating, title, textEn, textAr, userId } = validation.data;
+  const { author, authorAr, rating, title, textEn, textAr } = validation.data;
 
-  // Prevent duplicate review from the same device
-  if (userId) {
-    const [existing] = await db
-      .select({ id: reviewsTable.id })
-      .from(reviewsTable)
-      .where(and(eq(reviewsTable.storeId, storeId), eq(reviewsTable.userId, userId)));
+  const [existing] = await db
+    .select({ id: reviewsTable.id })
+    .from(reviewsTable)
+    .where(and(eq(reviewsTable.storeId, storeId), eq(reviewsTable.userId, sessionUserId)));
 
-    if (existing) {
-      res.status(409).json({
-        error: "You have already reviewed this store",
-        code: "DUPLICATE_REVIEW",
-      });
-      return;
-    }
+  if (existing) {
+    res.status(409).json({
+      error: "You have already reviewed this store",
+      code: "DUPLICATE_REVIEW",
+    });
+    return;
   }
 
-  // ── Atomic: insert review + recalculate store rating in one transaction ────────
-  // Without a transaction, a crash between the insert and the rating update
-  // would leave the store with a stale rating.
   const newReview = await db.transaction(async (tx) => {
     const [review] = await tx
       .insert(reviewsTable)
       .values({
         id: generateId(),
         storeId,
-        userId: userId ?? null,
+        userId: sessionUserId,
         author,
         authorAr,
         rating,
@@ -233,28 +217,29 @@ router.post("/stores/:id/reviews", async (req, res) => {
       .returning();
 
     await recalculateStoreRating(storeId, tx);
-
     return review;
   });
 
-  // Notify the store owner — fire-and-forget outside the transaction.
-  await createNotification({
-    userId: storeId,
-    type: "review_received",
-    titleAr: "تقييم جديد",
-    titleEn: "New Review",
-    bodyAr: `${authorAr} قيّم متجرك بـ ${rating} نجوم`,
-    bodyEn: `${author} rated your store ${rating} stars`,
-    metadata: { reviewId: newReview.id, storeId, rating },
-  });
+  const merchantUserId = await resolveMerchantUserId(storeId);
+  if (merchantUserId) {
+    await createNotification({
+      userId: merchantUserId,
+      type: "review_received",
+      titleAr: "تقييم جديد",
+      titleEn: "New Review",
+      bodyAr: `${authorAr} قيّم متجرك بـ ${rating} نجوم`,
+      bodyEn: `${author} rated your store ${rating} stars`,
+      metadata: { reviewId: newReview.id, storeId, rating },
+    });
+  }
 
   res.status(201).json(toReviewDto(newReview));
 });
 
-// ─── PUT /reviews/:id ─────────────────────────────────────────────────────────
-
-router.put("/reviews/:id", async (req, res) => {
+// PUT /reviews/:id — owner only (session)
+router.put("/reviews/:id", requireAuth, async (req, res) => {
   const { id } = req.params;
+  const sessionUserId = req.user!.sub;
 
   const [review] = await db
     .select()
@@ -266,21 +251,19 @@ router.put("/reviews/:id", async (req, res) => {
     return;
   }
 
+  if (!review.userId || review.userId !== sessionUserId) {
+    res.status(403).json({ error: "You can only edit your own reviews" });
+    return;
+  }
+
   const validation = validateUpdateBody(req.body);
   if (!validation.ok) {
     res.status(400).json({ error: "Validation failed", details: validation.errors });
     return;
   }
 
-  const { rating, title, textEn, textAr, userId } = validation.data;
+  const { rating, title, textEn, textAr } = validation.data;
 
-  // Ownership check: only the author's device may edit
-  if (review.userId && review.userId !== userId) {
-    res.status(403).json({ error: "You can only edit your own reviews" });
-    return;
-  }
-
-  // ── Atomic: update review + recalculate store rating ──────────────────────────
   const updated = await db.transaction(async (tx) => {
     const [updatedReview] = await tx
       .update(reviewsTable)
@@ -298,11 +281,10 @@ router.put("/reviews/:id", async (req, res) => {
   res.json(toReviewDto(updated));
 });
 
-// ─── DELETE /reviews/:id?userId=<deviceId> ────────────────────────────────────
-
-router.delete("/reviews/:id", async (req, res) => {
+// DELETE /reviews/:id — owner only (session)
+router.delete("/reviews/:id", requireAuth, async (req, res) => {
   const { id } = req.params;
-  const userId = typeof req.query.userId === "string" ? req.query.userId : undefined;
+  const sessionUserId = req.user!.sub;
 
   const [review] = await db
     .select()
@@ -314,15 +296,13 @@ router.delete("/reviews/:id", async (req, res) => {
     return;
   }
 
-  // Ownership check
-  if (review.userId && review.userId !== userId) {
+  if (!review.userId || review.userId !== sessionUserId) {
     res.status(403).json({ error: "You can only delete your own reviews" });
     return;
   }
 
   const storeId = review.storeId;
 
-  // ── Atomic: delete review + recalculate store rating ──────────────────────────
   await db.transaction(async (tx) => {
     await tx.delete(reviewsTable).where(eq(reviewsTable.id, id));
     if (storeId) {
