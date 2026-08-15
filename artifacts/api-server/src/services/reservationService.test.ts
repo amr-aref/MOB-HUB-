@@ -139,8 +139,8 @@ describe("IDOR / cross-merchant protection", () => {
   });
 
   it("rejects mismatched storeId (IDOR)", () => {
-    const reservationStoreId = "store_a";
-    const actorStoreId = "store_b";
+    const reservationStoreId: string = "store_a";
+    const actorStoreId: string = "store_b";
     assert.equal(reservationStoreId === actorStoreId, false);
     const err = new ReservationForbiddenError("Only the store owner can confirm this reservation");
     assert.equal(err.name, "ReservationForbiddenError");

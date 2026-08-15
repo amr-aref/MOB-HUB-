@@ -10,6 +10,7 @@ import {
 } from "@workspace/db/schema";
 import { and, asc, desc, eq, inArray, lt, sql } from "drizzle-orm";
 import { createNotification } from "./notificationService";
+import { resolveMerchantUserId } from "./merchantIdentity";
 import { logger } from "../lib/logger";
 
 // ---------------------------------------------------------------------------
@@ -460,22 +461,30 @@ export async function createReservation(input: CreateReservationInput) {
   }
 
   // 7. Notify the merchant.
-  await createNotification({
-    userId:  product.storeId,
-    type:    "reservation_created",
-    titleAr: "طلب حجز جديد",
-    titleEn: "New Reservation Request",
-    bodyAr:  `${buyerId.slice(0, 8)}… طلب حجز جهاز ${product.nameAr}`,
-    bodyEn:  `A buyer requested a reservation for ${product.nameEn}`,
-    metadata: {
-      reservationId:  reservation.id,
-      productId,
-      productNameAr:  product.nameAr,
-      productNameEn:  product.nameEn,
-      buyerId,
-      conversationId: conversationId ?? null,
-    },
-  });
+  const merchantUserId = await resolveMerchantUserId(product.storeId);
+  if (merchantUserId) {
+    await createNotification({
+      userId:  merchantUserId,
+      type:    "reservation_created",
+      titleAr: "طلب حجز جديد",
+      titleEn: "New Reservation Request",
+      bodyAr:  `${buyerId.slice(0, 8)}… طلب حجز جهاز ${product.nameAr}`,
+      bodyEn:  `A buyer requested a reservation for ${product.nameEn}`,
+      metadata: {
+        reservationId:  reservation.id,
+        productId,
+        productNameAr:  product.nameAr,
+        productNameEn:  product.nameEn,
+        buyerId,
+        conversationId: conversationId ?? null,
+      },
+    });
+  } else {
+    logger.warn(
+      { storeId: product.storeId, reservationId: reservation.id },
+      "No merchant user found for store; reservation_created notification skipped",
+    );
+  }
 
   logger.info(
     { reservationId: reservation.id, productId, buyerId, storeId: product.storeId },
@@ -850,25 +859,35 @@ export async function cancelReservation(id: string, input: CancelReservationInpu
     await postSystemMessage(updated.result.conversationId, systemMsg);
   }
 
-  const recipientId = cancelledByBuyer ? updated.result.storeId : updated.result.buyerId;
-  await createNotification({
-    userId:  recipientId,
-    type:    "reservation_cancelled",
-    titleAr: "تم إلغاء الحجز",
-    titleEn: "Reservation Cancelled",
-    bodyAr: cancelledByBuyer
-      ? `ألغى العميل حجز جهاز ${product.nameAr}`
-      : `تم إلغاء حجزك لجهاز ${product.nameAr}`,
-    bodyEn: cancelledByBuyer
-      ? `A buyer cancelled their reservation for ${product.nameEn}`
-      : `Your reservation for ${product.nameEn} was cancelled by the store`,
-    metadata: {
-      reservationId:      id,
-      productId:          updated.result.productId,
-      cancelledBy:        updated.cancelledBy,
-      cancellationReason: cancellationReason ?? null,
-    },
-  });
+  const recipientId: string | null = cancelledByBuyer
+    ? await resolveMerchantUserId(updated.result.storeId)
+    : updated.result.buyerId;
+
+  if (cancelledByBuyer && !recipientId) {
+    logger.warn(
+      { storeId: updated.result.storeId, reservationId: id },
+      "No merchant user found for store; reservation_cancelled notification skipped",
+    );
+  } else {
+    await createNotification({
+      userId:  recipientId as string,
+      type:    "reservation_cancelled",
+      titleAr: "تم إلغاء الحجز",
+      titleEn: "Reservation Cancelled",
+      bodyAr: cancelledByBuyer
+        ? `ألغى العميل حجز جهاز ${product.nameAr}`
+        : `تم إلغاء حجزك لجهاز ${product.nameAr}`,
+      bodyEn: cancelledByBuyer
+        ? `A buyer cancelled their reservation for ${product.nameEn}`
+        : `Your reservation for ${product.nameEn} was cancelled by the store`,
+      metadata: {
+        reservationId:      id,
+        productId:          updated.result.productId,
+        cancelledBy:        updated.cancelledBy,
+        cancellationReason: cancellationReason ?? null,
+      },
+    });
+  }
 
   logger.info({ reservationId: id, cancelledBy: updated.cancelledBy }, "Reservation cancelled");
 
