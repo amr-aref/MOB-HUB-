@@ -17,6 +17,12 @@ function generateId(prefix: string): string {
   return `${prefix}_${randomUUID()}`;
 }
 
+/** Express may type route params as string | string[]; normalize to a single string. */
+function routeParam(value: string | string[] | undefined): string {
+  if (Array.isArray(value)) return value[0] ?? "";
+  return value ?? "";
+}
+
 export function toConversationDto(row: typeof conversationsTable.$inferSelect) {
   return {
     id: row.id,
@@ -100,7 +106,7 @@ router.get("/conversations", async (req, res) => {
 
 // GET /conversations/:id
 router.get("/conversations/:id", async (req, res) => {
-  const { id } = req.params;
+  const id = routeParam(req.params.id);
   const user = req.user!;
 
   const [row] = await db
@@ -205,7 +211,7 @@ router.post("/conversations", async (req, res) => {
 
 // GET /conversations/:id/messages
 router.get("/conversations/:id/messages", async (req, res) => {
-  const { id } = req.params;
+  const id = routeParam(req.params.id);
   const user = req.user!;
 
   const [conv] = await db
@@ -231,7 +237,7 @@ router.get("/conversations/:id/messages", async (req, res) => {
 // POST /conversations/:id/messages
 // sender identity is derived from the session — never from client body.
 router.post("/conversations/:id/messages", async (req, res) => {
-  const { id } = req.params;
+  const id = routeParam(req.params.id);
   const user = req.user!;
   const { content, type = "text" } = req.body as Record<string, string | undefined>;
 
@@ -321,12 +327,10 @@ router.post("/conversations/:id/messages", async (req, res) => {
         ? `${trimmedContent.slice(0, 80)}…`
         : trimmedContent;
 
-    let recipientId: string | null = null;
-    if (senderType === "buyer") {
-      recipientId = await resolveMerchantUserId(conv.storeId);
-    } else {
-      recipientId = conv.buyerId;
-    }
+    const recipientId =
+      senderType === "buyer"
+        ? await resolveMerchantUserId(conv.storeId)
+        : conv.buyerId;
 
     if (recipientId) {
       await createNotification({
@@ -346,7 +350,7 @@ router.post("/conversations/:id/messages", async (req, res) => {
 
 // PATCH /conversations/:id/read — reader type derived from session.
 router.patch("/conversations/:id/read", async (req, res) => {
-  const { id } = req.params;
+  const id = routeParam(req.params.id);
   const user = req.user!;
 
   const [conv] = await db

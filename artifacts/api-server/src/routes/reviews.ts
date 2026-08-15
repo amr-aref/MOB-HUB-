@@ -8,6 +8,12 @@ import { requireAuth } from "../middlewares/authenticate";
 
 const router: IRouter = Router();
 
+/** Express may type route params as string | string[]; normalize to a single string. */
+function routeParam(value: string | string[] | undefined): string {
+  if (Array.isArray(value)) return value[0] ?? "";
+  return value ?? "";
+}
+
 export function toReviewDto(row: typeof reviewsTable.$inferSelect) {
   return {
     id: row.id,
@@ -164,8 +170,13 @@ async function resolveMerchantUserId(storeId: string): Promise<string | null> {
 
 // POST /stores/:id/reviews — authenticated; userId from session
 router.post("/stores/:id/reviews", requireAuth, async (req, res) => {
-  const storeId = req.params.id;
+  const storeId = routeParam(req.params.id);
   const sessionUserId = req.user!.sub;
+
+  if (!storeId) {
+    res.status(400).json({ error: "Store id is required" });
+    return;
+  }
 
   const [store] = await db
     .select({ id: storesTable.id })
@@ -238,8 +249,13 @@ router.post("/stores/:id/reviews", requireAuth, async (req, res) => {
 
 // PUT /reviews/:id — owner only (session)
 router.put("/reviews/:id", requireAuth, async (req, res) => {
-  const { id } = req.params;
+  const id = routeParam(req.params.id);
   const sessionUserId = req.user!.sub;
+
+  if (!id) {
+    res.status(400).json({ error: "Review id is required" });
+    return;
+  }
 
   const [review] = await db
     .select()
@@ -283,8 +299,13 @@ router.put("/reviews/:id", requireAuth, async (req, res) => {
 
 // DELETE /reviews/:id — owner only (session)
 router.delete("/reviews/:id", requireAuth, async (req, res) => {
-  const { id } = req.params;
+  const id = routeParam(req.params.id);
   const sessionUserId = req.user!.sub;
+
+  if (!id) {
+    res.status(400).json({ error: "Review id is required" });
+    return;
+  }
 
   const [review] = await db
     .select()

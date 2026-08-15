@@ -12,6 +12,12 @@ import { requireAuth } from "../middlewares/authenticate";
 
 const router: IRouter = Router();
 
+/** Express may type route params as string | string[]; normalize to a single string. */
+function routeParam(value: string | string[] | undefined): string {
+  if (Array.isArray(value)) return value[0] ?? "";
+  return value ?? "";
+}
+
 // All notification routes require an authenticated session.
 // Recipient identity is ALWAYS derived from req.user.sub — client-supplied
 // userId query/body params are ignored for authorization.
@@ -43,7 +49,8 @@ router.patch("/notifications/read-all", async (req, res) => {
 // Returns 404 (not 403) when missing or not owned to reduce enumeration.
 router.get("/notifications/:id", async (req, res) => {
   const userId = req.user!.sub;
-  const row = await getNotification(req.params.id);
+  const id = routeParam(req.params.id);
+  const row = await getNotification(id);
 
   if (!row || row.userId !== userId) {
     res.status(404).json({ error: "Notification not found" });
@@ -56,14 +63,15 @@ router.get("/notifications/:id", async (req, res) => {
 // PATCH /notifications/:id/read — mark a single notification read.
 router.patch("/notifications/:id/read", async (req, res) => {
   const userId = req.user!.sub;
-  const existing = await getNotification(req.params.id);
+  const id = routeParam(req.params.id);
+  const existing = await getNotification(id);
 
   if (!existing || existing.userId !== userId) {
     res.status(404).json({ error: "Notification not found" });
     return;
   }
 
-  const updated = await markNotificationRead(req.params.id);
+  const updated = await markNotificationRead(id);
 
   if (!updated) {
     res.status(404).json({ error: "Notification not found" });
@@ -76,14 +84,15 @@ router.patch("/notifications/:id/read", async (req, res) => {
 // DELETE /notifications/:id — delete a notification owned by the authenticated user.
 router.delete("/notifications/:id", async (req, res) => {
   const userId = req.user!.sub;
-  const existing = await getNotification(req.params.id);
+  const id = routeParam(req.params.id);
+  const existing = await getNotification(id);
 
   if (!existing || existing.userId !== userId) {
     res.status(404).json({ error: "Notification not found" });
     return;
   }
 
-  const deleted = await deleteNotification(req.params.id);
+  const deleted = await deleteNotification(id);
 
   if (!deleted) {
     res.status(404).json({ error: "Notification not found" });
