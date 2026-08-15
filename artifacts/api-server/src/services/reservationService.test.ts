@@ -1,36 +1,31 @@
-import assert from "node:assert/strict";
+/**
+ * Pure unit tests for the reservation domain (node:test).
+ *
+ * Covers:
+ * 1. Valid state transitions (pending → confirmed|declined|cancelled|expired;
+ *    confirmed → completed|cancelled) and invalid transitions
+ * 2. Unique-constraint / product already reserved detection (isUniqueViolation)
+ * 3. IDOR: cross-merchant actions raise ReservationForbiddenError
+ * 4. Auth: unauthenticated / wrong-role blocked by requireRole middleware
+ * 5. listReservations scope contract (unscoped forbidden)
+ *
+ * No DB, no network — deterministic and isolated.
+ */
+
 import { describe, it } from "node:test";
+import assert from "node:assert/strict";
+import type { Request, Response, NextFunction } from "express";
 import {
   ALLOWED_TRANSITIONS,
   assertTransition,
   isUniqueViolation,
-  ReservationConflictError,
-  ReservationForbiddenError,
   ReservationTransitionError,
-} from "./reservationService";
+  ReservationForbiddenError,
+  ReservationConflictError,
+} from "./reservationService.js";
+import { requireRole } from "../middlewares/authorize.js";
+import { AppError } from "../lib/api-helpers.js";
 import type { ReservationStatus } from "@workspace/db/schema";
-import { AppError } from "../lib/errors";
-import { requireRole } from "../middlewares/authorize";
-
-// Minimal stand-in for Express Request used by requireRole unit tests.
-function mockReq(user?: { role: string; sub?: string; storeId?: string | null }) {
-  return { user } as Parameters<ReturnType<typeof requireRole>>[0];
-}
-
-function mockRes() {
-  return {} as Parameters<ReturnType<typeof requireRole>>[1];
-}
-
-function runMiddleware(
-  mw: ReturnType<typeof requireRole>,
-  req: Parameters<ReturnType<typeof requireRole>>[0],
-) {
-  let err: unknown;
-  mw(req, mockRes(), ((e?: unknown) => {
-    err = e;
-  }) as Parameters<ReturnType<typeof requireRole>>[2]);
-  return err;
-}
 
 describe("reservation state machine", () => {
   it("allows pending → confirmed", () => {
@@ -60,24 +55,31 @@ describe("reservation state machine", () => {
   it("rejects pending → completed", () => {
     assert.throws(
       () => assertTransition("pending", "completed"),
-      (err: unknown) => err instanceof ReservationTransitionError,
+      (err: unknown) =>
+        err instanceof ReservationTransitionError &&
+        /pending.*completed/.test((err as Error).message),
     );
   });
 
   it("rejects confirmed → declined", () => {
     assert.throws(
       () => assertTransition("confirmed", "declined"),
-      (err: unknown) => err instanceof ReservationTransitionError,
+      ReservationTransitionError,
     );
   });
 
   it("rejects transitions from terminal states", () => {
     const terminals: ReservationStatus[] = ["declined", "cancelled", "expired", "completed"];
     for (const from of terminals) {
-      assert.throws(
-        () => assertTransition(from, "pending" as ReservationStatus),
-        (err: unknown) => err instanceof ReservationTransitionError,
-      );
+      for (const to of ["pending", "confirmed", "declined", "cancelled", "expired", "completed"] as ReservationStatus[]) {
+        if (from === to) continue;
+        if ((ALLOWED_TRANSITIONS[from] ?? []).includes(to)) continue;
+        assert.throws(
+          () => assertTransition(from, to),
+          ReservationTransitionError,
+          `expected ${from} → ${to} to be rejected`,
+        );
+      }
     }
   });
 
@@ -151,9 +153,25 @@ describe("IDOR / cross-merchant protection", () => {
   });
 });
 
+function mockReq(user?: { sub?: string; role?: string; storeId?: string | null }): Partial<Request> {
+  return { user } as Partial<Request>;
+}
+
+function runMiddleware(
+  mw: (req: Request, res: Response, next: NextFunction) => void,
+  req: Partial<Request>,
+): unknown {
+  let captured: unknown;
+  const next: NextFunction = (err?: unknown) => {
+    captured = err;
+  };
+  mw(req as Request, {} as Response, next);
+  return captured;
+}
+
 describe("requireRole authorization guard", () => {
   it("rejects missing user (unauthenticated)", () => {
-    const err = runMiddleware(requireRole("merchant", "admin"), mockReq(undefined));
+    const err = runMiddleware(requireRole("merchant", "admin"), mockReq());
     assert.ok(err instanceof AppError);
     assert.equal((err as AppError).status, 401);
     assert.equal((err as AppError).code, "UNAUTHORIZED");
@@ -212,9 +230,8 @@ describe("merchant notification identity regression (BUG-01)", () => {
       "cancelReservation must not use reservation.storeId as merchant notification userId",
     );
 
-    // Required fix patterns — merchant resolved via users.storeId lookup.
+    // Required fix patterns — merchant resolved via resolveMerchantUserId helper.
     assert.match(source, /resolveMerchantUserId/);
-    assert.match(source, /usersTable/);
-    assert.match(source, /eq\(usersTable\.storeId,\s*storeId\)/);
+    assert.match(source, /from ["']\.\/merchantIdentity["']/);
   });
 });
