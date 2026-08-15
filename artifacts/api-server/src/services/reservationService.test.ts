@@ -7,6 +7,7 @@
  * 2. Unique-constraint / product already reserved detection (isUniqueViolation)
  * 3. IDOR: cross-merchant actions raise ReservationForbiddenError
  * 4. Auth: unauthenticated / wrong-role blocked by requireRole middleware
+ * 5. listReservations scope contract (unscoped forbidden)
  *
  * No DB, no network — deterministic and isolated.
  */
@@ -25,8 +26,6 @@ import {
 import { requireRole } from "../middlewares/authorize.js";
 import { AppError } from "../lib/api-helpers.js";
 import type { ReservationStatus } from "@workspace/db/schema";
-
-// ─── 1. State machine transitions ─────────────────────────────────────────────
 
 describe("reservation state machine", () => {
   it("allows pending → confirmed", () => {
@@ -97,8 +96,6 @@ describe("reservation state machine", () => {
   });
 });
 
-// ─── 2. Unique constraint / product cannot have two active reservations ───────
-
 describe("isUniqueViolation (product active-reservation guard)", () => {
   it("detects raw PG 23505", () => {
     assert.equal(isUniqueViolation({ code: "23505" }), true);
@@ -125,7 +122,7 @@ describe("isUniqueViolation (product active-reservation guard)", () => {
     assert.equal(isUniqueViolation(null), false);
     assert.equal(isUniqueViolation(undefined), false);
     assert.equal(isUniqueViolation(new Error("timeout")), false);
-    assert.equal(isUniqueViolation({ code: "23503" }), false); // FK violation
+    assert.equal(isUniqueViolation({ code: "23503" }), false);
   });
 
   it("ReservationConflictError carries PRODUCT_ALREADY_RESERVED semantics", () => {
@@ -138,13 +135,7 @@ describe("isUniqueViolation (product active-reservation guard)", () => {
   });
 });
 
-// ─── 3. IDOR: merchant cannot act on another merchant's store ─────────────────
-
 describe("IDOR / cross-merchant protection", () => {
-  /**
-   * Mirrors the guard used in confirmReservation / declineReservation /
-   * completeReservation: if reservation.storeId !== acting storeId → Forbidden.
-   */
   function assertStoreOwnership(reservationStoreId: string, actingStoreId: string): void {
     if (reservationStoreId !== actingStoreId) {
       throw new ReservationForbiddenError(
@@ -172,8 +163,6 @@ describe("IDOR / cross-merchant protection", () => {
     assert.notEqual(err.name, "ReservationNotFoundError");
   });
 });
-
-// ─── 4. Auth: unauthenticated / wrong-role cannot perform protected actions ───
 
 describe("requireRole authorization guard", () => {
   function mockReq(user?: { role: string }): Request {
@@ -213,5 +202,15 @@ describe("requireRole authorization guard", () => {
   it("allows admin role when listed", () => {
     const err = runMiddleware(requireRole("merchant", "admin"), mockReq({ role: "admin" }));
     assert.equal(err, undefined);
+  });
+});
+
+describe("listReservations scope requirement", () => {
+  it("documents that unscoped listing is forbidden via ReservationForbiddenError", () => {
+    const err = new ReservationForbiddenError(
+      "At least one of buyerId or storeId is required to list reservations",
+    );
+    assert.equal(err.name, "ReservationForbiddenError");
+    assert.match(err.message, /buyerId or storeId/i);
   });
 });

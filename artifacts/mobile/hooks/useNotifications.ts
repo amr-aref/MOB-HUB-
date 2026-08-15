@@ -16,8 +16,9 @@ import type { NotificationDto } from '@workspace/api-client-react';
  * instead of calling the generated React Query hooks directly. Keeps the
  * API/query-key details in one place per the app's Repository Pattern.
  *
- * @param userId Recipient key: buyer device UUID or seller storeId. Pass
- *               `undefined` while it's still loading — queries stay disabled.
+ * @param userId Authenticated user id (req.user.sub). Pass undefined while
+ *               auth is loading — queries stay disabled. Backend ignores
+ *               client-supplied userId and uses the session instead.
  */
 export function useNotifications(userId: string | undefined) {
   const queryClient = useQueryClient();
@@ -60,7 +61,6 @@ export function useNotifications(userId: string | undefined) {
       unreadQuery.refetch();
     },
     isRefetching: listQuery.isRefetching,
-    // Pass userId as a required query param so the server can verify ownership.
     markRead: (id: string) =>
       userId && markReadMutation.mutate({ id, params: { userId } }),
     markAllRead: () =>
