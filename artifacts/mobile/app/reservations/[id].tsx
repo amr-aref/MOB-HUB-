@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Linking,
   Platform,
   Pressable,
   ScrollView,
@@ -56,6 +55,7 @@ export default function ReservationDetailScreen() {
   // Identity comes from the authenticated token — do not send buyerId
   const { data: reservation, isLoading } = useGetReservation(
     id!,
+    undefined,
     { query: { queryKey: getGetReservationQueryKey(id!), enabled: !!id } },
   );
 
