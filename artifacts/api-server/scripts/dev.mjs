@@ -46,7 +46,7 @@ async function main() {
 
   try {
     await run(pnpmCommand, ['run', 'build'], 'build', packageDir);
-  } catch (error) {
+  } catch {
     console.error('\n[dev] Build failed. Server will not start.');
     process.exitCode = 1;
     return;
@@ -61,7 +61,7 @@ async function main() {
       'api-server',
       packageDir,
     );
-  } catch (error) {
+  } catch {
     console.error('\n[dev] API server failed to start.');
     process.exitCode = 1;
   }
