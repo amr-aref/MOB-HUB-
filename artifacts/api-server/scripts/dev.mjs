@@ -14,7 +14,7 @@ function run(command, args, label, cwd) {
       cwd,
       stdio: 'inherit',
       env: process.env,
-      shell: false,
+      shell: isWindows,
     });
 
     child.on('error', (error) => {
@@ -53,11 +53,12 @@ async function main() {
   }
 
   const entryPoint = path.resolve(packageDir, 'dist/index.mjs');
+  const envFile = path.resolve(packageDir, '../../.env');
 
   try {
     await run(
       process.execPath,
-      ['--enable-source-maps', entryPoint],
+      ['--env-file', envFile, '--enable-source-maps', entryPoint],
       'api-server',
       packageDir,
     );

@@ -7,6 +7,8 @@ const { pipeline } = require('stream/promises');
 let metroProcess = null;
 
 const projectRoot = path.resolve(__dirname, '..');
+const isWindows = process.platform === 'win32';
+const pnpmCommand = isWindows ? 'pnpm.cmd' : 'pnpm';
 
 function findWorkspaceRoot(startDir) {
   let dir = startDir;
@@ -149,11 +151,12 @@ async function startMetro(expoPublicDomain, expoPublicReplId) {
   }
 
   metroProcess = spawn(
-    'pnpm',
+    pnpmCommand,
     ['exec', 'expo', 'start', '--no-dev', '--minify', '--localhost'],
     {
       stdio: ['ignore', 'pipe', 'pipe'],
       detached: false,
+      shell: isWindows,
       cwd: projectRoot,
       env,
     },
