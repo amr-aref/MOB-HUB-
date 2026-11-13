@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { setBaseUrl } from '@workspace/api-client-react';
+import { getApiBaseUrl } from '@/constants/api';
 
-// Point the API client at the Replit dev domain (same host, /api path prefix)
-const _apiDomain = process.env['EXPO_PUBLIC_DOMAIN'];
-setBaseUrl(_apiDomain ? `https://${_apiDomain}` : 'http://localhost:8080');
+// Point the generated API client at the same origin used by AuthContext.
+setBaseUrl(getApiBaseUrl());
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';

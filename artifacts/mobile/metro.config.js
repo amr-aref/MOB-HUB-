@@ -4,20 +4,22 @@ const http = require('http');
 const config = getDefaultConfig(__dirname);
 
 /**
- * Proxy /api/* requests from the Expo web dev server to the Express API
- * server running on port 8080. This lets the browser preview make API
- * calls without requiring Replit's path-based artifact routing.
+ * Proxy /api/* from the Expo web dev server to the Express API.
+ * Default port 3000 matches root .env.example PORT.
+ * Override with API_PROXY_PORT when the API listens elsewhere.
  */
+const API_PROXY_PORT = Number(process.env.API_PROXY_PORT || process.env.PORT || 3000);
+
 config.server = config.server || {};
 config.server.enhanceMiddleware = (middleware) => {
   return (req, res, next) => {
     if (req.url && req.url.startsWith('/api')) {
       const options = {
         hostname: 'localhost',
-        port: 8080,
+        port: API_PROXY_PORT,
         path: req.url,
         method: req.method,
-        headers: { ...req.headers, host: 'localhost:8080' },
+        headers: { ...req.headers, host: `localhost:${API_PROXY_PORT}` },
       };
       const proxyReq = http.request(options, (proxyRes) => {
         res.writeHead(proxyRes.statusCode, proxyRes.headers);

@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import { setAuthTokenGetter } from '@workspace/api-client-react';
+import { getApiBaseUrl } from '@/constants/api';
 
 export interface AuthUser {
   id: string;
@@ -35,7 +36,7 @@ const KEYS = {
   USER: 'auth.user',
 } as const;
 
-const BASE_URL = process.env['EXPO_PUBLIC_DOMAIN'] ? `https://${process.env['EXPO_PUBLIC_DOMAIN']}` : 'http://localhost:8080';
+const BASE_URL = getApiBaseUrl();
 
 type TokensResponse = { accessToken: string; refreshToken: string; expiresIn: number; user: AuthUser };
 
