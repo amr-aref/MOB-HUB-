@@ -1,0 +1,23 @@
+--- a/artifacts/mobile/app/dashboard/index.tsx
++++ b/artifacts/mobile/app/dashboard/index.tsx
+@@ -14,8 +14,8 @@ import { useRouter } from 'expo-router';
+ import { LinearGradient } from 'expo-linear-gradient';
+ import colors from '@/constants/colors';
+ import { useLanguage } from '@/contexts/LanguageContext';
++import { useAuth } from '@/contexts/AuthContext';
+ import { useLayout } from '@/hooks/useLayout';
+ import {
+   useGetStore,
+   useGetProducts,
+   useGetDashboardStats,
+   useGetDashboardOrders,
+   useGetDashboardMessages,
+   useGetDashboardReviews,
+   useGetConversations,
+   getGetConversationsQueryKey,
+ } from '@workspace/api-client-react';
+ import { useNotifications } from '@/hooks/useNotifications';
+ 
+-const STORE_ID = 's1';
+-
+ const STATS = [

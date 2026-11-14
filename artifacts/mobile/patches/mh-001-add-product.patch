@@ -1,0 +1,8 @@
+--- a/artifacts/mobile/app/dashboard/add-product.tsx
++++ b/artifacts/mobile/app/dashboard/add-product.tsx
+@@ -12,6 +12,7 @@ import { useRouter } from 'expo-router';
+ import * as Haptics from 'expo-haptics';
+ import colors from '@/constants/colors';
+ import { useLanguage } from '@/contexts/LanguageContext';
++import { useAuth } from '@/contexts/AuthContext';
+ import { useCreateDashboardProduct } from '@workspace/api-client-react';
