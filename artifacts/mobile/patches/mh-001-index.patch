@@ -19,7 +19,7 @@
    { key: 'visitors', labelAr: 'الزوار', labelEn: 'Visitors', value: 620, icon: 'people-outline', color: '#7C3AED' },
 @@ -46,21 +45,9 @@
    { labelAr: 'الحجوزات', labelEn: 'Reservations', icon: 'calendar-outline', color: '#059669', route: '/dashboard/reservations' as const },
-   { labelAr: 'الفئات', labelEn: 'Categories', icon: 'grid-outline', color: '#7C3AED', route: null },
+   { labelAr: 'الفئات', labelEn: 'Categories', icon: 'Categories', icon: 'grid-outline', color: '#7C3AED', route: null },
    { labelAr: 'العروض', labelEn: 'Offers', icon: 'pricetag-outline', color: '#EA580C', route: null },
 -  { labelAr: 'التحليلات', labelEn: 'Analytics', icon: 'bar-chart-outline', color: '#0891B2', route: null },
    { labelAr: 'الموقع', labelEn: 'Location', icon: 'location-outline', color: '#DC2626', route: null },
@@ -162,7 +162,7 @@
 +      <View style={[styles.container, { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 }]}>
 +        <Ionicons name="storefront-outline" size={40} color={colors.light.mutedForeground} />
 +        <Text style={{ marginTop: 16, fontSize: 17, fontFamily: 'Inter_700Bold', color: colors.light.foreground, textAlign: 'center' }}>
-+          {language === 'ar' ? 'لا rec visable' : 'No store linked'}
++          {language === 'ar' ? 'لا يوجد متجر مرتبط' : 'No store linked'}
 +        </Text>
 +        <Text style={{ marginTop: 6, fontSize: 14, fontFamily: 'Inter_400Regular', color: colors.light.mutedForeground, textAlign: 'center' }}>
 +          {language === 'ar'
