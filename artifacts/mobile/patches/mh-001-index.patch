@@ -1,6 +1,6 @@
 --- a/artifacts/mobile/app/dashboard/index.tsx
 +++ b/artifacts/mobile/app/dashboard/index.tsx
-@@ -14,8 +14,8 @@ import { useRouter } from 'expo-router';
+@@ -15,6 +15,7 @@
  import { LinearGradient } from 'expo-linear-gradient';
  import colors from '@/constants/colors';
  import { useLanguage } from '@/contexts/LanguageContext';
@@ -8,16 +8,179 @@
  import { useLayout } from '@/hooks/useLayout';
  import {
    useGetStore,
-   useGetProducts,
-   useGetDashboardStats,
-   useGetDashboardOrders,
-   useGetDashboardMessages,
-   useGetDashboardReviews,
-   useGetConversations,
-   getGetConversationsQueryKey,
+@@ -28,8 +29,6 @@
  } from '@workspace/api-client-react';
  import { useNotifications } from '@/hooks/useNotifications';
  
 -const STORE_ID = 's1';
 -
  const STATS = [
+   { key: 'views', labelAr: 'المشاهدات', labelEn: 'Views', value: 1850, icon: 'eye-outline', color: '#2563EB' },
+   { key: 'visitors', labelAr: 'الزوار', labelEn: 'Visitors', value: 620, icon: 'people-outline', color: '#7C3AED' },
+@@ -46,21 +45,9 @@
+   { labelAr: 'الحجوزات', labelEn: 'Reservations', icon: 'calendar-outline', color: '#059669', route: '/dashboard/reservations' as const },
+   { labelAr: 'الفئات', labelEn: 'Categories', icon: 'grid-outline', color: '#7C3AED', route: null },
+   { labelAr: 'العروض', labelEn: 'Offers', icon: 'pricetag-outline', color: '#EA580C', route: null },
+-  { labelAr: 'التحليلات', labelEn: 'Analytics', icon: 'bar-chart-outline', color: '#0891B2', route: null },
+   { labelAr: 'الموقع', labelEn: 'Location', icon: 'location-outline', color: '#DC2626', route: null },
+   { labelAr: 'المعرض', labelEn: 'Gallery', icon: 'images-outline', color: '#D97706', route: null },
+   { labelAr: 'الإعدادات', labelEn: 'Settings', icon: 'settings-outline', color: '#64748B', route: null },
+-];
+-
+-const RECENT_ORDERS = [
+-  { id: 'o1', productAr: 'برو تك 14 الترا', productEn: 'Pro Tech 14 Ultra', storage: '512GB', customer: 'Sarah M.', timeAr: 'منذ ساعتين', timeEn: '2 hrs ago', status: 'PAID / RESERVED', price: 1099 },
+-  { id: 'o2', productAr: 'سامسونج S25 الترا', productEn: 'Galaxy S25 Ultra', storage: '256GB', customer: 'Ahmed K.', timeAr: 'منذ ٤ ساعات', timeEn: '4 hrs ago', status: 'RESERVED', price: 849 },
+-  { id: 'o3', productAr: 'آيفون 16 برو', productEn: 'iPhone 16 Pro', storage: '128GB', customer: 'Mona H.', timeAr: 'منذ ٦ ساعات', timeEn: '6 hrs ago', status: 'PENDING', price: 999 },
+-];
+-
+-const RECENT_MESSAGES = [
+-  { id: 'm1', customer: 'Sarah M.', productAr: 'برو تك 14 الترا (512GB)', productEn: 'Pro Tech 14 Ultra (512GB)', timeAr: 'منذ ساعتين', timeEn: '2 hrs ago', status: 'PAID / RESERVED', unread: 1 },
+-  { id: 'm2', customer: 'Ali Hassan', productAr: 'سامسونج A55', productEn: 'Samsung Galaxy A55', timeAr: 'منذ يوم', timeEn: '1 day ago', status: 'INQUIRY', unread: 0 },
+ ];
+ 
+ 
+@@ -73,32 +60,59 @@
+   const insets = useSafeAreaInsets();
+   const router = useRouter();
+   const { isTablet } = useLayout();
++  const { user, isLoading: authLoading, isAuthenticated } = useAuth();
++  const storeId = user?.storeId?.trim() || undefined;
++  const userId = user?.id?.trim() || undefined;
+   const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'analytics' | 'messages' | 'profile'>('dashboard');
+ 
+   const topInset = Platform.OS === 'web' ? 67 : insets.top;
+   const bottomInset = Platform.OS === 'web' ? 34 : 0;
+ 
+-  const { data: storeData } = useGetStore(STORE_ID);
+-  const { data: storeProducts = [] } = useGetProducts({ storeId: STORE_ID });
+-  const { data: statsData } = useGetDashboardStats({ storeId: STORE_ID });
+-  const { data: ordersData = [] } = useGetDashboardOrders({ storeId: STORE_ID });
+-  const { data: messagesData = [] } = useGetDashboardMessages({ storeId: STORE_ID });
++  const { data: storeData } = useGetStore(storeId ?? '', {
++    query: { enabled: Boolean(storeId) },
++  });
++  const { data: storeProducts = [] } = useGetProducts(
++    { storeId: storeId ?? '' },
++    { query: { enabled: Boolean(storeId) } },
++  );
++  const { data: statsData } = useGetDashboardStats(
++    { storeId: storeId ?? '' },
++    { query: { enabled: Boolean(storeId) } },
++  );
++  const { data: ordersData = [] } = useGetDashboardOrders(
++    { storeId: storeId ?? '' },
++    { query: { enabled: Boolean(storeId) } },
++  );
++  const { data: messagesData = [] } = useGetDashboardMessages(
++    { storeId: storeId ?? '' },
++    { query: { enabled: Boolean(storeId) } },
++  );
+   const { data: conversationsData = [] } = useGetConversations(
+-    { storeId: STORE_ID },
+-    { query: { queryKey: getGetConversationsQueryKey({ storeId: STORE_ID }), staleTime: 30_000 } },
++    { storeId: storeId ?? '' },
++    {
++      query: {
++        enabled: Boolean(storeId),
++        queryKey: getGetConversationsQueryKey({ storeId: storeId ?? '' }),
++        staleTime: 30_000,
++      },
++    },
+   );
+-  const { data: reviewsData = [] } = useGetDashboardReviews({ storeId: STORE_ID });
+-  const { unreadCount } = useNotifications(STORE_ID);
++  const { data: reviewsData = [] } = useGetDashboardReviews(
++    { storeId: storeId ?? '' },
++    { query: { enabled: Boolean(storeId) } },
++  );
++  // Notifications are user-scoped, not store-scoped
++  const { unreadCount } = useNotifications(userId ?? '');
+ 
+-  // Keep the STORE variable name so all existing JSX references work unchanged
+   const STORE = storeData ?? {
+-    id: STORE_ID,
+-    nameAr: 'موبايل وورلد',
+-    nameEn: 'Mobile World',
++    id: storeId ?? '',
++    nameAr: language === 'ar' ? 'متجرك' : 'Your Store',
++    nameEn: 'Your Store',
+     logoColor: '#2563EB',
+-    logoInitial: 'M',
++    logoInitial: 'S',
+     isOpen: true,
+-    isVerified: true,
++    isVerified: false,
+     address: '',
+     addressAr: '',
+   };
+@@ -121,8 +135,9 @@
+     return { ...s, value: apiVal[s.key] ?? s.value };
+   });
+ 
+-  // Dashboard list data — fall back to module-level constants if API hasn't loaded
+-  const displayOrders = ordersData.length > 0 ? ordersData : RECENT_ORDERS;
+-  const displayMessages = messagesData.length > 0 ? messagesData : RECENT_MESSAGES;
++  // MH-007: never substitute production UI with mocks
++  const displayOrders = ordersData;
++  const displayMessages = messagesData;
+   // Real conversations from the messaging system (seller-side)
+   const displayConversations = conversationsData.slice(0, 3);
+   // Use live API reviews; RECENT_REVIEWS kept as module-level fallback reference only
+@@ -142,6 +157,48 @@
+       );
+     }
+   }
++
++  if (authLoading) {
++    return (
++      <View style={[styles.container, { flex: 1, alignItems: 'center', justifyContent: 'center' }]}>
++        <Text style={{ color: colors.light.mutedForeground }}>
++          {language === 'ar' ? 'جاري التحميل...' : 'Loading...'}
++        </Text>
++      </View>
++    );
++  }
++
++  if (!isAuthenticated) {
++    return (
++      <View style={[styles.container, { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 }]}>
++        <Ionicons name="lock-closed-outline" size={40} color={colors.light.mutedForeground} />
++        <Text style={{ marginTop: 16, fontSize: 17, fontFamily: 'Inter_700Bold', color: colors.light.foreground, textAlign: 'center' }}>
++          {language === 'ar' ? 'يلزم تسجيل الدخول' : 'Login required'}
++        </Text>
++        <Text style={{ marginTop: 6, fontSize: 14, fontFamily: 'Inter_400Regular', color: colors.light.mutedForeground, textAlign: 'center' }}>
++          {language === 'ar'
++            ? 'سجّل دخولك كحساب تاجر للوصول إلى لوحة التحكم'
++            : 'Sign in with a merchant account to open the dashboard'}
++        </Text>
++      </View>
++    );
++  }
++
++  if (!storeId) {
++    return (
++      <View style={[styles.container, { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 }]}>
++        <Ionicons name="storefront-outline" size={40} color={colors.light.mutedForeground} />
++        <Text style={{ marginTop: 16, fontSize: 17, fontFamily: 'Inter_700Bold', color: colors.light.foreground, textAlign: 'center' }}>
++          {language === 'ar' ? 'لا rec visable' : 'No store linked'}
++        </Text>
++        <Text style={{ marginTop: 6, fontSize: 14, fontFamily: 'Inter_400Regular', color: colors.light.mutedForeground, textAlign: 'center' }}>
++          {language === 'ar'
++            ? 'حسابك غير مرتبط بأي متجر. تواصل مع الإدارة.'
++            : 'Your account is not linked to any store. Contact support.'}
++        </Text>
++      </View>
++    );
++  }
+ 
+   return (
+     <View style={styles.container}>
+@@ -171,7 +228,7 @@
+           <View style={[{ flexDirection: isRTL ? 'row-reverse' : 'row', gap: 8, alignItems: 'center' }]}>
+             <Pressable
+               style={styles.headerIconBtn}
+-              onPress={() => router.push({ pathname: '/notifications', params: { userId: STORE_ID } })}
++              onPress={() => router.push({ pathname: '/notifications', params: { userId: userId ?? '' } })}
+               accessibilityRole="button"
+               accessibilityLabel={language === 'ar' ? 'الإشعارات' : 'Notifications'}
+             >
