@@ -6,8 +6,8 @@ import { useRouter } from 'expo-router';
 import colors from '@/constants/colors';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useFavorites } from '@/contexts/FavoritesContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useGetStores, useGetProducts, useGetReservations, getGetReservationsQueryKey } from '@workspace/api-client-react';
-import { useDeviceId } from '@/hooks/useDeviceId';
 import StoreCard from '@/components/StoreCard';
 import ProductCard from '@/components/ProductCard';
 import { useLayout } from '@/hooks/useLayout';
@@ -15,6 +15,7 @@ import { useLayout } from '@/hooks/useLayout';
 export default function FavoritesScreen() {
   const { t, isRTL } = useLanguage();
   const { favoriteStores, favoriteProducts } = useFavorites();
+  const { isAuthenticated } = useAuth();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [tab, setTab] = useState<'stores' | 'products'>('stores');
@@ -23,10 +24,17 @@ export default function FavoritesScreen() {
   const topInset = isTablet ? 24 : (Platform.OS === 'web' ? 67 : insets.top);
   const bottomInset = isTablet ? 0 : (Platform.OS === 'web' ? 34 : 0);
 
-  const deviceId = useDeviceId();
+  // Identity comes from the authenticated token — do not send client buyerId/deviceId.
+  // Backend derives buyer from req.user.sub and ignores any client-supplied buyerId.
   const { data: myReservations = [] } = useGetReservations(
-    deviceId ? { buyerId: deviceId } : undefined,
-    { query: { queryKey: getGetReservationsQueryKey(deviceId ? { buyerId: deviceId } : undefined), enabled: !!deviceId, staleTime: 60_000 } },
+    undefined,
+    {
+      query: {
+        queryKey: getGetReservationsQueryKey(undefined),
+        enabled: isAuthenticated,
+        staleTime: 60_000,
+      },
+    },
   );
   const reservationStatusMap = new Map<string, string>(
     (myReservations as Array<{ productId: string; status: string }>).map((r) => [r.productId, r.status]),
