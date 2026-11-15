@@ -496,7 +496,7 @@ export default function StoreScreen() {
             <View style={styles.productsGrid}>
               {storeProducts.slice(0, 12).map((p) => (
                 <View key={p.id} style={styles.productWrap}>
-                  <ProductCard product={p as any} />
+                  <ProductCard product={p as any} onPress={() => router.push(`/product/${p.id}` as any)} />
                 </View>
               ))}
             </View>
@@ -516,7 +516,7 @@ export default function StoreScreen() {
               <View key={review.id} style={styles.reviewCard}>
                 <RatingStars rating={review.rating} size={14} />
                 <Text style={[styles.bodyText, { marginTop: 6, textAlign: isRTL ? "right" : "left" }]}>
-                  {language === "ar" ? review.commentAr : review.commentEn}
+                  {language === "ar" ? review.textAr : review.textEn}
                 </Text>
                 {deviceId !== null && review.userId === deviceId && (
                   <Pressable onPress={() => handleDeleteReview(review)}>
@@ -548,7 +548,7 @@ export default function StoreScreen() {
         visible={reviewFormVisible}
         onClose={() => setReviewFormVisible(false)}
         storeId={store.id}
-        existingReview={editingReview}
+        reviewToEdit={editingReview}
         deviceId={deviceId}
       />
 
