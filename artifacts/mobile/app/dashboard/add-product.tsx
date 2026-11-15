@@ -49,7 +49,6 @@ export default function AddProductScreen() {
   const [currentStep, setCurrentStep] = useState(0);
   const [isDraft, setIsDraft] = useState(false);
 
-  // Form state
   const [nameAr, setNameAr] = useState('');
   const [nameEn, setNameEn] = useState('');
   const [brand, setBrand] = useState('');
@@ -98,8 +97,7 @@ export default function AddProductScreen() {
           category: cats[category] ?? 'Other',
           condition: CONDITIONS[condition]?.value ?? 'new',
           warranty,
-          stock: Number(qty) || 1,
-          isAvailable: available,
+          inStock: available,
         },
       },
       {

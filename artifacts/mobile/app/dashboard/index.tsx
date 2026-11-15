@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState } from 'react';
+import React from 'react';
 import {
   ActivityIndicator,
   Platform,
@@ -18,12 +18,19 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLayout } from '@/hooks/useLayout';
 import {
   useGetStore,
+  getGetStoreQueryKey,
   useGetProducts,
+  getGetProductsQueryKey,
   useGetDashboardStats,
+  getGetDashboardStatsQueryKey,
   useGetDashboardOrders,
+  getGetDashboardOrdersQueryKey,
   useGetDashboardMessages,
+  getGetDashboardMessagesQueryKey,
   useGetDashboardReviews,
+  getGetDashboardReviewsQueryKey,
   useGetConversations,
+  getGetConversationsQueryKey,
 } from '@workspace/api-client-react';
 import { useNotifications } from '@/hooks/useNotifications';
 
@@ -42,38 +49,41 @@ export default function DashboardScreen() {
   const { user, isLoading: authLoading, isAuthenticated } = useAuth();
   const storeId = user?.storeId?.trim() || undefined;
   const { unreadCount } = useNotifications(user?.id);
-  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'orders'>('overview');
 
   const topInset = Platform.OS === 'web' ? 67 : insets.top;
   const bottomInset = Platform.OS === 'web' ? 34 : 0;
   const isAr = language === 'ar';
 
-  const { data: storeData, isLoading: storeLoading } = useGetStore(storeId ?? '', {
-    query: { enabled: Boolean(storeId) },
+  const storeParams = storeId ?? '';
+  const productParams = { storeId: storeId ?? '' };
+  const dashParams = { storeId: storeId ?? '' };
+
+  const { data: storeData, isLoading: storeLoading } = useGetStore(storeParams, {
+    query: { enabled: Boolean(storeId), queryKey: getGetStoreQueryKey(storeParams) },
   });
   const { data: storeProducts = [], isLoading: productsLoading } = useGetProducts(
-    { storeId: storeId ?? '' },
-    { query: { enabled: Boolean(storeId) } },
+    productParams,
+    { query: { enabled: Boolean(storeId), queryKey: getGetProductsQueryKey(productParams) } },
   );
   const { data: stats } = useGetDashboardStats(
-    { storeId: storeId ?? '' },
-    { query: { enabled: Boolean(storeId) } },
+    dashParams,
+    { query: { enabled: Boolean(storeId), queryKey: getGetDashboardStatsQueryKey(dashParams) } },
   );
   const { data: orders = [] } = useGetDashboardOrders(
-    { storeId: storeId ?? '' },
-    { query: { enabled: Boolean(storeId) } },
+    dashParams,
+    { query: { enabled: Boolean(storeId), queryKey: getGetDashboardOrdersQueryKey(dashParams) } },
   );
   const { data: messages = [] } = useGetDashboardMessages(
-    { storeId: storeId ?? '' },
-    { query: { enabled: Boolean(storeId) } },
+    dashParams,
+    { query: { enabled: Boolean(storeId), queryKey: getGetDashboardMessagesQueryKey(dashParams) } },
   );
   const { data: reviews = [] } = useGetDashboardReviews(
-    { storeId: storeId ?? '' },
-    { query: { enabled: Boolean(storeId) } },
+    dashParams,
+    { query: { enabled: Boolean(storeId), queryKey: getGetDashboardReviewsQueryKey(dashParams) } },
   );
   const { data: conversations = [] } = useGetConversations(
-    { storeId: storeId ?? '' },
-    { query: { enabled: Boolean(storeId) } },
+    dashParams,
+    { query: { enabled: Boolean(storeId), queryKey: getGetConversationsQueryKey(dashParams) } },
   );
 
   if (authLoading) {
@@ -155,7 +165,6 @@ export default function DashboardScreen() {
 
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: bottomInset + 32 }}>
         <View style={isTablet ? styles.tabletInner : undefined}>
-          {/* Quick actions */}
           <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
             {isAr ? 'إجراءات سريعة' : 'Quick actions'}
           </Text>
@@ -174,7 +183,6 @@ export default function DashboardScreen() {
             ))}
           </View>
 
-          {/* Stats */}
           <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left', marginTop: 20 }]}>
             {isAr ? 'الإحصائيات' : 'Stats'}
           </Text>
@@ -190,7 +198,6 @@ export default function DashboardScreen() {
             ))}
           </View>
 
-          {/* Products preview */}
           <View style={[styles.sectionHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <Text style={styles.sectionTitle}>{isAr ? 'المنتجات' : 'Products'}</Text>
             <Pressable onPress={() => router.push('/dashboard/products' as any)}>
@@ -222,7 +229,6 @@ export default function DashboardScreen() {
             ))
           )}
 
-          {/* Reservations CTA */}
           <Pressable
             style={[styles.ctaCard, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
             onPress={() => router.push('/dashboard/reservations' as any)}
