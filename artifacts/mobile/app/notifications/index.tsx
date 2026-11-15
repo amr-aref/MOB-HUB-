@@ -10,11 +10,11 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter } from 'expo-router';
 import colors from '@/constants/colors';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useLayout } from '@/hooks/useLayout';
-import { useDeviceId } from '@/hooks/useDeviceId';
 import { useNotifications } from '@/hooks/useNotifications';
 import type { NotificationDto } from '@workspace/api-client-react';
 
@@ -56,13 +56,11 @@ export default function NotificationsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { isTablet } = useLayout();
-  const params = useLocalSearchParams<{ userId?: string }>();
-  const deviceId = useDeviceId();
+  const { user, isAuthenticated } = useAuth();
 
-  // Screen is shared by buyer (Home/Profile) and seller (Dashboard) entry
-  // points: whichever passes ?userId= wins, otherwise fall back to the
-  // buyer's own device identity once it has loaded.
-  const userId = params.userId ?? deviceId ?? undefined;
+  // Identity always from authenticated session. Backend ignores client userId
+  // and lists notifications for req.user.sub only.
+  const userId = user?.id;
 
   const {
     notifications,
@@ -145,7 +143,19 @@ export default function NotificationsScreen() {
         </View>
       </View>
 
-      {isLoading ? (
+      {!isAuthenticated || !userId ? (
+        <View style={styles.centerState}>
+          <Ionicons name="lock-closed-outline" size={44} color={colors.light.mutedForeground} />
+          <Text style={styles.errorTitle}>
+            {isAr ? 'يلزم تسجيل الدخول' : 'Login required'}
+          </Text>
+          <Text style={[styles.emptySubtitle, { textAlign: 'center', marginTop: 8 }]}>
+            {isAr
+              ? 'سجّل دخولك لعرض إشعاراتك'
+              : 'Sign in to view your notifications'}
+          </Text>
+        </View>
+      ) : isLoading ? (
         <View style={styles.centerState}>
           <ActivityIndicator size="large" color={colors.light.primary} />
         </View>
