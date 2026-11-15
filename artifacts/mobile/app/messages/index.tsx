@@ -14,7 +14,7 @@ import { useRouter } from 'expo-router';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import colors from '@/constants/colors';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useDeviceId } from '@/hooks/useDeviceId';
+import { useAuth } from '@/contexts/AuthContext';
 import { useLayout } from '@/hooks/useLayout';
 import {
   useGetConversations,
@@ -24,8 +24,6 @@ import {
   type ConversationDto,
 } from '@workspace/api-client-react';
 import ConversationItem from '@/components/messaging/ConversationItem';
-
-// ─── Empty state ──────────────────────────────────────────────────────────────
 
 function EmptyConversations({ language, isRTL }: { language: 'ar' | 'en'; isRTL: boolean }) {
   return (
@@ -45,52 +43,82 @@ function EmptyConversations({ language, isRTL }: { language: 'ar' | 'en'; isRTL:
   );
 }
 
-// ─── Main screen ──────────────────────────────────────────────────────────────
-
 export default function MessagesScreen() {
   const { language, isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { isTablet } = useLayout();
-  const deviceId = useDeviceId();
+  const { isAuthenticated } = useAuth();
 
   const topInset = Platform.OS === 'web' ? 67 : insets.top;
 
+  // Identity from JWT session — backend uses req.user.sub; do not send client buyerId/deviceId.
   const {
     data: conversations = [],
     isLoading,
     isError,
     refetch,
   } = useGetConversations(
-    { buyerId: deviceId ?? undefined },
-    { query: { queryKey: getGetConversationsQueryKey({ buyerId: deviceId ?? undefined }), enabled: !!deviceId, staleTime: 30_000 } },
+    undefined,
+    { query: { queryKey: getGetConversationsQueryKey(), enabled: isAuthenticated, staleTime: 30_000 } },
   );
 
-  // Batch-load all unique stores referenced by conversations in a single request
   const uniqueStoreIds = useMemo(
     () => Array.from(new Set(conversations.map((c) => c.storeId))),
     [conversations],
   );
   const { data: storesData = [] } = useGetStores(
     { ids: uniqueStoreIds.join(',') },
-    { query: { queryKey: getGetStoresQueryKey({ ids: uniqueStoreIds.join(',') }), enabled: uniqueStoreIds.length > 0, staleTime: 5 * 60 * 1000 } },
+    {
+      query: {
+        queryKey: getGetStoresQueryKey({ ids: uniqueStoreIds.join(',') }),
+        enabled: uniqueStoreIds.length > 0,
+        staleTime: 5 * 60 * 1000,
+      },
+    },
   );
 
   const storeMap = React.useMemo(() => {
-    const map: Record<string, { nameAr: string; nameEn: string; logoColor: string; logoInitial: string }> = {};
+    const map: Record<
+      string,
+      { nameAr: string; nameEn: string; logoColor: string; logoInitial: string }
+    > = {};
     for (const s of storesData) {
-      map[s.id] = { nameAr: s.nameAr, nameEn: s.nameEn, logoColor: s.logoColor, logoInitial: s.logoInitial };
+      map[s.id] = {
+        nameAr: s.nameAr,
+        nameEn: s.nameEn,
+        logoColor: s.logoColor,
+        logoInitial: s.logoInitial,
+      };
     }
     return map;
   }, [storesData]);
 
-  const handleOpen = useCallback((conv: ConversationDto) => {
-    router.push(`/messages/${conv.id}` as any);
-  }, [router]);
+  const handleOpen = useCallback(
+    (conv: ConversationDto) => {
+      router.push(`/messages/${conv.id}` as any);
+    },
+    [router],
+  );
+
+  if (!isAuthenticated) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <Ionicons name="lock-closed-outline" size={40} color={colors.light.mutedForeground} />
+        <Text style={[styles.emptyTitle, { textAlign: 'center' }]}>
+          {language === 'ar' ? 'يلزم تسجيل الدخول' : 'Login required'}
+        </Text>
+        <Text style={[styles.emptySubtitle, { textAlign: 'center' }]}>
+          {language === 'ar'
+            ? 'سجّل دخولك لعرض محادثاتك مع البائعين'
+            : 'Sign in to view your conversations with sellers'}
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={[styles.header, { paddingTop: topInset + 8 }]}>
         <View style={[styles.headerInner, isTablet && styles.tabletInner]}>
           <Pressable onPress={() => router.back()} style={styles.backBtn}>
@@ -106,7 +134,6 @@ export default function MessagesScreen() {
         </View>
       </View>
 
-      {/* Body */}
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={[
@@ -124,8 +151,8 @@ export default function MessagesScreen() {
         {isError && !isLoading && (
           <View style={styles.centered}>
             <Ionicons name="cloud-offline-outline" size={36} color={colors.light.mutedForeground} />
-            <Text style={styles.errorText}>
-              {language === 'ar' ? 'فشل تحميل الرسائل' : 'Failed to load messages'}
+            <Text style={styles.emptyTitle}>
+              {language === 'ar' ? 'تعذر التحميل' : 'Could not load'}
             </Text>
             <Pressable onPress={() => refetch()} style={styles.retryBtn}>
               <Text style={styles.retryText}>
@@ -139,13 +166,12 @@ export default function MessagesScreen() {
           <EmptyConversations language={language} isRTL={isRTL} />
         )}
 
-        {!isLoading && !isError && conversations.length > 0 && (
-          <Animated.View entering={FadeInUp.duration(300)}>
-            {conversations.map((conv) => {
-              const store = storeMap[conv.storeId];
-              return (
+        {!isLoading &&
+          conversations.map((conv, index) => {
+            const store = storeMap[conv.storeId];
+            return (
+              <Animated.View key={conv.id} entering={FadeInUp.delay(index * 40).springify()}>
                 <ConversationItem
-                  key={conv.id}
                   conversation={conv}
                   storeNameAr={store?.nameAr}
                   storeNameEn={store?.nameEn}
@@ -156,10 +182,9 @@ export default function MessagesScreen() {
                   unreadCount={conv.buyerUnreadCount}
                   onPress={() => handleOpen(conv)}
                 />
-              );
-            })}
-          </Animated.View>
-        )}
+              </Animated.View>
+            );
+          })}
       </ScrollView>
     </View>
   );
@@ -167,96 +192,73 @@ export default function MessagesScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.light.background },
-  header: {
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(226,232,240,0.6)',
-    paddingBottom: 12,
-    paddingHorizontal: 16,
-  },
-  headerInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  tabletInner: {
-    maxWidth: 720,
-    alignSelf: 'center',
-    width: '100%',
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.light.muted,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontFamily: 'Inter_700Bold',
-    color: colors.light.foreground,
-    flex: 1,
-  },
-  scroll: { flex: 1 },
-  scrollContent: { flexGrow: 1 },
-  tabletScrollContent: {
-    maxWidth: 720,
-    alignSelf: 'center',
-    width: '100%',
-  },
   centered: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 64,
-    gap: 12,
+    paddingHorizontal: 32,
+    gap: 8,
   },
-  errorText: {
-    fontSize: 14,
-    fontFamily: 'Inter_400Regular',
-    color: colors.light.mutedForeground,
-    textAlign: 'center',
+  header: {
+    backgroundColor: colors.light.card,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.light.border,
   },
-  retryBtn: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    backgroundColor: colors.light.primary,
-    borderRadius: 10,
-    marginTop: 4,
+  headerInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    gap: 8,
   },
-  retryText: {
-    fontSize: 14,
-    fontFamily: 'Inter_600SemiBold',
-    color: '#fff',
-  },
-  emptyContainer: {
-    flex: 1,
+  tabletInner: { maxWidth: 680, alignSelf: 'center', width: '100%' },
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 80,
-    paddingHorizontal: 32,
-    gap: 10,
+    backgroundColor: colors.light.muted,
   },
+  headerTitle: {
+    flex: 1,
+    fontSize: 18,
+    fontFamily: 'Inter_700Bold',
+    color: colors.light.foreground,
+  },
+  scroll: { flex: 1 },
+  scrollContent: { paddingVertical: 8, paddingBottom: 32 },
+  tabletScrollContent: { maxWidth: 680, alignSelf: 'center', width: '100%' },
+  emptyContainer: { alignItems: 'center', paddingHorizontal: 32, paddingTop: 80 },
   emptyIconWrap: {
-    width: 80,
-    height: 80,
-    borderRadius: 24,
+    width: 88,
+    height: 88,
+    borderRadius: 44,
     backgroundColor: colors.light.muted,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    marginBottom: 16,
   },
   emptyTitle: {
     fontSize: 17,
     fontFamily: 'Inter_700Bold',
     color: colors.light.foreground,
+    marginBottom: 6,
+    textAlign: 'center',
   },
   emptySubtitle: {
     fontSize: 14,
     fontFamily: 'Inter_400Regular',
     color: colors.light.mutedForeground,
-    lineHeight: 20,
     textAlign: 'center',
+    lineHeight: 20,
   },
+  retryBtn: {
+    marginTop: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: colors.light.primary,
+  },
+  retryText: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: '#fff' },
 });
