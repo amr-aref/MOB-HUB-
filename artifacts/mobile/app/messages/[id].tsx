@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import colors from '@/constants/colors';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useDeviceId } from '@/hooks/useDeviceId';
+import { useAuth } from '@/contexts/AuthContext';
 import { useLayout } from '@/hooks/useLayout';
 import {
   useGetConversation,
@@ -30,31 +30,21 @@ import {
 import MessageBubble from '@/components/messaging/MessageBubble';
 import ChatInput from '@/components/messaging/ChatInput';
 
-// ─── Date separator ───────────────────────────────────────────────────────────
-
 function DateSeparator({ iso, isRTL }: { iso: string; isRTL: boolean }) {
   const d = new Date(iso);
   const label = d.toLocaleDateString([], { day: 'numeric', month: 'long', year: 'numeric' });
   return (
-    <View style={[sepStyles.container, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-      <View style={sepStyles.line} />
-      <Text style={sepStyles.label}>{label}</Text>
-      <View style={sepStyles.line} />
+    <View style={styles.dateSep}>
+      <Text style={[styles.dateSepText, { textAlign: isRTL ? 'right' : 'left' }]}>{label}</Text>
     </View>
   );
 }
 
-const sepStyles = StyleSheet.create({
-  container: { alignItems: 'center', paddingHorizontal: 16, marginVertical: 10, gap: 8 },
-  line: { flex: 1, height: 1, backgroundColor: 'rgba(226,232,240,0.6)' },
-  label: { fontSize: 11, fontFamily: 'Inter_400Regular', color: colors.light.mutedForeground },
-});
+type ListItem =
+  | { kind: 'separator'; date: string }
+  | { kind: 'message'; message: ChatMessageDto };
 
-// ─── Group messages by date for date separators ───────────────────────────────
-
-type ListItem = { kind: 'separator'; date: string } | { kind: 'message'; message: ChatMessageDto };
-
-function groupMessages(messages: ChatMessageDto[]): ListItem[] {
+function buildListItems(messages: ChatMessageDto[]): ListItem[] {
   const items: ListItem[] = [];
   let lastDate = '';
   for (const msg of messages) {
@@ -68,32 +58,28 @@ function groupMessages(messages: ChatMessageDto[]): ListItem[] {
   return items;
 }
 
-// ─── Main screen ──────────────────────────────────────────────────────────────
-
 export default function ChatScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { language, isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { isTablet } = useLayout();
-  const deviceId = useDeviceId();
+  const { user, isAuthenticated } = useAuth();
   const listRef = useRef<FlatList<ListItem>>(null);
   const [optimisticMessages, setOptimisticMessages] = useState<ChatMessageDto[]>([]);
 
   const topInset = Platform.OS === 'web' ? 67 : insets.top;
 
-  // ── Fetch conversation ──────────────────────────────────────────────────────
   const {
     data: conversation,
     isLoading: convLoading,
     isError: convError,
   } = useGetConversation(
     id!,
-    { buyerId: deviceId ?? undefined },
-    { query: { queryKey: getGetConversationQueryKey(id!, { buyerId: deviceId ?? undefined }), enabled: !!id && !!deviceId } },
+    undefined,
+    { query: { queryKey: getGetConversationQueryKey(id!), enabled: !!id && isAuthenticated } },
   );
 
-  // ── Fetch messages (poll every 10 s) ───────────────────────────────────────
   const {
     data: serverMessages = [],
     isLoading: msgsLoading,
@@ -101,61 +87,58 @@ export default function ChatScreen() {
     refetch: refetchMessages,
   } = useGetConversationMessages(
     id!,
-    { buyerId: deviceId ?? undefined },
-    { query: { queryKey: getGetConversationMessagesQueryKey(id!, { buyerId: deviceId ?? undefined }), enabled: !!id && !!deviceId, refetchInterval: 10_000 } },
+    undefined,
+    { query: { queryKey: getGetConversationMessagesQueryKey(id!), enabled: !!id && isAuthenticated, refetchInterval: 10_000 } },
   );
 
-  // ── Fetch store for header ─────────────────────────────────────────────────
   const { data: store } = useGetStore(
     conversation?.storeId ?? '',
     { query: { queryKey: getGetStoreQueryKey(conversation?.storeId ?? ''), enabled: !!conversation?.storeId, staleTime: 5 * 60 * 1000 } },
   );
 
-  // ── Send message mutation ───────────────────────────────────────────────────
   const { mutate: send, isPending: isSending } = useSendMessage({
     mutation: {
       onSuccess: (newMsg) => {
-        // Drop optimistic message; server version will arrive on next poll.
         setOptimisticMessages((prev) =>
           prev.filter((m) => m.id !== `opt_${newMsg.conversationId}_${newMsg.content}`),
         );
         refetchMessages();
       },
+      onError: () => {
+        setOptimisticMessages([]);
+      },
     },
   });
 
-  // ── Mark as read on mount / when conversation changes ────────────────────
   const { mutate: markRead } = useMarkConversationRead();
 
   useEffect(() => {
-    if (conversation && deviceId && conversation.buyerUnreadCount > 0) {
+    if (conversation && isAuthenticated && conversation.buyerUnreadCount > 0) {
       markRead({ id: id!, data: { readerType: 'buyer' } });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [conversation?.id]);
+  }, [conversation?.id, conversation?.buyerUnreadCount, isAuthenticated, id]);
 
-  // ── Build flat message list (server + optimistic) ─────────────────────────
-  const allMessages: ChatMessageDto[] = [...serverMessages, ...optimisticMessages];
-  const grouped = groupMessages(allMessages);
+  const allMessages = React.useMemo(() => {
+    const map = new Map<string, ChatMessageDto>();
+    for (const m of serverMessages) map.set(m.id, m);
+    for (const m of optimisticMessages) map.set(m.id, m);
+    return Array.from(map.values()).sort(
+      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+    );
+  }, [serverMessages, optimisticMessages]);
 
-  // ── Auto-scroll when new messages arrive ──────────────────────────────────
-  useEffect(() => {
-    if (grouped.length > 0) {
-      const t = setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 60);
-      return () => clearTimeout(t);
-    }
-  }, [grouped.length]);
+  const listItems = React.useMemo(() => buildListItems(allMessages), [allMessages]);
 
-  // ── Send handler ────────────────────────────────────────────────────────────
   const handleSend = useCallback(
     (text: string) => {
-      if (!deviceId || !id) return;
+      // Sender identity is derived server-side from the JWT session.
+      if (!isAuthenticated || !user?.id || !id) return;
 
       const optimistic: ChatMessageDto = {
         id: `opt_${id}_${text}`,
         conversationId: id,
         senderType: 'buyer',
-        senderId: deviceId,
+        senderId: user.id,
         type: 'text',
         content: text,
         status: 'sent',
@@ -165,227 +148,159 @@ export default function ChatScreen() {
 
       send({
         id,
-        data: { senderId: deviceId, senderType: 'buyer', content: text, type: 'text' },
+        data: { senderId: user.id, senderType: 'buyer', content: text, type: 'text' },
       });
     },
-    [deviceId, id, send],
+    [isAuthenticated, user?.id, id, send],
   );
 
-  // ── Derived values ──────────────────────────────────────────────────────────
-  const storeName =
-    language === 'ar' ? (store?.nameAr ?? '...') : (store?.nameEn ?? '...');
+  useEffect(() => {
+    if (listItems.length > 0) {
+      setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 100);
+    }
+  }, [listItems.length]);
 
-  const productName =
-    conversation?.productId
-      ? (language === 'ar' ? conversation.productNameAr : conversation.productNameEn)
-      : null;
+  const storeName = language === 'ar' ? store?.nameAr : store?.nameEn;
 
-  const isLoading = convLoading || msgsLoading;
+  if (!isAuthenticated) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <Ionicons name="lock-closed-outline" size={40} color={colors.light.mutedForeground} />
+        <Text style={styles.errorTitle}>
+          {language === 'ar' ? 'يلزم تسجيل الدخول' : 'Login required'}
+        </Text>
+      </View>
+    );
+  }
 
-  // ── Render ──────────────────────────────────────────────────────────────────
+  if (convLoading || msgsLoading) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <ActivityIndicator size="large" color={colors.light.primary} />
+      </View>
+    );
+  }
+
+  if (convError || msgsError || !conversation) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <Ionicons name="cloud-offline-outline" size={40} color={colors.light.mutedForeground} />
+        <Text style={styles.errorTitle}>
+          {language === 'ar' ? 'تعذر فتح المحادثة' : 'Could not open conversation'}
+        </Text>
+        <Pressable onPress={() => router.back()} style={styles.backLink}>
+          <Text style={styles.backLinkText}>{language === 'ar' ? 'رجوع' : 'Go back'}</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
   return (
     <KeyboardAvoidingView
-      style={styles.flex}
+      style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={0}
     >
-      <View style={styles.container}>
-        {/* Header */}
-        <View style={[styles.header, { paddingTop: topInset + 8 }]}>
-          <View
-            style={[
-              styles.headerInner,
-              { flexDirection: isRTL ? 'row-reverse' : 'row' },
-              isTablet && styles.tabletInner,
-            ]}
-          >
-            <Pressable onPress={() => router.back()} style={styles.backBtn}>
-              <Ionicons
-                name={isRTL ? 'chevron-forward' : 'chevron-back'}
-                size={24}
-                color={colors.light.foreground}
-              />
-            </Pressable>
-
-            {store && (
-              <View style={[styles.headerLogo, { backgroundColor: store.logoColor }]}>
-                <Text style={styles.headerLogoText}>{store.logoInitial}</Text>
-              </View>
-            )}
-
-            <View style={{ flex: 1 }}>
-              <Text
-                style={[styles.headerName, { textAlign: isRTL ? 'right' : 'left' }]}
-                numberOfLines={1}
-              >
-                {storeName}
+      <View style={[styles.header, { paddingTop: topInset + 8 }]}>
+        <View style={[styles.headerRow, isTablet && styles.tabletInner]}>
+          <Pressable onPress={() => router.back()} style={styles.backBtn}>
+            <Ionicons
+              name={isRTL ? 'chevron-forward' : 'chevron-back'}
+              size={22}
+              color={colors.light.foreground}
+            />
+          </Pressable>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.headerTitle, { textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+              {storeName ?? (language === 'ar' ? 'محادثة' : 'Chat')}
+            </Text>
+            {conversation.productNameAr || conversation.productNameEn ? (
+              <Text style={[styles.headerSub, { textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+                {language === 'ar' ? conversation.productNameAr : conversation.productNameEn}
               </Text>
-              {productName ? (
-                <Text
-                  style={[styles.headerProduct, { textAlign: isRTL ? 'right' : 'left' }]}
-                  numberOfLines={1}
-                >
-                  {productName}
-                </Text>
-              ) : null}
-            </View>
-
-            <Pressable onPress={() => refetchMessages()} style={styles.refreshBtn}>
-              <Ionicons name="refresh-outline" size={20} color={colors.light.mutedForeground} />
-            </Pressable>
+            ) : null}
           </View>
         </View>
+      </View>
 
-        {/* Message list */}
-        {isLoading ? (
-          <View style={styles.centered}>
-            <ActivityIndicator size="large" color={colors.light.primary} />
-          </View>
-        ) : msgsError || convError ? (
-          <View style={styles.centered}>
-            <Ionicons name="cloud-offline-outline" size={36} color={colors.light.mutedForeground} />
-            <Text style={styles.errorText}>
-              {language === 'ar' ? 'فشل تحميل الرسائل' : 'Failed to load messages'}
-            </Text>
-            <Pressable onPress={() => refetchMessages()} style={styles.retryBtn}>
-              <Text style={styles.retryText}>
-                {language === 'ar' ? 'إعادة المحاولة' : 'Retry'}
-              </Text>
-            </Pressable>
-          </View>
-        ) : (
-          <FlatList
-            ref={listRef}
-            data={grouped}
-            keyExtractor={(item, i) =>
-              item.kind === 'message' ? item.message.id : `sep_${i}`
-            }
-            renderItem={({ item }) =>
-              item.kind === 'separator' ? (
-                <DateSeparator iso={item.date} isRTL={isRTL} />
-              ) : (
-                <MessageBubble
-                  message={item.message}
-                  viewerIsBuyer
-                  isRTL={isRTL}
-                />
-              )
-            }
-            contentContainerStyle={[
-              styles.listContent,
-              grouped.length === 0 && styles.listEmpty,
-            ]}
-            ListEmptyComponent={
-              <View style={styles.centered}>
-                <Ionicons name="chatbubble-outline" size={36} color={colors.light.mutedForeground} />
-                <Text style={styles.emptyText}>
-                  {language === 'ar' ? 'ابدأ المحادثة' : 'Start the conversation'}
-                </Text>
-              </View>
-            }
-            onContentSizeChange={() =>
-              listRef.current?.scrollToEnd({ animated: false })
-            }
-            showsVerticalScrollIndicator={false}
-          />
-        )}
+      <FlatList
+        ref={listRef}
+        data={listItems}
+        keyExtractor={(item, i) =>
+          item.kind === 'separator' ? `sep_${item.date}_${i}` : item.message.id
+        }
+        contentContainerStyle={[
+          styles.listContent,
+          isTablet && styles.tabletInner,
+        ]}
+        renderItem={({ item }) =>
+          item.kind === 'separator' ? (
+            <DateSeparator iso={item.date} isRTL={isRTL} />
+          ) : (
+            <MessageBubble
+              message={item.message}
+              isOwn={item.message.senderType === 'buyer'}
+              isRTL={isRTL}
+            />
+          )
+        }
+      />
 
-        {/* Input */}
-        {!convError && (
+      <View style={[styles.inputWrap, { paddingBottom: Math.max(insets.bottom, 8) }]}>
+        <View style={isTablet ? styles.tabletInner : undefined}>
           <ChatInput onSend={handleSend} isSending={isSending} isRTL={isRTL} />
-        )}
+        </View>
       </View>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1 },
   container: { flex: 1, backgroundColor: colors.light.background },
+  centered: { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, gap: 8 },
   header: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.light.card,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(226,232,240,0.6)',
-    paddingBottom: 12,
-    paddingHorizontal: 16,
+    borderBottomColor: colors.light.border,
+    paddingBottom: 10,
   },
-  headerInner: {
+  headerRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    paddingHorizontal: 12,
+    gap: 8,
   },
-  tabletInner: {
-    maxWidth: 720,
-    alignSelf: 'center',
-    width: '100%',
-  },
+  tabletInner: { maxWidth: 680, alignSelf: 'center', width: '100%' },
   backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: colors.light.muted,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
-  headerLogo: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerLogoText: {
-    fontSize: 14,
-    fontFamily: 'Inter_700Bold',
-    color: '#fff',
-  },
-  headerName: {
-    fontSize: 15,
-    fontFamily: 'Inter_600SemiBold',
-    color: colors.light.foreground,
-  },
-  headerProduct: {
-    fontSize: 11,
-    fontFamily: 'Inter_400Regular',
-    color: colors.light.primary,
-  },
-  refreshBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+  headerTitle: { fontSize: 16, fontFamily: 'Inter_700Bold', color: colors.light.foreground },
+  headerSub: { fontSize: 12, fontFamily: 'Inter_400Regular', color: colors.light.mutedForeground, marginTop: 2 },
+  listContent: { paddingHorizontal: 12, paddingVertical: 12, flexGrow: 1 },
+  dateSep: { alignItems: 'center', marginVertical: 10 },
+  dateSepText: {
+    fontSize: 12,
+    fontFamily: 'Inter_500Medium',
+    color: colors.light.mutedForeground,
     backgroundColor: colors.light.muted,
-    alignItems: 'center',
-    justifyContent: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    overflow: 'hidden',
   },
-  listContent: { paddingTop: 12, paddingBottom: 12 },
-  listEmpty: { flex: 1 },
-  centered: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
-    paddingVertical: 48,
+  inputWrap: {
+    borderTopWidth: 1,
+    borderTopColor: colors.light.border,
+    backgroundColor: colors.light.card,
+    paddingHorizontal: 12,
+    paddingTop: 8,
   },
-  errorText: {
-    fontSize: 14,
-    fontFamily: 'Inter_400Regular',
-    color: colors.light.mutedForeground,
-    textAlign: 'center',
-  },
-  retryBtn: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    backgroundColor: colors.light.primary,
-    borderRadius: 10,
-  },
-  retryText: {
-    fontSize: 14,
-    fontFamily: 'Inter_600SemiBold',
-    color: '#fff',
-  },
-  emptyText: {
-    fontSize: 14,
-    fontFamily: 'Inter_400Regular',
-    color: colors.light.mutedForeground,
-    textAlign: 'center',
-  },
+  errorTitle: { fontSize: 16, fontFamily: 'Inter_700Bold', color: colors.light.foreground, textAlign: 'center' },
+  backLink: { marginTop: 12, padding: 10 },
+  backLinkText: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: colors.light.primary },
 });
