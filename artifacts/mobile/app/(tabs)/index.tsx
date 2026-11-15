@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import colors from '@/constants/colors';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   useGetStores,
   useGetProducts,
@@ -57,6 +58,7 @@ function SectionHeader({
 
 export default function HomeScreen() {
   const { t, isRTL, language } = useLanguage();
+  const { isAuthenticated } = useAuth();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
@@ -72,12 +74,21 @@ export default function HomeScreen() {
   const { data: topRatedStores = [] } = useGetStores({ sort: 'rating' });
   const { data: categories = [] } = useGetCategories();
 
+  // deviceId retained only for notifications (out of scope for reservation identity fix)
   const deviceId = useDeviceId();
   const { unreadCount } = useNotifications(deviceId ?? undefined);
 
+  // Identity comes from the authenticated token — do not send client buyerId/deviceId.
+  // Backend derives buyer from req.user.sub and ignores any client-supplied buyerId.
   const { data: myReservations = [] } = useGetReservations(
-    deviceId ? { buyerId: deviceId } : undefined,
-    { query: { queryKey: getGetReservationsQueryKey(deviceId ? { buyerId: deviceId } : undefined), enabled: !!deviceId, staleTime: 60_000 } },
+    undefined,
+    {
+      query: {
+        queryKey: getGetReservationsQueryKey(undefined),
+        enabled: isAuthenticated,
+        staleTime: 60_000,
+      },
+    },
   );
   const reservationStatusMap = useMemo(
     () =>
