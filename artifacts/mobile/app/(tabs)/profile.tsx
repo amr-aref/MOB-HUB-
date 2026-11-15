@@ -14,9 +14,9 @@ import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import colors from '@/constants/colors';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Language } from '@/data/translations';
 import { useLayout } from '@/hooks/useLayout';
-import { useDeviceId } from '@/hooks/useDeviceId';
 
 function SettingsRow({
   icon,
@@ -67,10 +67,10 @@ function SettingsRow({
 
 export default function ProfileScreen() {
   const { t, isRTL, language, setLanguage } = useLanguage();
+  const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { isTablet } = useLayout();
-  const deviceId = useDeviceId();
 
   const topInset = isTablet ? 24 : (Platform.OS === 'web' ? 67 : insets.top);
   const bottomInset = isTablet ? 0 : (Platform.OS === 'web' ? 34 : 0);
@@ -220,7 +220,12 @@ export default function ProfileScreen() {
                 <SettingsRow
                   icon="notifications-outline"
                   label={t('notifications')}
-                  onPress={() => router.push({ pathname: '/notifications', params: deviceId ? { userId: deviceId } : {} })}
+                  onPress={() =>
+                    router.push({
+                      pathname: '/notifications',
+                      params: user?.id ? { userId: user.id } : {},
+                    })
+                  }
                   isRTL={isRTL}
                 />
                 <SettingsRow
