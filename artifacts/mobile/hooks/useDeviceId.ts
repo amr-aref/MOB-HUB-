@@ -64,15 +64,12 @@ async function resolveDeviceId(): Promise<string> {
 }
 
 /**
- * Returns a persistent device-level UUID used to identify review ownership
- * without requiring authentication. The ID is generated once and stored in
- * AsyncStorage. Returns null on the first render while the ID is being loaded.
+ * Persistent device UUID for the device registry (login/register → user_devices).
+ * Not used for buyer/merchant identity — those come from the JWT session only.
  *
- * The resolution is deduped at the module level: concurrent hook instances
- * share one AsyncStorage read and always resolve to the same identity.
- *
- * NOTE: This is a pre-auth identity solution. Replace with a real user ID once
- * authentication is implemented.
+ * Generated once, stored in AsyncStorage. Returns null on first render while loading.
+ * Module-level dedup ensures concurrent hook instances share one AsyncStorage read
+ * and resolve to the same identity for the session.
  */
 export function useDeviceId(): string | null {
   const [deviceId, setDeviceId] = useState<string | null>(_resolved);
