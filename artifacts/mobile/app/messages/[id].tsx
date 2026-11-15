@@ -88,13 +88,22 @@ export default function ChatScreen() {
   } = useGetConversationMessages(
     id!,
     undefined,
-    { query: { queryKey: getGetConversationMessagesQueryKey(id!), enabled: !!id && isAuthenticated, refetchInterval: 10_000 } },
+    {
+      query: {
+        queryKey: getGetConversationMessagesQueryKey(id!),
+        enabled: !!id && isAuthenticated,
+        refetchInterval: 10_000,
+      },
+    },
   );
 
-  const { data: store } = useGetStore(
-    conversation?.storeId ?? '',
-    { query: { queryKey: getGetStoreQueryKey(conversation?.storeId ?? ''), enabled: !!conversation?.storeId, staleTime: 5 * 60 * 1000 } },
-  );
+  const { data: store } = useGetStore(conversation?.storeId ?? '', {
+    query: {
+      queryKey: getGetStoreQueryKey(conversation?.storeId ?? ''),
+      enabled: !!conversation?.storeId,
+      staleTime: 5 * 60 * 1000,
+    },
+  });
 
   const { mutate: send, isPending: isSending } = useSendMessage({
     mutation: {
@@ -214,11 +223,11 @@ export default function ChatScreen() {
             <Text style={[styles.headerTitle, { textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
               {storeName ?? (language === 'ar' ? 'محادثة' : 'Chat')}
             </Text>
-            {conversation.productNameAr || conversation.productNameEn ? (
+            {(conversation.productNameAr || conversation.productNameEn) && (
               <Text style={[styles.headerSub, { textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
                 {language === 'ar' ? conversation.productNameAr : conversation.productNameEn}
               </Text>
-            ) : null}
+            )}
           </View>
         </View>
       </View>
@@ -229,17 +238,14 @@ export default function ChatScreen() {
         keyExtractor={(item, i) =>
           item.kind === 'separator' ? `sep_${item.date}_${i}` : item.message.id
         }
-        contentContainerStyle={[
-          styles.listContent,
-          isTablet && styles.tabletInner,
-        ]}
+        contentContainerStyle={[styles.listContent, isTablet && styles.tabletInner]}
         renderItem={({ item }) =>
           item.kind === 'separator' ? (
             <DateSeparator iso={item.date} isRTL={isRTL} />
           ) : (
             <MessageBubble
               message={item.message}
-              isOwn={item.message.senderType === 'buyer'}
+              viewerIsBuyer={item.message.senderType === 'buyer'}
               isRTL={isRTL}
             />
           )
@@ -280,7 +286,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.light.muted,
   },
   headerTitle: { fontSize: 16, fontFamily: 'Inter_700Bold', color: colors.light.foreground },
-  headerSub: { fontSize: 12, fontFamily: 'Inter_400Regular', color: colors.light.mutedForeground, marginTop: 2 },
+  headerSub: {
+    fontSize: 12,
+    fontFamily: 'Inter_400Regular',
+    color: colors.light.mutedForeground,
+    marginTop: 2,
+  },
   listContent: { paddingHorizontal: 12, paddingVertical: 12, flexGrow: 1 },
   dateSep: { alignItems: 'center', marginVertical: 10 },
   dateSepText: {
@@ -300,7 +311,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingTop: 8,
   },
-  errorTitle: { fontSize: 16, fontFamily: 'Inter_700Bold', color: colors.light.foreground, textAlign: 'center' },
+  errorTitle: {
+    fontSize: 16,
+    fontFamily: 'Inter_700Bold',
+    color: colors.light.foreground,
+    textAlign: 'center',
+  },
   backLink: { marginTop: 12, padding: 10 },
   backLinkText: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: colors.light.primary },
 });

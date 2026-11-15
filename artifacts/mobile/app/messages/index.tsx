@@ -69,29 +69,46 @@ export default function MessagesScreen() {
   );
   const { data: storesData = [] } = useGetStores(
     { ids: uniqueStoreIds.join(',') },
-    { query: { queryKey: getGetStoresQueryKey({ ids: uniqueStoreIds.join(',') }), enabled: uniqueStoreIds.length > 0, staleTime: 5 * 60 * 1000 } },
+    {
+      query: {
+        queryKey: getGetStoresQueryKey({ ids: uniqueStoreIds.join(',') }),
+        enabled: uniqueStoreIds.length > 0,
+        staleTime: 5 * 60 * 1000,
+      },
+    },
   );
 
   const storeMap = React.useMemo(() => {
-    const map: Record<string, { nameAr: string; nameEn: string; logoColor: string; logoInitial: string }> = {};
+    const map: Record<
+      string,
+      { nameAr: string; nameEn: string; logoColor: string; logoInitial: string }
+    > = {};
     for (const s of storesData) {
-      map[s.id] = { nameAr: s.nameAr, nameEn: s.nameEn, logoColor: s.logoColor, logoInitial: s.logoInitial };
+      map[s.id] = {
+        nameAr: s.nameAr,
+        nameEn: s.nameEn,
+        logoColor: s.logoColor,
+        logoInitial: s.logoInitial,
+      };
     }
     return map;
   }, [storesData]);
 
-  const handleOpen = useCallback((conv: ConversationDto) => {
-    router.push(`/messages/${conv.id}` as any);
-  }, [router]);
+  const handleOpen = useCallback(
+    (conv: ConversationDto) => {
+      router.push(`/messages/${conv.id}` as any);
+    },
+    [router],
+  );
 
   if (!isAuthenticated) {
     return (
       <View style={[styles.container, styles.centered]}>
         <Ionicons name="lock-closed-outline" size={40} color={colors.light.mutedForeground} />
-        <Text style={styles.emptyTitle}>
+        <Text style={[styles.emptyTitle, { textAlign: 'center' }]}>
           {language === 'ar' ? 'يلزم تسجيل الدخول' : 'Login required'}
         </Text>
-        <Text style={styles.emptySubtitle}>
+        <Text style={[styles.emptySubtitle, { textAlign: 'center' }]}>
           {language === 'ar'
             ? 'سجّل دخولك لعرض محادثاتك مع البائعين'
             : 'Sign in to view your conversations with sellers'}
@@ -138,7 +155,9 @@ export default function MessagesScreen() {
               {language === 'ar' ? 'تعذر التحميل' : 'Could not load'}
             </Text>
             <Pressable onPress={() => refetch()} style={styles.retryBtn}>
-              <Text style={styles.retryText}>{language === 'ar' ? 'إعادة المحاولة' : 'Retry'}</Text>
+              <Text style={styles.retryText}>
+                {language === 'ar' ? 'إعادة المحاولة' : 'Retry'}
+              </Text>
             </Pressable>
           </View>
         )}
@@ -148,17 +167,24 @@ export default function MessagesScreen() {
         )}
 
         {!isLoading &&
-          conversations.map((conv, index) => (
-            <Animated.View key={conv.id} entering={FadeInUp.delay(index * 40).springify()}>
-              <ConversationItem
-                conversation={conv}
-                store={storeMap[conv.storeId]}
-                language={language}
-                isRTL={isRTL}
-                onPress={() => handleOpen(conv)}
-              />
-            </Animated.View>
-          ))}
+          conversations.map((conv, index) => {
+            const store = storeMap[conv.storeId];
+            return (
+              <Animated.View key={conv.id} entering={FadeInUp.delay(index * 40).springify()}>
+                <ConversationItem
+                  conversation={conv}
+                  storeNameAr={store?.nameAr}
+                  storeNameEn={store?.nameEn}
+                  storeLogoColor={store?.logoColor}
+                  storeLogoInitial={store?.logoInitial}
+                  language={language}
+                  isRTL={isRTL}
+                  unreadCount={conv.buyerUnreadCount}
+                  onPress={() => handleOpen(conv)}
+                />
+              </Animated.View>
+            );
+          })}
       </ScrollView>
     </View>
   );
@@ -166,7 +192,13 @@ export default function MessagesScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.light.background },
-  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, gap: 8 },
+  centered: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+    gap: 8,
+  },
   header: {
     backgroundColor: colors.light.card,
     borderBottomWidth: 1,
@@ -188,7 +220,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: colors.light.muted,
   },
-  headerTitle: { flex: 1, fontSize: 18, fontFamily: 'Inter_700Bold', color: colors.light.foreground },
+  headerTitle: {
+    flex: 1,
+    fontSize: 18,
+    fontFamily: 'Inter_700Bold',
+    color: colors.light.foreground,
+  },
   scroll: { flex: 1 },
   scrollContent: { paddingVertical: 8, paddingBottom: 32 },
   tabletScrollContent: { maxWidth: 680, alignSelf: 'center', width: '100%' },
