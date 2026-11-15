@@ -27,7 +27,6 @@ import CategoryChip from '@/components/CategoryChip';
 import StoreCard from '@/components/StoreCard';
 import ProductCard from '@/components/ProductCard';
 import { useLayout } from '@/hooks/useLayout';
-import { useDeviceId } from '@/hooks/useDeviceId';
 import { useNotifications } from '@/hooks/useNotifications';
 
 function SectionHeader({
@@ -58,7 +57,7 @@ function SectionHeader({
 
 export default function HomeScreen() {
   const { t, isRTL, language } = useLanguage();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
@@ -74,9 +73,8 @@ export default function HomeScreen() {
   const { data: topRatedStores = [] } = useGetStores({ sort: 'rating' });
   const { data: categories = [] } = useGetCategories();
 
-  // deviceId retained only for notifications (out of scope for reservation identity fix)
-  const deviceId = useDeviceId();
-  const { unreadCount } = useNotifications(deviceId ?? undefined);
+  // Notification identity from authenticated session (backend uses req.user.sub).
+  const { unreadCount } = useNotifications(user?.id);
 
   // Identity comes from the authenticated token — do not send client buyerId/deviceId.
   // Backend derives buyer from req.user.sub and ignores any client-supplied buyerId.
@@ -127,7 +125,12 @@ export default function HomeScreen() {
               <Pressable
                 style={styles.iconBtn}
                 hitSlop={8}
-                onPress={() => router.push({ pathname: '/notifications', params: deviceId ? { userId: deviceId } : {} })}
+                onPress={() =>
+                  router.push({
+                    pathname: '/notifications',
+                    params: user?.id ? { userId: user.id } : {},
+                  })
+                }
                 accessibilityRole="button"
                 accessibilityLabel={language === 'ar' ? 'الإشعارات' : 'Notifications'}
                 accessibilityHint={language === 'ar' ? 'فتح صفحة الإشعارات' : 'Open notifications'}
