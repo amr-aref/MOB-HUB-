@@ -18,6 +18,7 @@ import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import colors from '@/constants/colors';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useLayout } from '@/hooks/useLayout';
 import {
   useGetReservations,
@@ -27,8 +28,6 @@ import {
   useCompleteReservation,
 } from '@workspace/api-client-react';
 import type { ReservationDto } from '@workspace/api-client-react';
-
-const STORE_ID = 's1';
 
 // ─── Status helpers ──────────────────────────────────────────────────────────
 
@@ -216,20 +215,32 @@ export default function MerchantReservationsScreen() {
   const router = useRouter();
   const { isTablet } = useLayout();
   const queryClient = useQueryClient();
+  const { user, isLoading: authLoading, isAuthenticated } = useAuth();
+  const storeId = user?.storeId?.trim() || undefined;
 
   const [activeFilter, setActiveFilter] = useState('pending');
-  const [actionLoading, setActionLoading] = useState<string | null>(null); // reservation id or null
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  // Decline modal
   const [declineModal, setDeclineModal] = useState<{ id: string } | null>(null);
   const [declineReason, setDeclineReason] = useState('');
 
   const topInset = Platform.OS === 'web' ? 67 : insets.top;
   const bottomInset = Platform.OS === 'web' ? 34 : 0;
 
+  const listParams = {
+    storeId: storeId ?? '',
+    ...(activeFilter !== 'all' ? { status: activeFilter } : {}),
+  };
+
   const { data: reservations = [], isLoading, refetch } = useGetReservations(
-    { storeId: STORE_ID, ...(activeFilter !== 'all' ? { status: activeFilter } : {}) },
-    { query: { queryKey: getGetReservationsQueryKey({ storeId: STORE_ID, ...(activeFilter !== 'all' ? { status: activeFilter } : {}) }), staleTime: 15_000 } },
+    listParams,
+    {
+      query: {
+        enabled: Boolean(storeId),
+        queryKey: getGetReservationsQueryKey(listParams),
+        staleTime: 15_000,
+      },
+    },
   );
 
   function invalidateAll() {
@@ -261,16 +272,62 @@ export default function MerchantReservationsScreen() {
   });
 
   function submitDecline() {
-    if (!declineModal) return;
+    if (!declineModal || !storeId) return;
     decline({
       id: declineModal.id,
-      data: { storeId: STORE_ID, ...(declineReason.trim() ? { cancellationReason: declineReason.trim() } : {}) },
+      data: {
+        storeId,
+        ...(declineReason.trim() ? { cancellationReason: declineReason.trim() } : {}),
+      },
     });
+  }
+
+  if (authLoading) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <ActivityIndicator size="large" color={colors.light.primary} />
+      </View>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <View style={styles.emptyIconWrap}>
+          <Ionicons name="lock-closed-outline" size={40} color={colors.light.mutedForeground} />
+        </View>
+        <Text style={styles.emptyTitle}>
+          {language === 'ar' ? 'يلزم تسجيل الدخول' : 'Login required'}
+        </Text>
+        <Text style={styles.emptyHint}>
+          {language === 'ar'
+            ? 'سجّل دخولك كحساب تاجر للوصول إلى إدارة الحجوزات'
+            : 'Sign in with a merchant account to manage reservations'}
+        </Text>
+      </View>
+    );
+  }
+
+  if (!storeId) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <View style={styles.emptyIconWrap}>
+          <Ionicons name="storefront-outline" size={40} color={colors.light.mutedForeground} />
+        </View>
+        <Text style={styles.emptyTitle}>
+          {language === 'ar' ? 'لا يوجد متجر مرتبط' : 'No store linked'}
+        </Text>
+        <Text style={styles.emptyHint}>
+          {language === 'ar'
+            ? 'حسابك غير مرتبط بأي متجر. تواصل مع الإدارة.'
+            : 'Your account is not linked to any store. Contact support.'}
+        </Text>
+      </View>
+    );
   }
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={[styles.header, { paddingTop: topInset + 8 }]}>
         <View style={isTablet ? styles.tabletInner : undefined}>
           <View style={[styles.headerRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
@@ -287,7 +344,6 @@ export default function MerchantReservationsScreen() {
             <View style={{ width: 40 }} />
           </View>
 
-          {/* Filter tabs */}
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -314,7 +370,6 @@ export default function MerchantReservationsScreen() {
         </View>
       </View>
 
-      {/* List */}
       {isLoading ? (
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={colors.light.primary} />
@@ -349,9 +404,9 @@ export default function MerchantReservationsScreen() {
                 isRTL={isRTL}
                 language={language}
                 actionLoading={actionLoading === item.id}
-                onConfirm={() => confirm({ id: item.id, data: { storeId: STORE_ID } })}
+                onConfirm={() => confirm({ id: item.id, data: { storeId } })}
                 onDecline={() => { setDeclineModal({ id: item.id }); setDeclineReason(''); }}
-                onComplete={() => complete({ id: item.id, data: { storeId: STORE_ID } })}
+                onComplete={() => complete({ id: item.id, data: { storeId } })}
                 onOpenChat={item.conversationId ? () => router.push(`/messages/${item.conversationId}` as any) : null}
               />
             </View>
@@ -359,7 +414,6 @@ export default function MerchantReservationsScreen() {
         />
       )}
 
-      {/* Decline modal */}
       <Modal
         visible={!!declineModal}
         transparent
@@ -409,12 +463,9 @@ export default function MerchantReservationsScreen() {
   );
 }
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
-
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.light.background },
   tabletInner: { width: '100%', maxWidth: 680, alignSelf: 'center' },
-
   header: {
     backgroundColor: colors.light.card,
     borderBottomWidth: 1,
@@ -436,7 +487,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.light.muted,
   },
   headerTitle: { fontSize: 17, fontFamily: 'Inter_700Bold', color: colors.light.foreground },
-
   tabs: { paddingHorizontal: 16, paddingVertical: 10, gap: 8 },
   tab: {
     paddingHorizontal: 14,
@@ -447,7 +497,6 @@ const styles = StyleSheet.create({
   tabActive: { backgroundColor: colors.light.primary },
   tabText: { fontSize: 13, fontFamily: 'Inter_500Medium', color: colors.light.mutedForeground },
   tabTextActive: { color: '#fff', fontFamily: 'Inter_700Bold' },
-
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
   emptyIconWrap: {
     width: 80,
@@ -471,72 +520,59 @@ const styles = StyleSheet.create({
     color: colors.light.mutedForeground,
     textAlign: 'center',
   },
-
-  list: { padding: 16, gap: 10 },
-
+  list: { padding: 16, gap: 12 },
   card: {
     backgroundColor: colors.light.card,
-    borderRadius: colors.radiusLg,
+    borderRadius: 16,
     padding: 14,
     borderWidth: 1,
     borderColor: colors.light.border,
-    gap: 10,
-    ...colors.light.shadowSm,
+    marginBottom: 12,
   },
   cardTop: { alignItems: 'flex-start' },
   productCircle: {
     width: 48,
     height: 48,
-    borderRadius: 12,
-    borderWidth: 1.5,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
   },
-  productName: { fontSize: 14, fontFamily: 'Inter_700Bold', color: colors.light.foreground },
-  buyerText: { fontSize: 11, fontFamily: 'Inter_400Regular', color: colors.light.mutedForeground },
-  priceText: { fontSize: 13, fontFamily: 'Inter_700Bold', color: colors.light.primary, marginTop: 2 },
-  statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: colors.radiusFull,
-  },
+  productName: { fontSize: 15, fontFamily: 'Inter_600SemiBold', color: colors.light.foreground },
+  buyerText: { fontSize: 12, fontFamily: 'Inter_400Regular', color: colors.light.mutedForeground },
+  priceText: { fontSize: 14, fontFamily: 'Inter_700Bold', color: colors.light.primary, marginTop: 2 },
+  statusBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
   statusText: { fontSize: 11, fontFamily: 'Inter_600SemiBold' },
   dateText: { fontSize: 11, fontFamily: 'Inter_400Regular', color: colors.light.mutedForeground },
   expiryText: { fontSize: 11, fontFamily: 'Inter_500Medium', color: colors.light.warning },
-
-  notesRow: { gap: 6, alignItems: 'flex-start', backgroundColor: colors.light.muted, borderRadius: 8, padding: 8 },
-  notesText: { fontSize: 13, fontFamily: 'Inter_400Regular', color: colors.light.foreground, flex: 1 },
-
-  actionsRow: { gap: 8 },
+  notesRow: { gap: 6, marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: colors.light.border },
+  notesText: { flex: 1, fontSize: 13, fontFamily: 'Inter_400Regular', color: colors.light.mutedForeground },
+  actionsRow: { marginTop: 12, gap: 8 },
   actionBtn: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 5,
+    gap: 6,
     paddingVertical: 10,
-    borderRadius: colors.radiusMd,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    flex: 1,
   },
   confirmBtn: { backgroundColor: colors.light.success },
-  declineBtn: { backgroundColor: '#FEE2E2', borderWidth: 1, borderColor: colors.light.destructive + '30' },
-  completeBtn: { backgroundColor: colors.light.verifiedBlue },
-  confirmBtnText: { fontSize: 14, fontFamily: 'Inter_700Bold', color: '#fff' },
-  declineBtnText: { fontSize: 14, fontFamily: 'Inter_700Bold', color: colors.light.destructive },
-  chatBtn: { backgroundColor: colors.light.primaryLight, borderWidth: 1, borderColor: colors.light.primary + '30' },
-  chatBtnText: { fontSize: 14, fontFamily: 'Inter_700Bold', color: colors.light.primary },
-
-  // Modal
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-  },
+  confirmBtnText: { fontSize: 13, fontFamily: 'Inter_600SemiBold', color: '#fff' },
+  declineBtn: { backgroundColor: colors.light.muted, borderWidth: 1, borderColor: colors.light.border },
+  declineBtnText: { fontSize: 13, fontFamily: 'Inter_600SemiBold', color: colors.light.destructive },
+  completeBtn: { backgroundColor: colors.light.primary },
+  chatBtn: { backgroundColor: colors.light.primaryLight },
+  chatBtnText: { fontSize: 13, fontFamily: 'Inter_600SemiBold', color: colors.light.primary },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' },
   modalSheet: {
     backgroundColor: colors.light.card,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    padding: 24,
-    gap: 14,
-    ...colors.light.shadowLg,
+    paddingHorizontal: 20,
+    paddingBottom: 34,
+    paddingTop: 12,
   },
   modalHandle: {
     width: 40,
@@ -544,38 +580,37 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     backgroundColor: colors.light.border,
     alignSelf: 'center',
-    marginBottom: 4,
+    marginBottom: 16,
   },
-  modalTitle: { fontSize: 18, fontFamily: 'Inter_700Bold', color: colors.light.foreground },
-  modalSubtitle: { fontSize: 14, fontFamily: 'Inter_400Regular', color: colors.light.mutedForeground },
+  modalTitle: { fontSize: 17, fontFamily: 'Inter_700Bold', color: colors.light.foreground, marginBottom: 4 },
+  modalSubtitle: { fontSize: 13, fontFamily: 'Inter_400Regular', color: colors.light.mutedForeground, marginBottom: 12 },
   reasonInput: {
-    backgroundColor: colors.light.muted,
-    borderRadius: colors.radiusMd,
+    borderWidth: 1,
+    borderColor: colors.light.border,
+    borderRadius: 12,
     padding: 12,
+    minHeight: 88,
     fontSize: 14,
     fontFamily: 'Inter_400Regular',
     color: colors.light.foreground,
-    minHeight: 80,
+    backgroundColor: colors.light.muted,
     textAlignVertical: 'top',
-    borderWidth: 1,
-    borderColor: colors.light.border,
   },
-  modalActions: { gap: 10 },
+  modalActions: { marginTop: 16, gap: 10 },
   modalCancelBtn: {
     flex: 1,
     paddingVertical: 12,
-    borderRadius: colors.radiusMd,
+    borderRadius: 12,
+    alignItems: 'center',
     backgroundColor: colors.light.muted,
-    alignItems: 'center',
   },
-  modalCancelText: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: colors.light.mutedForeground },
+  modalCancelText: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: colors.light.foreground },
   modalDeclineBtn: {
-    flex: 2,
+    flex: 1,
     paddingVertical: 12,
-    borderRadius: colors.radiusMd,
-    backgroundColor: colors.light.destructive,
+    borderRadius: 12,
     alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: colors.light.destructive,
   },
-  modalDeclineText: { fontSize: 14, fontFamily: 'Inter_700Bold', color: '#fff' },
+  modalDeclineText: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: '#fff' },
 });
