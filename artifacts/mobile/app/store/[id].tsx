@@ -36,7 +36,6 @@ import {
   type ReviewDto,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useDeviceId } from "@/hooks/useDeviceId";
 import { useAuth } from "@/contexts/AuthContext";
 import ReviewFormModal from "@/components/ReviewFormModal";
 import RatingStars from "@/components/RatingStars";
@@ -239,7 +238,6 @@ export default function StoreScreen() {
   const { data: allCategories = [] } = useGetCategories();
 
   const queryClient = useQueryClient();
-  const deviceId = useDeviceId();
   const { user, isAuthenticated } = useAuth();
   const [galleryVisible, setGalleryVisible] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
@@ -266,6 +264,7 @@ export default function StoreScreen() {
   });
 
   function handleDeleteReview(review: ReviewDto) {
+    if (!isAuthenticated || !user?.id) return;
     Alert.alert(t("deleteReview"), t("deleteReviewConfirm"), [
       { text: t("cancel"), style: "cancel" },
       {
@@ -274,7 +273,9 @@ export default function StoreScreen() {
         onPress: () =>
           deleteMutation.mutate({
             id: review.id,
-            params: { userId: deviceId ?? "" },
+            // Generated client still requires userId query param; backend ignores it
+            // and enforces ownership via session (req.user.sub).
+            params: { userId: user.id },
           }),
       },
     ]);
@@ -518,7 +519,7 @@ export default function StoreScreen() {
                 <Text style={[styles.bodyText, { marginTop: 6, textAlign: isRTL ? "right" : "left" }]}>
                   {language === "ar" ? review.textAr : review.textEn}
                 </Text>
-                {deviceId !== null && review.userId === deviceId && (
+                {isAuthenticated && user?.id != null && review.userId === user.id && (
                   <Pressable onPress={() => handleDeleteReview(review)}>
                     <Text style={{ color: colors.light.destructive, marginTop: 6 }}>
                       {language === "ar" ? "حذف" : "Delete"}
@@ -528,17 +529,19 @@ export default function StoreScreen() {
               </View>
             ))
           )}
-          <Pressable
-            style={styles.writeReviewBtn}
-            onPress={() => {
-              setEditingReview(null);
-              setReviewFormVisible(true);
-            }}
-          >
-            <Text style={styles.writeReviewText}>
-              {language === "ar" ? "كتابة تقييم" : "Write a review"}
-            </Text>
-          </Pressable>
+          {isAuthenticated ? (
+            <Pressable
+              style={styles.writeReviewBtn}
+              onPress={() => {
+                setEditingReview(null);
+                setReviewFormVisible(true);
+              }}
+            >
+              <Text style={styles.writeReviewText}>
+                {language === "ar" ? "كتابة تقييم" : "Write a review"}
+              </Text>
+            </Pressable>
+          ) : null}
         </View>
 
         <View style={{ height: 24 }} />
@@ -549,7 +552,6 @@ export default function StoreScreen() {
         onClose={() => setReviewFormVisible(false)}
         storeId={store.id}
         reviewToEdit={editingReview}
-        deviceId={deviceId}
       />
 
       <GalleryViewerModal

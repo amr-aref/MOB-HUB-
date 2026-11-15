@@ -22,26 +22,16 @@ import {
   type ReviewDto,
 } from '@workspace/api-client-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 import colors from '@/constants/colors';
 import { getFontFamily } from '@/constants/fonts';
-
-// ---------------------------------------------------------------------------
-// Props
-// ---------------------------------------------------------------------------
 
 interface ReviewFormModalProps {
   storeId: string;
   visible: boolean;
   onClose: () => void;
-  /** When provided the modal opens in edit mode, pre-populated with this review. */
   reviewToEdit?: ReviewDto | null;
-  /** Persistent device identifier used as pseudo-userId until auth lands. */
-  deviceId: string | null;
 }
-
-// ---------------------------------------------------------------------------
-// StarSelector sub-component
-// ---------------------------------------------------------------------------
 
 function StarSelector({
   rating,
@@ -86,25 +76,20 @@ const starStyles = StyleSheet.create({
   },
 });
 
-// ---------------------------------------------------------------------------
-// ReviewFormModal
-// ---------------------------------------------------------------------------
-
 export default function ReviewFormModal({
   storeId,
   visible,
   onClose,
   reviewToEdit = null,
-  deviceId,
 }: ReviewFormModalProps) {
   const { t, isRTL, language } = useLanguage();
+  const { user, isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
 
   const fontBold = getFontFamily(isRTL, 'bold');
   const fontSemi = getFontFamily(isRTL, 'semiBold');
   const fontReg = getFontFamily(isRTL, 'regular');
 
-  // ------ form state ------
   const [rating, setRating] = useState(0);
   const [name, setName] = useState('');
   const [title, setTitle] = useState('');
@@ -112,14 +97,16 @@ export default function ReviewFormModal({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
 
-  // Slide-up animation
   const slideAnim = useRef(new Animated.Value(600)).current;
 
-  // Reset form whenever the modal opens or the target review changes
   useEffect(() => {
     if (visible) {
       setRating(reviewToEdit?.rating ?? 0);
-      setName(reviewToEdit?.author ?? '');
+      const sessionName =
+        language === 'ar'
+          ? (user?.nameAr || user?.name || '')
+          : (user?.name || user?.nameAr || '');
+      setName(reviewToEdit?.author ?? sessionName);
       setTitle(reviewToEdit?.title ?? '');
       setReviewText(
         reviewToEdit
@@ -140,9 +127,8 @@ export default function ReviewFormModal({
     } else {
       slideAnim.setValue(600);
     }
-  }, [visible, reviewToEdit, language, slideAnim]);
+  }, [visible, reviewToEdit, language, slideAnim, user]);
 
-  // ------ mutations ------
   const invalidateQueries = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: getGetStoreReviewsQueryKey(storeId) });
     queryClient.invalidateQueries({ queryKey: getGetStoreQueryKey(storeId) });
@@ -186,7 +172,6 @@ export default function ReviewFormModal({
   const isLoading = createMutation.isPending || updateMutation.isPending;
   const isEditMode = reviewToEdit !== null;
 
-  // ------ validation ------
   function validate(): boolean {
     const newErrors: Record<string, string> = {};
     if (rating === 0) newErrors.rating = t('ratingRequired');
@@ -201,8 +186,12 @@ export default function ReviewFormModal({
     return Object.keys(newErrors).length === 0;
   }
 
-  // ------ submit ------
   function handleSubmit() {
+    // Identity from authenticated session (JWT). Backend sets userId from req.user.sub.
+    if (!isAuthenticated || !user?.id) {
+      setErrors((prev) => ({ ...prev, general: t('error') }));
+      return;
+    }
     if (!validate() || isLoading) return;
     const text = reviewText.trim();
     const trimName = name.trim();
@@ -215,7 +204,8 @@ export default function ReviewFormModal({
           title: title.trim(),
           textEn: text,
           textAr: text,
-          userId: deviceId ?? reviewToEdit.userId ?? '',
+          // Required by generated UpdateReviewBody; server ignores body.userId.
+          userId: user.id,
         },
       });
     } else {
@@ -228,7 +218,6 @@ export default function ReviewFormModal({
           title: title.trim(),
           textEn: text,
           textAr: text,
-          userId: deviceId ?? undefined,
         },
       });
     }
@@ -239,7 +228,6 @@ export default function ReviewFormModal({
     onClose();
   }
 
-  // ------ render ------
   const textDir = isRTL ? 'right' : 'left';
 
   return (
@@ -254,7 +242,6 @@ export default function ReviewFormModal({
         style={styles.overlay}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        {/* Backdrop */}
         <Pressable style={StyleSheet.absoluteFill} onPress={handleClose} />
 
         <Animated.View
@@ -263,10 +250,8 @@ export default function ReviewFormModal({
             { transform: [{ translateY: slideAnim }] },
           ]}
         >
-          {/* Handle bar */}
           <View style={styles.handle} />
 
-          {/* Header */}
           <View style={[styles.header, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <Text style={[styles.headerTitle, { fontFamily: fontBold, textAlign: textDir }]}>
               {isEditMode ? t('editReview') : t('writeReview')}
@@ -286,7 +271,6 @@ export default function ReviewFormModal({
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            {/* Star Rating */}
             <View style={styles.ratingSection}>
               <Text style={[styles.fieldLabel, { fontFamily: fontSemi, textAlign: 'center' }]}>
                 {t('tapToRate')}
@@ -299,7 +283,6 @@ export default function ReviewFormModal({
               )}
             </View>
 
-            {/* Name */}
             <View style={styles.fieldGroup}>
               <Text style={[styles.fieldLabel, { fontFamily: fontSemi, textAlign: textDir }]}>
                 {t('yourName')}
@@ -325,7 +308,6 @@ export default function ReviewFormModal({
               )}
             </View>
 
-            {/* Title (optional) */}
             <View style={styles.fieldGroup}>
               <Text style={[styles.fieldLabel, { fontFamily: fontSemi, textAlign: textDir }]}>
                 {t('reviewTitle')}
@@ -342,7 +324,6 @@ export default function ReviewFormModal({
               />
             </View>
 
-            {/* Review Text */}
             <View style={styles.fieldGroup}>
               <View style={[styles.fieldLabelRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <Text style={[styles.fieldLabel, { fontFamily: fontSemi, textAlign: textDir }]}>
@@ -376,7 +357,6 @@ export default function ReviewFormModal({
               )}
             </View>
 
-            {/* General error */}
             {errors.general && (
               <View style={styles.generalError}>
                 <Ionicons name="alert-circle" size={16} color="#EF4444" />
@@ -386,7 +366,6 @@ export default function ReviewFormModal({
               </View>
             )}
 
-            {/* Submit */}
             <Pressable
               style={[
                 styles.submitBtn,
@@ -398,9 +377,7 @@ export default function ReviewFormModal({
               accessibilityLabel={isEditMode ? t('editReview') : t('submitReview')}
             >
               {isLoading ? (
-                <Text style={[styles.submitBtnText, { fontFamily: fontSemi }]}>
-                  {'...'}
-                </Text>
+                <Text style={[styles.submitBtnText, { fontFamily: fontSemi }]}>{'...'}</Text>
               ) : (
                 <Text style={[styles.submitBtnText, { fontFamily: fontSemi }]}>
                   {isEditMode ? t('editReview') : t('submitReview')}
@@ -409,7 +386,6 @@ export default function ReviewFormModal({
             </Pressable>
           </ScrollView>
 
-          {/* Success overlay */}
           {submitted && (
             <View style={styles.successOverlay}>
               <View style={styles.successIcon}>
@@ -425,10 +401,6 @@ export default function ReviewFormModal({
     </Modal>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Styles
-// ---------------------------------------------------------------------------
 
 const styles = StyleSheet.create({
   overlay: {
