@@ -12,7 +12,12 @@ export interface AuthUser {
   isEmailVerified: boolean;
 }
 
-interface AuthState { user: AuthUser | null; isLoading: boolean; isAuthenticated: boolean; }
+interface AuthState {
+  user: AuthUser | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+}
+
 interface AuthContextValue extends AuthState {
   login: (email: string, password: string, deviceId?: string) => Promise<void>;
   register: (params: RegisterParams) => Promise<void>;
@@ -35,26 +40,110 @@ const KEYS = {
   USER: 'auth.user',
 } as const;
 
-const BASE_URL = process.env['EXPO_PUBLIC_DOMAIN'] ? `https://${process.env['EXPO_PUBLIC_DOMAIN']}` : 'http://localhost:8080';
+/** Auth error codes that prove the session is invalid and tokens must be cleared. */
+const AUTH_FAILURE_CODES = new Set([
+  'INVALID_TOKEN',
+  'TOKEN_EXPIRED',
+  'TOKEN_REUSE',
+  'ACCOUNT_SUSPENDED',
+  'ACCOUNT_UNAVAILABLE',
+  'UNAUTHORIZED',
+]);
 
-type TokensResponse = { accessToken: string; refreshToken: string; expiresIn: number; user: AuthUser };
+const BASE_URL = process.env['EXPO_PUBLIC_DOMAIN']
+  ? `https://${process.env['EXPO_PUBLIC_DOMAIN']}`
+  : 'http://localhost:8080';
 
-type ApiError = Error & { code?: string; status?: number };
+type TokensResponse = {
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+  user: AuthUser;
+};
 
-async function apiRequest<T>(path: string, method: 'GET' | 'POST', body?: unknown, accessToken?: string): Promise<T> {
+type ApiError = Error & { code?: string; status?: number; isNetworkError?: boolean };
+
+function isNetworkError(err: unknown): boolean {
+  if (!err || typeof err !== 'object') return false;
+  const e = err as ApiError;
+  if (e.isNetworkError) return true;
+  // fetch() rejects with TypeError on network failure in RN / browsers
+  if (e.name === 'TypeError') return true;
+  if (typeof e.message === 'string') {
+    const msg = e.message.toLowerCase();
+    if (
+      msg.includes('network request failed') ||
+      msg.includes('failed to fetch') ||
+      msg.includes('networkerror') ||
+      msg.includes('internet connection') ||
+      msg.includes('timed out') ||
+      msg.includes('timeout')
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function isDefinitiveAuthFailure(err: unknown): boolean {
+  if (!err || typeof err !== 'object') return false;
+  if (isNetworkError(err)) return false;
+  const e = err as ApiError;
+  if (e.status === 401 || e.status === 403) return true;
+  if (e.code && AUTH_FAILURE_CODES.has(e.code)) return true;
+  return false;
+}
+
+async function apiRequest<T>(
+  path: string,
+  method: 'GET' | 'POST',
+  body?: unknown,
+  accessToken?: string,
+): Promise<T> {
   const headers: Record<string, string> = {};
   if (body !== undefined) headers['Content-Type'] = 'application/json';
   if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
 
-  const res = await fetch(`${BASE_URL}/api${path}`, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
+  let res: Response;
+  try {
+    res = await fetch(`${BASE_URL}/api${path}`, {
+      method,
+      headers,
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+  } catch (cause) {
+    const err = new Error(
+      cause instanceof Error ? cause.message : 'Network request failed',
+    ) as ApiError;
+    err.isNetworkError = true;
+    err.cause = cause;
+    throw err;
+  }
+
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const err = new Error((data as Record<string, string>).error ?? `HTTP ${res.status}`) as ApiError;
+    const err = new Error(
+      (data as Record<string, string>).error ?? `HTTP ${res.status}`,
+    ) as ApiError;
     err.code = (data as Record<string, string>).code;
     err.status = res.status;
     throw err;
   }
   return data as T;
+}
+
+async function readCachedUser(): Promise<AuthUser | null> {
+  try {
+    const raw = await SecureStore.getItemAsync(KEYS.USER);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as AuthUser;
+    if (parsed && typeof parsed.id === 'string' && typeof parsed.email === 'string') {
+      return parsed;
+    }
+    return null;
+  } catch {
+    return null;
+  }
 }
 
 const AuthContext = createContext<AuthContextValue>({
@@ -67,10 +156,16 @@ const AuthContext = createContext<AuthContextValue>({
   refreshSession: async () => false,
 });
 
-export function useAuth(): AuthContextValue { return useContext(AuthContext); }
+export function useAuth(): AuthContextValue {
+  return useContext(AuthContext);
+}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<AuthState>({ user: null, isLoading: true, isAuthenticated: false });
+  const [state, setState] = useState<AuthState>({
+    user: null,
+    isLoading: true,
+    isAuthenticated: false,
+  });
   const accessTokenRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -78,14 +173,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => setAuthTokenGetter(null);
   }, []);
 
-  const persist = useCallback(async (user: AuthUser, accessToken: string, refreshToken: string) => {
-    accessTokenRef.current = accessToken;
-    await Promise.all([
-      SecureStore.setItemAsync(KEYS.ACCESS_TOKEN, accessToken),
-      SecureStore.setItemAsync(KEYS.REFRESH_TOKEN, refreshToken),
-      SecureStore.setItemAsync(KEYS.USER, JSON.stringify(user)),
-    ]);
-  }, []);
+  const persist = useCallback(
+    async (user: AuthUser, accessToken: string, refreshToken: string) => {
+      accessTokenRef.current = accessToken;
+      await Promise.all([
+        SecureStore.setItemAsync(KEYS.ACCESS_TOKEN, accessToken),
+        SecureStore.setItemAsync(KEYS.REFRESH_TOKEN, refreshToken),
+        SecureStore.setItemAsync(KEYS.USER, JSON.stringify(user)),
+      ]);
+    },
+    [],
+  );
 
   const clear = useCallback(async () => {
     accessTokenRef.current = null;
@@ -96,69 +194,179 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     ]);
   }, []);
 
+  /**
+   * Attempt token rotation.
+   * Returns true only when a fresh pair was obtained and persisted.
+   * On network failure: leaves tokens untouched and returns false.
+   * On definitive auth failure: clears credentials and returns false.
+   */
   const refreshSession = useCallback(async (): Promise<boolean> => {
     try {
       const refreshToken = await SecureStore.getItemAsync(KEYS.REFRESH_TOKEN);
       if (!refreshToken) return false;
-      const data = await apiRequest<TokensResponse>('/auth/refresh', 'POST', { refreshToken });
+
+      const data = await apiRequest<TokensResponse>('/auth/refresh', 'POST', {
+        refreshToken,
+      });
       await persist(data.user, data.accessToken, data.refreshToken);
       setState({ user: data.user, isLoading: false, isAuthenticated: true });
       return true;
-    } catch {
-      await clear();
-      setState({ user: null, isLoading: false, isAuthenticated: false });
+    } catch (err) {
+      if (isNetworkError(err)) {
+        // Keep credentials; caller may retry when connectivity returns.
+        return false;
+      }
+      if (isDefinitiveAuthFailure(err)) {
+        await clear();
+        setState({ user: null, isLoading: false, isAuthenticated: false });
+      }
       return false;
     }
   }, [persist, clear]);
 
   useEffect(() => {
     let cancelled = false;
+
     async function restore() {
       try {
         const accessToken = await SecureStore.getItemAsync(KEYS.ACCESS_TOKEN);
         if (!accessToken) {
-          if (!cancelled) setState({ user: null, isLoading: false, isAuthenticated: false });
+          if (!cancelled) {
+            setState({ user: null, isLoading: false, isAuthenticated: false });
+          }
           return;
         }
 
         accessTokenRef.current = accessToken;
-        const data = await apiRequest<{ user: AuthUser }>('/auth/me', 'GET', undefined, accessToken);
-        const refreshToken = await SecureStore.getItemAsync(KEYS.REFRESH_TOKEN);
-        if (!refreshToken) throw new Error('Missing refresh token');
-        await SecureStore.setItemAsync(KEYS.USER, JSON.stringify(data.user));
-        if (!cancelled) setState({ user: data.user, isLoading: false, isAuthenticated: true });
-      } catch {
+
+        // 1. Prefer validating the current access token.
+        try {
+          const data = await apiRequest<{ user: AuthUser }>(
+            '/auth/me',
+            'GET',
+            undefined,
+            accessToken,
+          );
+          const refreshToken = await SecureStore.getItemAsync(KEYS.REFRESH_TOKEN);
+          if (!refreshToken) {
+            // Access token works but refresh is missing — still accept session;
+            // next refresh will fail and clear if truly broken.
+            await SecureStore.setItemAsync(KEYS.USER, JSON.stringify(data.user));
+            if (!cancelled) {
+              setState({ user: data.user, isLoading: false, isAuthenticated: true });
+            }
+            return;
+          }
+          await SecureStore.setItemAsync(KEYS.USER, JSON.stringify(data.user));
+          if (!cancelled) {
+            setState({ user: data.user, isLoading: false, isAuthenticated: true });
+          }
+          return;
+        } catch (meErr) {
+          if (isNetworkError(meErr)) {
+            // Offline / server unreachable: restore from cache, keep tokens.
+            const cached = await readCachedUser();
+            if (cached && !cancelled) {
+              setState({ user: cached, isLoading: false, isAuthenticated: true });
+            } else if (!cancelled) {
+              setState({ user: null, isLoading: false, isAuthenticated: false });
+            }
+            return;
+          }
+
+          if (!isDefinitiveAuthFailure(meErr)) {
+            // Unexpected non-auth error: keep tokens, try cache.
+            const cached = await readCachedUser();
+            if (cached && !cancelled) {
+              setState({ user: cached, isLoading: false, isAuthenticated: true });
+            } else if (!cancelled) {
+              setState({ user: null, isLoading: false, isAuthenticated: false });
+            }
+            return;
+          }
+
+          // Access token rejected → attempt rotation.
+        }
+
+        // 2. Access token invalid — try refresh.
+        const refreshed = await refreshSession();
+        if (refreshed || cancelled) return;
+
+        // refreshSession already cleared on definitive auth failure.
+        // If it returned false due to network, restore cached user.
+        const stillHasRefresh = await SecureStore.getItemAsync(KEYS.REFRESH_TOKEN);
+        if (stillHasRefresh) {
+          const cached = await readCachedUser();
+          if (cached && !cancelled) {
+            setState({ user: cached, isLoading: false, isAuthenticated: true });
+            return;
+          }
+        }
+
         if (!cancelled) {
-          const refreshed = await refreshSession();
-          if (!refreshed) await clear();
+          setState({ user: null, isLoading: false, isAuthenticated: false });
+        }
+      } catch {
+        // Last-resort safety: never leave the app stuck on isLoading.
+        if (!cancelled) {
+          const cached = await readCachedUser();
+          if (cached) {
+            setState({ user: cached, isLoading: false, isAuthenticated: true });
+          } else {
+            setState({ user: null, isLoading: false, isAuthenticated: false });
+          }
         }
       }
     }
+
     void restore();
-    return () => { cancelled = true; };
-  }, [refreshSession, clear]);
+    return () => {
+      cancelled = true;
+    };
+  }, [refreshSession]);
 
-  const login = useCallback(async (email: string, password: string, deviceId?: string) => {
-    const data = await apiRequest<TokensResponse>('/auth/login', 'POST', { email, password, deviceId, platform: 'mobile' });
-    await persist(data.user, data.accessToken, data.refreshToken);
-    setState({ user: data.user, isLoading: false, isAuthenticated: true });
-  }, [persist]);
+  const login = useCallback(
+    async (email: string, password: string, deviceId?: string) => {
+      const data = await apiRequest<TokensResponse>('/auth/login', 'POST', {
+        email,
+        password,
+        deviceId,
+        platform: 'mobile',
+      });
+      await persist(data.user, data.accessToken, data.refreshToken);
+      setState({ user: data.user, isLoading: false, isAuthenticated: true });
+    },
+    [persist],
+  );
 
-  const register = useCallback(async (params: RegisterParams) => {
-    const data = await apiRequest<TokensResponse>('/auth/register', 'POST', { ...params, platform: 'mobile' });
-    await persist(data.user, data.accessToken, data.refreshToken);
-    setState({ user: data.user, isLoading: false, isAuthenticated: true });
-  }, [persist]);
+  const register = useCallback(
+    async (params: RegisterParams) => {
+      const data = await apiRequest<TokensResponse>('/auth/register', 'POST', {
+        ...params,
+        platform: 'mobile',
+      });
+      await persist(data.user, data.accessToken, data.refreshToken);
+      setState({ user: data.user, isLoading: false, isAuthenticated: true });
+    },
+    [persist],
+  );
 
   const logout = useCallback(async () => {
     try {
-      const token = accessTokenRef.current ?? await SecureStore.getItemAsync(KEYS.ACCESS_TOKEN);
-      if (token) await apiRequest('/auth/logout', 'POST', {}, token).catch(() => {});
+      const token =
+        accessTokenRef.current ?? (await SecureStore.getItemAsync(KEYS.ACCESS_TOKEN));
+      if (token) {
+        await apiRequest('/auth/logout', 'POST', {}, token).catch(() => {});
+      }
     } finally {
       await clear();
       setState({ user: null, isLoading: false, isAuthenticated: false });
     }
   }, [clear]);
 
-  return <AuthContext.Provider value={{ ...state, login, register, logout, refreshSession }}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ ...state, login, register, logout, refreshSession }}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
